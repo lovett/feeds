@@ -1,19 +1,4 @@
-var world = {
-    events: require('events'),
-    client: require('redis').createClient(),
-    request: require('request'),
-    url: require('url'),
-    util: require('util'),
-    htmlparser: require('htmlparser'),
-    console: console,
-    logger: function () {
-        var l = require('little-logger');
-        return new l.Logger('debug');
-    }(),
-    config: {
-        feed_check_interval: 120 // in minutes
-    }
-};
+var world = require('./world');
 
 var dispatcher = new world.events.EventEmitter();
 
@@ -72,7 +57,7 @@ dispatcher.on('_extract:reddit', function (world, entry) {
     var fields = {
         reddit_link: entry.link.href,
         reddit_title: entry.title,
-        reddit_found: entry.date
+        reddit_date: entry.date
     };
     
     var callback = function (error, dom) {
@@ -105,7 +90,8 @@ dispatcher.on('_extract:reddit', function (world, entry) {
 dispatcher.on('_store:feed:reddit', function (world, url, feed) {
     var fields = {
         title: feed.title,
-        subtitle: feed.subtitle
+        subtitle: feed.subtitle,
+        found: +new Date()
     }
 
     fields.site_url = feed.link.reduce(function (link) {
@@ -133,6 +119,7 @@ dispatcher.on('_store:entry', function (world, entry) {
         } else {
             world.client.incr('entries:counter', function (err, result) {
                 world.client.hset('entries', entry.url, result);
+                world.client.rpush('entries:queued', result);
                 world.client.hmset('entry:' + result, entry);
                 world.logger.info(world.util.format('Stored entry for %s', entry.url));
             });
