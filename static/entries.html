@@ -1,0 +1,21 @@
+<p ng-show="entries.length > 0">
+    Viewing page <span ng-bind="page"></span>
+    of <span ng-bind="page_count"></span>, 
+    <span ng-bind="page_size"></span> per page.
+</p>
+
+<p>
+    <a ng-show="page > 1" ng-href="/page/{{page - 1 }}"/>Previous</a>
+    <a ng-show="page < page_count" ng-href="/page/{{ page + 1 }}"/>Next</a>
+</p>
+
+<ol start="{{ page_start + 1 }}">
+    <li ng-repeat="entry in entries">
+        <a ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a> ({{ entry.domain }})
+        <p ng-if="entry.reddit_link">
+            <a ng-href="{{ entry.reddit_link }}" target="_blank">
+                <span ng-pluralize count="entry.reddit_comments" when="{'0': 'No Reddit comments', 'one': '1 Reddit comment', 'other': '{} Reddit comments'}"></span>
+            </a>
+        </p>
+    </li>
+</ol>
