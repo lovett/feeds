@@ -76,6 +76,7 @@ dispatcher.on('_extract:reddit', function (world, entry) {
 
                 if (child.data.indexOf('comment') > -1) {
                     fields.reddit_comments = child.data.replace(/[^0-9]/g, '');
+                    if (fields.reddit_comments === '') fields.reddit_comments = 0;
                     return;
                 }
             });
@@ -121,7 +122,7 @@ dispatcher.on('_store:entry', function (world, entry) {
         } else {
             world.client.incr('entries:counter', function (err, result) {
                 world.client.hset('entries', entry.url, result);
-                world.client.rpush('entries:queued', result);
+                world.client.zadd('entries:queued', +new Date(), result);
                 world.client.hmset('entry:' + result, entry);
                 world.logger.info(world.util.format('Stored entry for %s', entry.url));
             });

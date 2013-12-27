@@ -8,14 +8,21 @@ appServices.factory('Entry', ['$resource', function ($resource) {
                 page: '@page'
             }
         },
+        
         forget: {
             method: 'POST',
             url: '/entries/forget'
         },
-        remember: {
+        
+        favorite: {
             method: 'POST',
-            url: '/entries/remember'
-        }
+            url: '/entries/favorite'
+        },
+        
+        unfavorite: {
+            method: 'POST',
+            url: '/entries/unfavorite'
+        },
         
     });
 }]);

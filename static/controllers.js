@@ -42,9 +42,12 @@ appControllers.controller('Entries', ['$scope', '$routeParams', '$route', 'Entry
         
     };
 
-    $scope.remember = function (id) {
-        Entry.remember(id);
-        
+    $scope.favorite = function (entry) {
+        Entry.favorite(entry.id, function (data) {
+            Entry.forget([entry.id], function (data) {
+                $route.reload();
+            });
+        });
     };
     
 }]);

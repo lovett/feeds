@@ -14,11 +14,11 @@ server.get('/entries/', function unreadEntries (request, response, next) {
     var start = (page - 1) * page_size;
     var end = start + page_size - 1;
 
-    world.client.lrange('entries:queued', start, end, function (err, ids) {
+    world.client.zrange('entries:queued', start, end, function (err, ids) {
         var multi = world.client.multi();
 
         // total entries
-        multi.llen('entries:queued', function (err, result) {
+        multi.zcard('entries:queued', function (err, result) {
             return result;
         });
 
@@ -45,13 +45,13 @@ server.get('/entries/', function unreadEntries (request, response, next) {
     return next();
 });
 
-// move an element from entries:queued to entries:read
+// add entries to entries:read
 server.post('/entries/forget', function (request, response, next) {
     var multi = world.client.multi();
     
     request.body.forEach(function (id) {
-        multi.lrem('entries:queued', 1, id);
-        multi.rpush('entries:read', id);
+        multi.zrem('entries:queued', id);
+        multi.zadd('entries:read', +new Date(), id);
     });
 
     multi.exec(function (err, result) {
@@ -60,6 +60,37 @@ server.post('/entries/forget', function (request, response, next) {
     });
 });
 
+// add entries to entries:favorite
+server.post('/entries/favorite', function (request, response, next) {
+    var multi = world.client.multi();
+
+    if (typeof request.body !== 'array') {
+        request.body = [request.body];
+    }
+
+    request.body.forEach(function (id) {
+        multi.zadd('entries:favorite', +new Date(), id);
+    });
+
+    multi.exec(function (err, result) {
+        response.send(204);
+        return next();
+    });
+});
+
+// remove entries from entries:favorite
+server.post('/entries/unfavorite', function (request, response, next) {
+    var multi = world.client.multi();
+
+    request.body.forEach(function (id) {
+        multi.zrem('entries:favorite', id);
+    });
+
+    multi.exec(function (err, result) {
+        response.send(204);
+        return next();
+    });
+}); 
 
 server.get('/page/.*', function indexHTML(req, res, next) {
     fs.readFile(__dirname + '/static/index.html', function (err, data) {
@@ -75,13 +106,10 @@ server.get('/page/.*', function indexHTML(req, res, next) {
     });
 });
     
-
 server.get('/.*', restify.serveStatic({
   'directory': './static/',
   'default': 'index.html'
 }));
-
-
 
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);
