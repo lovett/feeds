@@ -14,5 +14,8 @@
     "htmlparser": "~1.7.7",
     "little-logger": "~0.1.4",
     "restify": "~2.6.1"
+  },
+  "dependencies": {
+    "moment": "~2.5.0"
   }
 }

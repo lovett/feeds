@@ -1,8 +1,18 @@
 <p ng-show="entries.length > 0">
-    Viewing page <span ng-bind="page"></span>
+    There <span ng-pluralize count="entry_count" when="{1: 'is', 'other': 'are'}"></span>
+    <span ng-bind="entry_count"></span>
+    unread
+    <span ng-pluralize count="entry_count" when="{1: 'entry', 'other': 'entries'}"></span>.
+    You're looking at page <span ng-bind="page"></span>
     of <span ng-bind="page_count"></span>, 
-    <span ng-bind="page_size"></span> per page.
+    with <span ng-bind="page_size"></span> entries per page.
 </p>
+
+<div ng-hide="entries.length > 0">
+    No unread entries!
+</div>
+
+<button ng-show="entries.length > 0" ng-click="forget()">Forget</button>
 
 <p>
     <a ng-show="page > 1" ng-href="/page/{{page - 1 }}"/>Previous</a>
@@ -16,6 +26,12 @@
             <a ng-href="{{ entry.reddit_link }}" target="_blank">
                 <span ng-pluralize count="entry.reddit_comments" when="{'0': 'No Reddit comments', 'one': '1 Reddit comment', 'other': '{} Reddit comments'}"></span>
             </a>
+
         </p>
+        <button ng-click="remember(entry.id)">Remember this</button>
+
+        <p>Collected: <span ng-bind="entry.found | amCalendar"></span></p>
+        <p>Published: <span ng-bind="entry.date | amCalendar"></span></p>
+
     </li>
 </ol>

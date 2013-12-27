@@ -6,6 +6,7 @@ module.exports = {
     util: require('util'),
     htmlparser: require('htmlparser'),
     console: console,
+    moment: require('moment'),
     logger: function () {
         var l = require('little-logger');
         return new l.Logger('debug');

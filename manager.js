@@ -55,9 +55,11 @@ dispatcher.on('_request', function (world, url) {
 
 dispatcher.on('_extract:reddit', function (world, entry) {
     var fields = {
+        reddit_comments: 0,
         reddit_link: entry.link.href,
         reddit_title: entry.title,
-        reddit_date: entry.date
+        reddit_date: world.moment(entry.date).format('X') * 1000,
+        found: +new Date()
     };
     
     var callback = function (error, dom) {

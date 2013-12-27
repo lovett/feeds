@@ -5,6 +5,7 @@ var server = restify.createServer();
 
 server.use(restify.queryParser({ mapParams: false }));
 server.use(restify.gzipResponse());
+server.use(restify.bodyParser({ mapParams: false }));
 
 // display elements from from entries:queued
 server.get('/entries/', function unreadEntries (request, response, next) {
@@ -24,6 +25,7 @@ server.get('/entries/', function unreadEntries (request, response, next) {
         // entry list
         ids.forEach(function (id) {
             multi.hgetall('entry:' + id, function (err, entry) {
+                entry.id = id;
                 return entry;
             });
         });
@@ -44,8 +46,18 @@ server.get('/entries/', function unreadEntries (request, response, next) {
 });
 
 // move an element from entries:queued to entries:read
-server.post('/entries/read', function readEntry (request, response, next) {
-    return next();
+server.post('/entries/forget', function (request, response, next) {
+    var multi = world.client.multi();
+    
+    request.body.forEach(function (id) {
+        multi.lrem('entries:queued', 1, id);
+        multi.rpush('entries:read', id);
+    });
+
+    multi.exec(function (err, result) {
+        response.send(204);
+        return next();
+    });
 });
 
 
