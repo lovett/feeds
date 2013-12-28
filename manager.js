@@ -45,8 +45,6 @@ dispatcher.on('_request', function (world, url) {
             entry_store_event = '_extract';
         }
         
-        self.emit('_store:feed', world, url, body.query.results.feed);
-        
         body.query.results.feed.entry.forEach(function (entry) {
             self.emit(entry_store_event, world, entry);
         });
@@ -153,25 +151,6 @@ dispatcher.on('_extract:reddit', function (world, entry) {
     parser.parseComplete(entry.summary.content);
 });
 
-dispatcher.on('_store:feed', function (world, url, feed) {
-    world.client.hget('feeds', url, function (err, feed_id) {
-        if (feed_id !== null) {
-            var key = 'feed:' + feed_id;
-            world.client.hmset(key, {
-                url: url,
-                name: feed.title,
-                added: +new Date(),
-                site_url: feed.link.reduce(function (link) {
-                    if (link.rel === 'alternate') {
-                        return link.href;
-                    }
-                })
-            });
-            world.logger.info(world.util.format('Updated feed details for %s', key));
-        };
-    }); 
-});
-
 dispatcher.on('_store:entry', function (world, entry) {
 
     world.client.hget('entries', entry.url, function (err, result) {
@@ -189,53 +168,6 @@ dispatcher.on('_store:entry', function (world, entry) {
     });
 
 });
-
-dispatcher.on('subscribe', function (args, world) {
-    var url = args.pop();
-    var self = this;
-
-    if (!url) {
-        this.emit('_message', world, 'URL not specified');
-        world.client.unref();
-    }
-
-    world.client.hexists('feeds', url, function (err, result) {
-        if (result !== 0) {
-            self.emit('_message', world, 'You are already subscribed to that URL');
-            world.client.unref();
-        } else {
-            world.client.incr('feeds:counter', function (err, feed_id) {
-                world.client.hset('feeds', url, feed_id);
-                world.client.hset('feeds:schedule', feed_id, world.config.feed_check_interval);
-                self.emit('_message', world, 'Subscription added');
-                self.emit('_request', world, url);
-                world.client.unref();
-            });
-        };
-    });
-});
-
-dispatcher.on('unsubscribe', function (args, world) {
-    var url = args.pop();
-    var key = 'feeds';
-    var self = this;
-
-    if (!url) {
-        this.emit('_message', world, 'URL not specified');
-        world.client.unref();
-    }
-
-    world.client.hexists(key, url, function (err, result) {
-        if (result === 0) {
-            self.emit('_message', world, 'You are not subscribed to that URL');
-        } else {
-            world.client.hdel(key, url);
-            self.emit('_message', world, 'You have been unsubscribed');
-            world.client.unref();
-        }
-    });
-});
-
 
 dispatcher.on('_schedule', function (args, world, interval) {
     var url = args.pop();
@@ -272,7 +204,6 @@ dispatcher.on('_schedule', function (args, world, interval) {
         
     });
 });
-
 
 dispatcher.on('pause', function (args, world) {
     this.emit('_schedule', args, world, 'off');
