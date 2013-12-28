@@ -27,7 +27,7 @@ dispatcher.on('_request', function (world, url) {
     };
 
     world.request(request_options, function (err, response, body) {
-        var feed_store_event, entry_store_event;
+        var entry_store_event;
         
         if (err) {
             world.logger.error(error);
@@ -38,19 +38,82 @@ dispatcher.on('_request', function (world, url) {
         }
 
         if (parsed_url.host.indexOf('reddit.com') > -1) {
-            feed_store_event = '_store:feed:reddit';
             entry_store_event = '_extract:reddit';
+        } else if (parsed_url.host.indexOf('news.ycombinator.com') > -1) {
+            entry_store_event = '_extract:hn';
         } else {
-            feed_store_event = '_store:feed';
             entry_store_event = '_extract';
         }
         
-        self.emit(feed_store_event, world, url, body.query.results.feed);
+        self.emit('_store:feed', world, url, body.query.results.feed);
         
         body.query.results.feed.entry.forEach(function (entry) {
             self.emit(entry_store_event, world, entry);
         });
     });
+});
+
+dispatcher.on('_extract', function (world, entry) {
+    var date_field;
+    
+    var fields = {
+        url: entry.link.href,
+        title: entry.title,
+        found: +new Date(),
+    }
+
+    if (entry.origLink) {
+        fields.url = entry.origLink.content
+    }
+
+    if (entry.creator) {
+        fields.author = entry.creator;
+    }
+
+    if (entry.updated) {
+        date_field = entry.updated;
+    } else if (entry.published) {
+        date_field = entry.published;
+    } else if (entry.date) {
+        date_field = entry.date;
+    }
+
+    if (date_field) {
+        fields.date = world.moment(date_field).format('X') * 1000;
+    }
+
+    this.emit('_store:entry', world, fields);
+    
+});
+
+dispatcher.on('_extract:hn', function (world, entry) {
+    var fields = {
+        url: entry.link.href,
+        hn_title: entry.title,
+        found: +new Date()
+    };
+    
+    var callback = function (error, dom) {
+        dom.forEach(function (node) {
+            if (node.type !== 'tag') return;
+
+            if (node.name !== 'a') return;
+
+            node.children.forEach(function (child) {
+                if (child.data == 'Comments') {
+                    fields.hn_link = node.attribs.href;
+                    return;
+                }
+            });
+        });
+
+        this.emit('_store:entry', world, fields);
+    };
+
+    var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
+    var parser = new world.htmlparser.Parser(handler);
+    parser.parseComplete(entry.summary.content);
+    
 });
 
 dispatcher.on('_extract:reddit', function (world, entry) {
@@ -90,27 +153,23 @@ dispatcher.on('_extract:reddit', function (world, entry) {
     parser.parseComplete(entry.summary.content);
 });
 
-dispatcher.on('_store:feed:reddit', function (world, url, feed) {
-    var fields = {
-        title: feed.title,
-        subtitle: feed.subtitle,
-        found: +new Date()
-    }
-
-    fields.site_url = feed.link.reduce(function (link) {
-        if (link.rel === 'alternate') {
-            return link.href;
-        }
-    });
-
-    world.client.hget('feeds', url, function (err, result) {
-        var key = 'feed:' + result;
-        if (result !== null) {
-            world.client.hmset(key, fields);
+dispatcher.on('_store:feed', function (world, url, feed) {
+    world.client.hget('feeds', url, function (err, feed_id) {
+        if (feed_id !== null) {
+            var key = 'feed:' + feed_id;
+            world.client.hmset(key, {
+                url: url,
+                name: feed.title,
+                added: +new Date(),
+                site_url: feed.link.reduce(function (link) {
+                    if (link.rel === 'alternate') {
+                        return link.href;
+                    }
+                })
+            });
             world.logger.info(world.util.format('Updated feed details for %s', key));
         };
-    });
-    
+    }); 
 });
 
 dispatcher.on('_store:entry', function (world, entry) {
@@ -227,12 +286,7 @@ dispatcher.on('fetch', function (args, world) {
     var callback;
 
     callback = function (err, result) {
-        // only consider active (unpaused) feeds
-        var feeds = Object.keys(result).filter(function (feed) {
-            return parseInt(result[feed], 10) === 1
-        });
-
-        feeds.forEach(function (feed) {
+        Object.keys(result).forEach(function (feed) {
             this.emit('_request', world, feed);
         }, this);
     };
