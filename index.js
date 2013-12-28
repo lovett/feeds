@@ -3,22 +3,120 @@ var restify = require('restify');
 var fs = require('fs');
 var server = restify.createServer();
 
+
+var serveIndex = function (req, res, next) {
+    fs.readFile(__dirname + '/static/index.html', function (err, data) {
+        if (err) {
+            next(err);
+            return;
+        }
+        
+        res.setHeader('Content-Type', 'text/html');
+        res.writeHead(200);
+        res.end(data);
+        next();    
+    });
+};
+
 server.use(restify.queryParser({ mapParams: false }));
 server.use(restify.gzipResponse());
 server.use(restify.bodyParser({ mapParams: false }));
 
-// display elements from from entries:queued
-server.get('/entries/', function unreadEntries (request, response, next) {
+server.get('/entries/.*', serveIndex);
+server.get('/feeds', serveIndex);
+
+
+server.get('/list/feeds', function (request, response, next) {
+    
+    world.client.hgetall('feeds', function (err, result) {
+        if (!result) {
+            response.send({
+                feeds: []
+            });
+            return next();
+        }
+        
+        var multi = world.client.multi();
+
+        Object.keys(result).forEach(function (key) {
+            multi.hgetall('feed:' + result[key], function (err, feed) {
+                return feed;
+            });
+        });
+
+        multi.exec(function (err, result) {
+            response.send({
+                feeds: result
+            });
+            
+            return next();
+        });
+    });
+});
+
+server.post('/list/feeds', function (request, response, next) {
+    var multi = world.client.multi();
+
+    if (!request.body.hasOwnProperty('add')) {
+        request.body.add = [];
+    }
+
+    if (!(request.body.add instanceof Array)) {
+        request.body.add = [request.body.add];
+    }
+
+    if (!request.body.hasOwnProperty('remove')) {
+        request.body.remove = [];
+    }
+
+    if (!(request.body.remove instanceof Array)) {
+        request.body.remove = [request.body.remove];
+    }
+
+    request.body.add.forEach(function (feed) {
+        multi.hexists('feeds', feed.url, function (err, result) {
+            if (result === 0) {
+                world.client.incr('feeds:counter', function (err, feed_id) {                    
+                    world.client.hset('feeds', feed.url, feed_id);
+                    world.client.hmset('feed:' + feed_id, {
+                        'url': feed.url,
+                        'name': feed.name,
+                        'added': +new Date()
+                    });
+                    world.client.hset('feeds:schedule', feed_id, world.config.feed_check_interval);
+                });
+            }
+        });
+    });
+
+    request.body.remove.forEach(function (url) {
+        multi.hget('feeds', url, function (err, feed_id) {
+            world.client.del('feeds:' + feed_id);
+            world.client.hdel('feeds', url);
+            world.client.hdel('feeds:schedule', feed_id);
+        });
+    });
+
+    multi.exec(function (err, result) {
+        response.send(204);
+        return next();
+    });
+    
+});
+
+server.get('/list/:name', function getList (request, response, next) {
     var page = Math.abs(request.query.page) || 1;
     var page_size = Math.min(Math.abs(request.query.page_size) || 10, 50);
     var start = (page - 1) * page_size;
     var end = start + page_size - 1;
+    var key = 'entries:' + request.params.name;
 
-    world.client.zrange('entries:queued', start, end, function (err, ids) {
+    var method = (request.params.name == 'kept')? 'zrevrange':'zrange';
+    
+    world.client[method](key, start, end, function (err, ids) {
         var multi = world.client.multi();
 
-        // total entries
-        multi.zcard('entries:queued', function (err, result) {
+        multi.zcard(key, function (err, result) {
             return result;
         });
 
@@ -45,67 +143,25 @@ server.get('/entries/', function unreadEntries (request, response, next) {
     return next();
 });
 
-// add entries to entries:read
-server.post('/entries/forget', function (request, response, next) {
-    var multi = world.client.multi();
-    
-    request.body.forEach(function (id) {
-        multi.zrem('entries:queued', id);
-        multi.zadd('entries:read', +new Date(), id);
-    });
+server.post('/list/:name', function (request, response, next) {
+    var key, multi;
 
-    multi.exec(function (err, result) {
-        response.send(204);
-        return next();
-    });
-});
+    key = 'entries:' + request.params.name;
 
-// add entries to entries:favorite
-server.post('/entries/favorite', function (request, response, next) {
-    var multi = world.client.multi();
-
-    if (typeof request.body !== 'array') {
-        request.body = [request.body];
-    }
-
-    request.body.forEach(function (id) {
-        multi.zadd('entries:favorite', +new Date(), id);
-    });
-
-    multi.exec(function (err, result) {
-        response.send(204);
-        return next();
-    });
-});
-
-// remove entries from entries:favorite
-server.post('/entries/unfavorite', function (request, response, next) {
-    var multi = world.client.multi();
-
-    request.body.forEach(function (id) {
-        multi.zrem('entries:favorite', id);
-    });
-
-    multi.exec(function (err, result) {
-        response.send(204);
-        return next();
-    });
-}); 
-
-server.get('/page/.*', function indexHTML(req, res, next) {
-    fs.readFile(__dirname + '/static/index.html', function (err, data) {
-        if (err) {
-            next(err);
-            return;
+    multi = world.client.multi();
+    request.body.ids.forEach(function (id) {
+        multi.zrem(key, id);
+        if (request.body.hasOwnProperty('keep')) {
+            multi.zadd('entries:kept', +new Date(), id);
         }
-        
-        res.setHeader('Content-Type', 'text/html');
-        res.writeHead(200);
-        res.end(data);
-        next();    
+    });
+
+    multi.exec(function (err, result) {
+        response.send(204);
+        return next();
     });
 });
-    
+
 server.get('/.*', restify.serveStatic({
   'directory': './static/',
   'default': 'index.html'
