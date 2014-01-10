@@ -4,5 +4,7 @@
 \#*
 node_modules
 bower_components
+config/*
+!config/default.json
 .nodemonignore
 public

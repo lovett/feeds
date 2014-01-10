@@ -167,6 +167,6 @@ server.get('/.*', restify.serveStatic({
   'default': 'index.html'
 }));
 
-server.listen(8080, function() {
+server.listen(world.config.http.port, function() {
   console.log('%s listening at %s', server.name, server.url);
 });

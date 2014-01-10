@@ -1,4 +1,5 @@
 module.exports = {
+    config: require('config'),
     events: require('events'),
     client: require('redis').createClient(),
     request: require('request'),
@@ -11,7 +12,4 @@ module.exports = {
         var l = require('little-logger');
         return new l.Logger('debug');
     }(),
-    config: {
-        feed_check_interval: 120 // in minutes
-    }
 };
