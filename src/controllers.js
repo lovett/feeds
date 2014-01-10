@@ -2,7 +2,6 @@ var appControllers = angular.module('appControllers', []);
 
 appControllers.controller('FeedController', ['$scope', '$route', 'List', function ($scope, $route, List) {
     List.get({'name': 'feeds'}, function (response) {
-        console.log(response);
         $scope.feeds = response.feeds;
     });
 
