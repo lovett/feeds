@@ -10,11 +10,11 @@ var serveIndex = function (req, res, next) {
             next(err);
             return;
         }
-        
+
         res.setHeader('Content-Type', 'text/html');
         res.writeHead(200);
         res.end(data);
-        next();    
+        next();
     });
 };
 
@@ -27,7 +27,7 @@ server.get('/feeds', serveIndex);
 
 
 server.get('/list/feeds', function (request, response, next) {
-    
+
     world.client.hgetall('feeds', function (err, result) {
         if (!result) {
             response.send({
@@ -35,7 +35,7 @@ server.get('/list/feeds', function (request, response, next) {
             });
             return next();
         }
-        
+
         var multi = world.client.multi();
 
         Object.keys(result).forEach(function (key) {
@@ -48,7 +48,7 @@ server.get('/list/feeds', function (request, response, next) {
             response.send({
                 feeds: result
             });
-            
+
             return next();
         });
     });
@@ -76,7 +76,7 @@ server.post('/list/feeds', function (request, response, next) {
     request.body.add.forEach(function (feed) {
         multi.hexists('feeds', feed.url, function (err, result) {
             if (result === 0) {
-                world.client.incr('feeds:counter', function (err, feed_id) {                    
+                world.client.incr('feeds:counter', function (err, feed_id) {
                     world.client.hset('feeds', feed.url, feed_id);
                     world.client.hmset('feed:' + feed_id, {
                         'url': feed.url,
@@ -101,7 +101,7 @@ server.post('/list/feeds', function (request, response, next) {
         response.send(204);
         return next();
     });
-    
+
 });
 
 server.get('/list/:name', function getList (request, response, next) {
@@ -112,7 +112,7 @@ server.get('/list/:name', function getList (request, response, next) {
     var key = 'entries:' + request.params.name;
 
     var method = (request.params.name == 'kept')? 'zrevrange':'zrange';
-    
+
     world.client[method](key, start, end, function (err, ids) {
         var multi = world.client.multi();
 
@@ -170,4 +170,3 @@ server.get('/.*', restify.serveStatic({
 server.listen(8080, function() {
   console.log('%s listening at %s', server.name, server.url);
 });
-

@@ -1,28 +1,18 @@
 var appServices = angular.module('appServices', ['ngResource']);
 
-appServices.factory('Entry', ['$resource', function ($resource) {
-    return $resource('/entries', {}, {
-        query: {
-            method: 'GET',
-            params:{
-                page: '@page'
-            }
+appServices.factory('List', ['$resource', function ($resource) {
+    return $resource('/list/:name', {name: '@name', page: '@page'}, {
+        get:  {
+            method: 'GET'
         },
-        
-        forget: {
+        add: {
+            method: 'POST'
+        },
+        discard: {
+            method: 'POST'
+        },
+        keep: {
             method: 'POST',
-            url: '/entries/forget'
-        },
-        
-        favorite: {
-            method: 'POST',
-            url: '/entries/favorite'
-        },
-        
-        unfavorite: {
-            method: 'POST',
-            url: '/entries/unfavorite'
-        },
-        
+        }
     });
 }]);

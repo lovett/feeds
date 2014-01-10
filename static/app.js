@@ -6,15 +6,18 @@ var app = angular.module('App', [
 ]);
 
 app.config(['$routeProvider', function ($routeProvider) {
-
+    $routeProvider.when('/feeds', {
+        controller: 'FeedController',
+        templateUrl: '/feeds.html'
+    });
     
-    $routeProvider.when('/page/:page', {
-        controller: 'Entries',
+    $routeProvider.when('/entries/:name/:page', {
+        controller: 'ListController',
         templateUrl: '/entries.html'
     });
     
     $routeProvider.otherwise({
-        redirectTo: '/page/1'
+        redirectTo: '/entries/queued/1'
     });
 }]);
 

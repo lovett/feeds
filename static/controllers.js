@@ -1,7 +1,23 @@
 var appControllers = angular.module('appControllers', []);
 
-appControllers.controller('Entries', ['$scope', '$routeParams', '$route', 'Entry', function ($scope, $routeParams, $route, Entry) {
-    Entry.query({page: $routeParams.page}, function (response) {
+appControllers.controller('FeedController', ['$scope', '$route', 'List', function ($scope, $route, List) {
+    List.get({'name': 'feeds'}, function (response) {
+        console.log(response);
+        $scope.feeds = response.feeds;
+    });
+
+    $scope.add = function () {
+        List.add({
+            'name': 'feeds',
+            add: {url:$scope.url, name: $scope.name}
+        });
+        $route.reload();
+    };
+}]);
+
+appControllers.controller('ListController', ['$scope', '$routeParams', '$route', 'List', function ($scope, $routeParams, $route, List) {
+
+    List.get({'name': $routeParams.name, page: $routeParams.page}, function (response) {
         for (var key in response) {
             if (key.substr(0, 1) === '$') {
                 continue;
@@ -18,8 +34,8 @@ appControllers.controller('Entries', ['$scope', '$routeParams', '$route', 'Entry
 
         $scope.entries.map(function (entry) {
             var temp;
-            entry.title = entry.title || entry.reddit_title;
-            entry.date = entry.date || entry.reddit_date;
+            entry.title = entry.title || entry.reddit_title || entry.hn_title;
+            entry.date = entry.date || entry.reddit_date || entry.hn_date;
             temp = document.createElement('a');
             temp.href = entry.url;
             entry.domain = temp.hostname;
@@ -31,22 +47,33 @@ appControllers.controller('Entries', ['$scope', '$routeParams', '$route', 'Entry
 
     });
 
-    $scope.forget = function () {
-        var ids = $scope.entries.map(function (entry) {
-            return entry.id;
-        });
+    $scope.list_name = $routeParams.name;
+    if ($routeParams.name === 'queued') {
+        $scope.queued_list = true;
+    } else if ($routeParams.name === 'kept') {
+        $scope.kept_list = true;
+    }
+        
 
-        Entry.forget(ids, function (data) {
+    $scope.discard = function (entry) {
+        var ids;
+        if (!angular.isDefined(entry)) {
+            ids = $scope.entries.map(function (entry) {
+                return entry.id;
+            });
+        } else {
+            ids = [entry.id];
+        }
+
+        List.discard({'name': $routeParams.name, ids: ids}, function (data) {
             $route.reload();
         });
         
     };
 
-    $scope.favorite = function (entry) {
-        Entry.favorite(entry.id, function (data) {
-            Entry.forget([entry.id], function (data) {
-                $route.reload();
-            });
+    $scope.keep = function (entry) {
+        List.keep({'keep': 1, 'name': $routeParams.name, ids: [entry.id]}, function (data) {
+            entry.kept = 1;
         });
     };
     

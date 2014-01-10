@@ -1,37 +1,45 @@
 <p ng-show="entries.length > 0">
     There <span ng-pluralize count="entry_count" when="{1: 'is', 'other': 'are'}"></span>
     <span ng-bind="entry_count"></span>
-    unread
+    {{ list_name }}
     <span ng-pluralize count="entry_count" when="{1: 'entry', 'other': 'entries'}"></span>.
-    You're looking at page <span ng-bind="page"></span>
+    Currently viewing page <span ng-bind="page"></span>
     of <span ng-bind="page_count"></span>, 
-    with <span ng-bind="page_size"></span> entries per page.
+    with at most <span ng-bind="page_size"></span> entries per page.
 </p>
 
-<div ng-hide="entries.length > 0">
-    No unread entries!
+<div ng-cloak ng-hide="entries.length > 0">
+    No {{ list_name }} entries!
 </div>
 
-<button ng-show="entries.length > 0" ng-click="forget()">Forget</button>
+<button ng-show="entries.length > 0 && !kept_list" ng-click="discard()">Discard</button>
 
 <p>
-    <a ng-show="page > 1" ng-href="/page/{{page - 1 }}"/>Previous</a>
-    <a ng-show="page < page_count" ng-href="/page/{{ page + 1 }}"/>Next</a>
+    <a ng-show="page > 1" ng-href="/entries/{{ list_name }}/{{page - 1 }}"/>Previous</a>
+    <a ng-show="page < page_count" ng-href="/entries/{{ list_name }}/{{ page + 1 }}"/>Next</a>
 </p>
 
+<a ng-if="!queued_list" href="/entries/queued/1">Queued</a>
+<a ng-if="!kept_list" href="/entries/kept/1">Kept</a>
+<a href="/feeds">Feeds</a>
+
 <ol start="{{ page_start + 1 }}">
-    <li ng-repeat="entry in entries">
+    <li ng-repeat="entry in entries" ng-hide="entry.kept == 1">
         <a ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a> ({{ entry.domain }})
         <p ng-if="entry.reddit_link">
-            <a ng-href="{{ entry.reddit_link }}" target="_blank">
+            <a ng-href="{{entry.reddit_link}}" target="_blank">
                 <span ng-pluralize count="entry.reddit_comments" when="{'0': 'No Reddit comments', 'one': '1 Reddit comment', 'other': '{} Reddit comments'}"></span>
             </a>
-
         </p>
-        <button ng-click="favorite(entry)">Favorite</button>
 
-        <p>Collected: <span ng-bind="entry.found | amCalendar"></span></p>
-        <p>Published: <span ng-bind="entry.date | amCalendar"></span></p>
+        <p ng-if="entry.hn_link">
+            <a ng-href="{{entry.hn_link}}" target="_blank">HN</a>
+        </p>
+        <button ng-if="!kept_list" ng-click="keep(entry)">Keep</button>
+        <button ng-if="!queued_list" ng-click="discard(entry)">Discard</button>
+
+        <p>Collected: <span ng-bind="entry.added | amCalendar"></span></p>
+        <p ng-if="entry.date">Published: <span ng-bind="entry.date | amCalendar"></span></p>
 
     </li>
 </ol>

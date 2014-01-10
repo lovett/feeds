@@ -8,12 +8,14 @@ dispatcher.on('_message', function (world, message) {
 
 // http://www.yqlblog.net/blog/2013/03/07/yql-feednormalizer-table/
 dispatcher.on('_request', function (world, url) {
-    var self = this;
-    world.logger.info(world.util.format('Requesting entries for %s from yql', url));
-    
-    var parsed_url = world.url.parse(url);
+    var self, parsed_url, options;
 
-    var request_options = {
+    self = this;
+    parsed_url = world.url.parse(url);
+
+    world.logger.info(world.util.format('Requesting entries for %s from yql', url));
+
+    options = {
         json: true,
         url: world.url.format({
             'protocol': 'http:',
@@ -25,63 +27,89 @@ dispatcher.on('_request', function (world, url) {
             }
         })
     };
-
-    world.request(request_options, function (err, response, body) {
-        var entry_store_event;
+    
+    world.request(options, function (err, response, body) {
+        var map, event;
         
         if (err) {
-            world.logger.error(error);
+            world.logger.error(erro);
+            return;
         }
 
         if (response.statusCode !== 200) {
             world.logger.error(world.util.format('Got a %s while requesting entries for %s from yql', response.statusCode, feed));
+            return;
         }
 
-        if (parsed_url.host.indexOf('reddit.com') > -1) {
-            entry_store_event = '_extract:reddit';
-        } else if (parsed_url.host.indexOf('news.ycombinator.com') > -1) {
-            entry_store_event = '_extract:hn';
-        } else {
-            entry_store_event = '_extract';
+        map = {
+            'reddit.com': 'reddit',
+            'news.ycombinator.com': 'hn',
+            'slashdot.org': 'slashdot'
         }
-        
+
+        event = '_extract';
+        Object.keys(map).forEach(function (key) {
+            if (parsed_url.host.indexOf(key) > -1) {
+                event += ':' + map[key];
+            }
+        });
+
         body.query.results.feed.entry.forEach(function (entry) {
-            self.emit(entry_store_event, world, entry);
+            self.emit(event, world, entry);
         });
     });
 });
 
 dispatcher.on('_extract', function (world, entry) {
-    var date_field;
-    
-    var fields = {
-        url: entry.link.href,
-        title: entry.title,
-        found: +new Date(),
+    var fields, date;
+
+    fields = {};
+    fields.added = +new Date();
+
+    if (typeof entry.title === 'string') {
+        fields.title = entry.title;
+    } else if (entry.title instanceof Object) {
+        fields.title = entry.title.content;
     }
 
+    fields.url = entry.link.href;
+    if (entry.link instanceof Array) {
+        entry.link.forEach(function (element) {
+            if (element.hasOwnProperty('rel') && element.rel == 'alternate') {
+                fields.url = element.href;
+                return element.href;
+            };
+        });
+    }
+        
     if (entry.origLink) {
         fields.url = entry.origLink.content
     }
 
-    if (entry.creator) {
-        fields.author = entry.creator;
-    }
-
     if (entry.updated) {
-        date_field = entry.updated;
+        date = entry.updated;
     } else if (entry.published) {
-        date_field = entry.published;
+        date = entry.published;
     } else if (entry.date) {
-        date_field = entry.date;
+        date = entry.date;
     }
 
-    if (date_field) {
-        fields.date = world.moment(date_field).format('X') * 1000;
+    if (date) {
+        fields.date = world.moment(date).format('X') * 1000;
     }
 
     this.emit('_store:entry', world, fields);
+});
+
+dispatcher.on('_extract:slashdot', function (world, entry) {
+    var fields = {
+        url: entry.link.href,
+        title: entry.title.replace(/<\/?.*?>/g, ''),
+        date: world.moment(entry.updated).format('X') * 1000,
+        added: +new Date()
+    };
     
+    this.emit('_store:entry', world, fields);
 });
 
 dispatcher.on('_extract:hn', function (world, entry) {
