@@ -21,8 +21,8 @@ appControllers.controller('ListController', ['$scope', '$routeParams', '$route',
             if (key.substr(0, 1) === '$') {
                 continue;
             }
-            
-            if (!isNaN(response[key])) {
+
+            if (typeof response[key] === 'number') {
                 value = parseInt(response[key], 10);
             } else {
                 value = response[key];
