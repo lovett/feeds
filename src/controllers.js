@@ -12,6 +12,14 @@ appControllers.controller('FeedController', ['$scope', '$route', 'List', functio
         });
         $route.reload();
     };
+
+    $scope.remove = function () {
+        List.discard({
+            'name': 'feeds',
+            remove: this.feed.url
+        });
+        $route.reload();
+    };
 }]);
 
 appControllers.controller('ListController', ['$scope', '$routeParams', '$route', 'List', function ($scope, $routeParams, $route, List) {

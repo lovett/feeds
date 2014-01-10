@@ -28,5 +28,6 @@
         {{ feed.name }}
         <a ng-href="{{feed.url}}" target="_blank">{{ feed.url }}</a>
         Added: <span ng-bind="feed.added | amCalendar"></span>
+        <a ng-click="remove()" href="">delete</a>
     </li>
 </ol>

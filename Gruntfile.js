@@ -72,7 +72,7 @@ module.exports = function(grunt) {
             
             js: {
                 files: ['src/*.js', 'src/*.html'],
-                tasks: ['uglify', 'concat'],
+                tasks: ['uglify', 'concat', 'copy'],
             },
             
             html: {
