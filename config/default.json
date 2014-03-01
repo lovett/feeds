@@ -2,6 +2,6 @@
     "http": {
         "port": 8081
     },
-    "feeed_check_interval": 120
+    "feed_check_interval": 120
 
 }
