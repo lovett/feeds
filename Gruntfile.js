@@ -35,6 +35,7 @@ module.exports = function(grunt) {
                 src: ['bower_components/angular/angular.min.js.map',
                       'bower_components/angular-route/angular-route.min.js.map',
                       'bower_components/angular-resource/angular-resource.min.js.map',
+                      'static/favicon.ico',
                       'src/*'],
                 dest: 'public/'
             }
