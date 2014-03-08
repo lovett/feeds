@@ -5,10 +5,10 @@ module.exports = function(grunt) {
 
         clean: {
             pre_build: {
-                src: ['public/*']
+                src: ['dist/*']
             },
             post_build: {
-                src: ["public/app.min.js"]
+                src: ["dist/app.min.js"]
             }
         },
 
@@ -22,9 +22,9 @@ module.exports = function(grunt) {
                       'bower_components/angular-resource/angular-resource.min.js',
                       'bower_components/moment/min/moment.min.js',
                       'bower_components/angular-moment/angular-moment.min.js',
-                      'public/app.min.js'
+                      'dist/app.min.js'
                      ],
-                dest: 'public/all.js',
+                dest: 'dist/headlines.js',
             },
         },
 
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
                       'bower_components/angular-resource/angular-resource.min.js.map',
                       'static/favicon.ico',
                       'src/*'],
-                dest: 'public/'
+                dest: 'dist/'
             }
         },
 
@@ -45,7 +45,7 @@ module.exports = function(grunt) {
             dev: {
                 options: {
                     file: 'index.js',
-                    ignoredFiles: ['public', 'Gruntfile.js']
+                    ignoredFiles: ['dist', 'Gruntfile.js']
                 }
             }
         },
@@ -53,10 +53,10 @@ module.exports = function(grunt) {
         uglify: {
             js: {
                 options: {
-                    sourceMap: 'public/app.min.js.map'
+                    sourceMap: 'dist/app.min.js.map'
                 },
                 files: {
-                    'public/app.min.js': ['src/app.js', 'src/controllers.js', 'src/services.js']
+                    'dist/app.min.js': ['src/app.js', 'src/controllers.js', 'src/services.js']
                 }
             }
         },

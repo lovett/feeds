@@ -5,7 +5,7 @@ var server = restify.createServer();
 
 
 var serveIndex = function (req, res, next) {
-    fs.readFile(__dirname + '/public/index.html', function (err, data) {
+    fs.readFile(__dirname + '/dist/index.html', function (err, data) {
         if (err) {
             next(err);
             return;
@@ -163,7 +163,7 @@ server.post('/list/:name', function (request, response, next) {
 });
 
 server.get('/.*', restify.serveStatic({
-  'directory': './public/',
+  'directory': './dist/',
   'default': 'index.html'
 }));
 
