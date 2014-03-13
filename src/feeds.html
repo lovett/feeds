@@ -1,33 +1,58 @@
-<h1>Feed Subscriptions</h1>
-
-
-<a href="/entries/queued/1">Queued</a>
-<a href="/entries/kept/1">Kept</a>
-
-
-<form ng-submit="add()">
-    <fieldset>
-        <legend>Add</legend>
-        <div>
-            <label for="name">Name:</label>
-            <input type="text" ng-model="name" id="name" name="name" value="" size="50" />
+<form id="feeds" ng-submit="add()">
+    <section>
+        <div class="row">
+            <div class="large-12 columns">
+                <h2>Subscribe to a Feed</h2>
+            </div>
         </div>
-        <div>
-            <label for="url">URL:</label>
-            <input type="text" ng-model="url" id="url" name="url" value="" size="50" />
+        <div class="row">
+
+            <div class="medium-3 columns">
+                <label>
+                    <input type="text" ng-model="name" id="name" name="name" value="" size="50" placeholder="Name" />
+                </label>
+            </div>
+            <div class="medium-7 columns">
+                <label>
+                    <input type="text" ng-model="url" id="url" name="url" value="" size="50" placeholder="URL" />
+                </label>
+            </div>
+            <div class="medium-2 columns">
+                <input type="submit" class="button postfix" />
+            </div>
+
         </div>
-        <input type="submit"/>
-    </fieldset>
+    </section>
+
+    <section>
+
+        <div class="row">
+            <div class="large-12 columns">
+                <h2>Active Subscriptions</h2>
+            </div>
+            <div class="large-12 columns">
+                <p ng-show="feeds.length == 0">You aren't subscribed to any feeds.</p>
+
+                <table ng-show="feeds.length > 0">
+                    <thead>
+                        <tr>
+                            <th width="200">Name</th>
+                            <th>URL</th>
+                            <th width="150">Added</th>
+                            <th width="50"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="feed in feeds">
+                            <td>{{ feed.name }}</td>
+                            <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.url }}</a></td>
+                            <td><span ng-bind="feed.added | amCalendar"></span></td>
+                            <td><a ng-click="remove()" href=""><span class="icon-trash"></span></a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
 </form>
-
-<p ng-show="feeds.length == 0">You aren't subscribed to any feeds.</p>
-
-
-<ol ng-show="feeds.length > 0">
-    <li ng-repeat="feed in feeds">
-        {{ feed.name }}
-        <a ng-href="{{feed.url}}" target="_blank">{{ feed.url }}</a>
-        Added: <span ng-bind="feed.added | amCalendar"></span>
-        <a ng-click="remove()" href="">delete</a>
-    </li>
-</ol>

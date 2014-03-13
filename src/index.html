@@ -1,12 +1,42 @@
 <!doctype html>
-<html ng-app="App">
+<html ng-app="App" class="no-js" lang="en" >
     <head>
         <title>Headlines</title>
         <link href="/favicon.ico" rel="shortcut icon" />
+        <script src="/modernizr.js"></script>
+        <link rel="stylesheet" href="/headlines.css" />
     </head>
     <body>
+        <div class="fixed">
+            <nav class="top-bar" data-topbar="">
+                <ul class="title-area">
+                    <li class="name">
+                        <h1><a href="/">Headlines</a></h1>
+                    </li>
+                </ul>
+
+
+                <section class="top-bar-section">
+                    <ul class="right">
+                        <li class="has-form" ng-show="unhandled_entries > 0">
+                            <a href="#" ng-click="discard()" class="button alert"><span class="icon-trash"></span> ALL</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="/entries/queued/">Queued</a></li>
+                        <li class="divider"></li>
+                        <li><a href="/entries/kept/">Kept</a></li>
+                        <li class="divider"></li>
+                        <li><a href="/feeds">Feeds</a></li>
+                    </ul>
+
+                    <ul class="left">
+                        <li><button ng-show="entries.length > 0 && !kept_list" ng-click="discard()">Discard</button></li>
+                    </ul>
+
+                </section>
+            </nav>
+        </div>
         <main ng-view></main>
         <script src="/headlines.js"></script>
     </body>
 </html>
-             

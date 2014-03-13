@@ -115,8 +115,8 @@ dispatcher.on('_extract:slashdot', function (world, entry) {
 dispatcher.on('_extract:hn', function (world, entry) {
     var fields = {
         url: entry.link.href,
-        hn_title: entry.title,
-        added: +new Date()
+        title: entry.title,
+        date: +new Date()
     };
     
     var callback = function (error, dom) {
@@ -146,8 +146,8 @@ dispatcher.on('_extract:reddit', function (world, entry) {
     var fields = {
         reddit_comments: 0,
         reddit_link: entry.link.href,
-        reddit_title: entry.title,
-        reddit_date: world.moment(entry.date).format('X') * 1000,
+        title: entry.title,
+        date: world.moment(entry.date).format('X') * 1000,
         added: +new Date()
     };
     

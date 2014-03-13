@@ -11,16 +11,21 @@ app.config(['$routeProvider', function ($routeProvider) {
         templateUrl: '/feeds.html'
     });
     
-    $routeProvider.when('/entries/:name/:page', {
+    $routeProvider.when('/entries/:name/:page?', {
         controller: 'ListController',
         templateUrl: '/entries.html'
     });
     
     $routeProvider.otherwise({
-        redirectTo: '/entries/queued/1'
+        redirectTo: '/entries/queued/'
     });
 }]);
 
 app.config(['$locationProvider', function ($locationProvider) {
     $locationProvider.html5Mode(true);
 }]);
+
+
+app.run(function () {
+    $(document).foundation();
+});

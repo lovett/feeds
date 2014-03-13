@@ -162,11 +162,16 @@ server.post('/list/:name', function (request, response, next) {
     });
 });
 
-server.get('/.*', restify.serveStatic({
-  'directory': './dist/',
-  'default': 'index.html'
+server.get(/\/fonts\/?.*/, restify.serveStatic({
+    'directory': './dist/fonts',
 }));
 
+server.get('/.*', restify.serveStatic({
+    'directory': './dist/',
+    'default': 'index.html'
+}));
+
+
 server.listen(world.config.http.port, function() {
-  console.log('%s listening at %s', server.name, server.url);
+    console.log('%s listening at %s', server.name, server.url);
 });

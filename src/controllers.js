@@ -22,7 +22,7 @@ appControllers.controller('FeedController', ['$scope', '$route', 'List', functio
     };
 }]);
 
-appControllers.controller('ListController', ['$scope', '$routeParams', '$route', 'List', function ($scope, $routeParams, $route, List) {
+appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', 'List', function ($rootScope, $scope, $routeParams, $route, List) {
 
     List.get({'name': $routeParams.name, page: $routeParams.page}, function (response) {
         for (var key in response) {
@@ -35,53 +35,68 @@ appControllers.controller('ListController', ['$scope', '$routeParams', '$route',
             } else {
                 value = response[key];
             }
-            
+
             $scope[key] = value;
         };
 
         $scope.entries.map(function (entry) {
             var temp;
-            entry.title = entry.title || entry.reddit_title || entry.hn_title;
-            entry.date = entry.date || entry.reddit_date || entry.hn_date;
             temp = document.createElement('a');
             temp.href = entry.url;
             entry.domain = temp.hostname;
+            entry.discarded = false;
+            entry.kept = false;
 
             if (temp.hostname.substring(0, 4) == 'www.') {
                 entry.domain = entry.domain.substring(4);
             }
         });
 
+        $rootScope.unhandled_entries = $scope.entries.length;
+
     });
 
     $scope.list_name = $routeParams.name;
+
     if ($routeParams.name === 'queued') {
         $scope.queued_list = true;
     } else if ($routeParams.name === 'kept') {
         $scope.kept_list = true;
     }
-        
 
-    $scope.discard = function (entry) {
+
+    $rootScope.discard = function (entry) {
         var ids;
-        if (!angular.isDefined(entry)) {
+        if (angular.isDefined(entry)) {
+            ids = [entry.id];
+        } else {
             ids = $scope.entries.map(function (entry) {
                 return entry.id;
             });
-        } else {
-            ids = [entry.id];
         }
 
         List.discard({'name': $routeParams.name, ids: ids}, function (data) {
-            $route.reload();
+            if (ids.length == 1) {
+                entry.discarded = true;
+            } else {
+                _.forEach($scope.entries, function (entry) {
+                    entry.discarded = true;
+                });
+                $rootScope.unhandled_entries -= ids.length;
+            }
         });
-        
+
     };
 
-    $scope.keep = function (entry) {
+    $rootScope.keep = function (entry) {
         List.keep({'keep': 1, 'name': $routeParams.name, ids: [entry.id]}, function (data) {
             entry.kept = 1;
+            $rootScope.unhandled_entries--;
         });
     };
-    
+
+    $rootScope.refresh = function () {
+        $route.reload();
+    };
+
 }]);

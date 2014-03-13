@@ -8,7 +8,7 @@ module.exports = function(grunt) {
                 src: ['dist/*']
             },
             post_build: {
-                src: ["dist/app.min.js"]
+                src: ["dist/app.min.js", "dist/app.css"]
             }
         },
 
@@ -17,27 +17,58 @@ module.exports = function(grunt) {
                 separator: '\n',
             },
             dist: {
-                src: ['bower_components/angular/angular.min.js',
-                      'bower_components/angular-route/angular-route.min.js',
-                      'bower_components/angular-resource/angular-resource.min.js',
-                      'bower_components/moment/min/moment.min.js',
-                      'bower_components/angular-moment/angular-moment.min.js',
-                      'dist/app.min.js'
-                     ],
-                dest: 'dist/headlines.js',
-            },
+                files: [
+                    {
+                        src: ['bower_components/jquery/dist/jquery.min.js',
+                              'bower_components/foundation/js/foundation.min.js',
+                              'bower_components/angular/angular.min.js',
+                              'bower_components/angular-route/angular-route.min.js',
+                              'bower_components/angular-resource/angular-resource.min.js',
+                              'bower_components/moment/min/moment.min.js',
+                              'bower_components/angular-moment/angular-moment.min.js',
+                              'bower_components/lodash/dist/lodash.min.js',
+                              'dist/app.min.js'
+                             ],
+                        dest: 'dist/headlines.js',
+                    },
+                    {
+                        src: ['bower_components/foundation/css/normalize.css',
+                              'bower_components/foundation/css/foundation.css',
+                              'font/icomoon/style.css',
+                              'dist/app.css'
+                             ],
+                        dest: 'dist/headlines.css'
+                    }
+                ]
+            }
         },
 
         copy: {
             main: {
                 expand: true,
                 flatten: true,
-                src: ['bower_components/angular/angular.min.js.map',
+                src: ['bower_components/foundation/js/vendor/modernizr.js',
+                      'bower_components/jquery/dist/jquery.min.map',
+                      'bower_components/angular/angular.min.js.map',
                       'bower_components/angular-route/angular-route.min.js.map',
                       'bower_components/angular-resource/angular-resource.min.js.map',
                       'static/favicon.ico',
-                      'src/*'],
+                      'src/*',
+                      '!src/less'],
                 dest: 'dist/'
+            },
+            font: {
+                expand: true,
+                flatten: true,
+                src: 'font/icomoon/fonts/*',
+                dest: 'dist/fonts'
+            }
+        },
+
+        less: {
+            main: {
+                src: "src/less/*.less",
+                dest: "dist/app.css"
             }
         },
 
@@ -60,7 +91,7 @@ module.exports = function(grunt) {
                 }
             }
         },
-        
+
         watch: {
             options: {
                 livereload: true,
@@ -70,21 +101,16 @@ module.exports = function(grunt) {
                 files: ['Gruntfile.js'],
                 tasks: ['build']
             },
-            
-            js: {
-                files: ['src/*.js', 'src/*.html'],
-                tasks: ['uglify', 'concat', 'copy'],
-            },
-            
-            html: {
-                files: ['*.html'],
-                tasks: 'copy'
+
+            app: {
+                files: ['src/less/*.less', 'src/*.js', 'src/*.html'],
+                tasks: ['build']
             }
         },
-        
+
     });
 
-    
+
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
@@ -94,7 +120,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-nodemon');
 
     // Default task(s)
-    grunt.registerTask('build', ['clean:pre_build', 'uglify', 'concat', 'copy', 'clean:post_build']);
+    grunt.registerTask('build', ['clean:pre_build', 'uglify', 'less', 'concat', 'copy', 'clean:post_build']);
     grunt.registerTask('default', ['build', 'watch']);
 
 };
