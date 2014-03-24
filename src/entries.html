@@ -8,10 +8,13 @@
 
 <ul id="entries" class="small-block-grid-1 medium-block-grid-3 large-block-grid-5">
     <li class="entry" ng-repeat="entry in entries" ng-class="{discarded: entry.discarded, kept: entry.kept}">
-        <div class="border">
-            <div class="inner">
-                <p class="domain text-right">{{ entry.domain }}</p>
+        <div class="inner">
+            <header>
+                <div class="cap text-right">{{ entry.date | amCalendar}}</div>
                 <a class="headline"  ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a>
+            </header>
+            <div class="body">
+                <div class="domain"><a ng-href="http://{{ entry.domain }}">{{ entry.domain }}</a></div>
 
                 <ul class="discussions inline-list">
                     <li ng-if="entry.reddit_link">
@@ -22,14 +25,11 @@
                     </li>
                 </ul>
 
-
-                <div class="dates text-center" ng-bind="entry.date | amCalendar"></div>
             </div>
 
-            <ul class="button-group">
-                <li><a href="#" ng-click="keep(entry)" class="button secondary"><span class="icon-like"></span></a></li>
-                <li><a href="#" ng-click="discard(entry)" class="button secondary"><span class="icon-trash"></span></a></li>
-            </ul>
+            <footer>
+                <a href="#" ng-click="keep(entry)" class="text-center"><span class="icon-star"></span></a>
+            </footer>
         </div>
     </li>
 </ul>

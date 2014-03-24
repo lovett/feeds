@@ -6,58 +6,59 @@ MAIN {
 }
 
 #entries {
+
     .entry {
-        .border {
+        .inner {
             border: 1px solid #ccc;
         }
 
-        .inner {
-            padding: .5em .5em 0 .5em;
+        HEADER, .body {
+            padding: .25em .5em;
         }
 
-    }
-
-    .domain {
-        font-size: .75em;
-    }
-
-    .headline {
-        display: block;
-        height: 3em;
-        overflow: hidden;
-        margin-bottom: 2em;
-    }
-
-    .discussions {
-        height: 3em;
-        font-size: .8em;
-    }
-
-    .dates {
-        font-size: .75em;
-        padding-bottom: .5em;
-    }
-
-    .button-group {
-        margin-bottom: -1.25em;
-
-        LI {
-            display: inline-block;
-            width: 50%;
+        .cap {
+            font-size: .6em;
+            padding-bottom: .25em;
         }
 
-        A {
-            display: inline-block;
-            width: 100%;
+        .boot {
+            font-size: .75em;
         }
-    }
 
-    .icon-like, .icon-trash {
-        font-size: 1.25em;
-    }
+        .headline {
+            display: block;
+            height: 5em;
+            overflow: hidden;
+            border-bottom: 1px solid #ccc;
+        }
 
-    .discarded {
-        visibility: hidden;
+        .body {
+            font-size: .75em;
+
+            UL {
+                font-size: 1em;
+            }
+        }
+
+        .discussions {
+            height: 2em;
+        }
+
+        .domain {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        FOOTER {
+            A {
+                display: block;
+                margin-bottom: 0;
+                font-size: 1em;
+                background-color: #ccc;
+                padding: .25em 0;
+            }
+        }
+
     }
 
     .kept .inner {
