@@ -44,19 +44,19 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             temp = document.createElement('a');
             temp.href = entry.url;
             entry.domain = temp.hostname;
-            entry.discarded = false;
-            entry.kept = false;
 
             if (temp.hostname.substring(0, 4) == 'www.') {
                 entry.domain = entry.domain.substring(4);
             }
         });
 
-        $rootScope.unhandled_entries = $scope.entries.length;
+        $rootScope.list_size = $scope.list_size;
+        $rootScope.entry_count = $scope.entries.length;
+        $rootScope.kept_count = 0;
 
     });
 
-    $scope.list_name = $routeParams.name;
+    $rootScope.list_name = $routeParams.name;
 
     if ($routeParams.name === 'queued') {
         $scope.queued_list = true;
@@ -65,34 +65,41 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
     }
 
 
-    $rootScope.discard = function (entry) {
+    $rootScope.setEntryState = function (state, entry) {
         var ids;
         if (angular.isDefined(entry)) {
             ids = [entry.id];
         } else {
-            ids = $scope.entries.map(function (entry) {
-                return entry.id;
-            });
+            ids = $scope.entries.reduce(function (current, entry) {
+                if (entry.state !== 'kept') {
+                    current.push(entry.id);
+                }
+                return current;
+            }, []);
+
         }
 
-        List.discard({'name': $routeParams.name, ids: ids}, function (data) {
-            if (ids.length == 1) {
-                entry.discarded = true;
-            } else {
-                _.forEach($scope.entries, function (entry) {
-                    entry.discarded = true;
-                });
-                $rootScope.unhandled_entries -= ids.length;
+        List.update({'keep': (state === 'kept'), 'name': $routeParams.name, ids: ids}, function (data) {
+            _.forEach($scope.entries, function (entry) {
+                if (data.ids.indexOf(entry.id) > -1) {
+                    entry.state = state;
+                }
+            });
+
+            $rootScope.entry_count -= ids.length;
+
+            if (state === 'kept') {
+                $rootScope.kept_count += ids.length;
             }
+
+            if ($rootScope.entry_count < 1) {
+                $route.reload();
+            }
+
         });
 
-    };
 
-    $rootScope.keep = function (entry) {
-        List.keep({'keep': 1, 'name': $routeParams.name, ids: [entry.id]}, function (data) {
-            entry.kept = 1;
-            $rootScope.unhandled_entries--;
-        });
+
     };
 
     $rootScope.refresh = function () {

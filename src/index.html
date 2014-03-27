@@ -16,11 +16,8 @@
                 </ul>
 
 
-                <section class="top-bar-section">
+                <section class="top-bar-section" ng-cloak ng-show="list_name">
                     <ul class="right">
-                        <li class="has-form" ng-show="unhandled_entries > 0">
-                            <a href="#" ng-click="discard()" class="button alert"><span class="icon-trash"></span> ALL</a>
-                        </li>
                         <li class="divider"></li>
                         <li><a href="/entries/queued/">Queued</a></li>
                         <li class="divider"></li>
@@ -28,10 +25,23 @@
                         <li class="divider"></li>
                         <li><a href="/feeds">Feeds</a></li>
                     </ul>
-
-                    <ul class="left">
-                        <li><button ng-show="entries.length > 0 && !kept_list" ng-click="discard()">Discard</button></li>
+                    <ul class="right" ng-show="list_name == 'queued'">
+                        <li class="has-form">
+                            <a href="#" ng-click="setEntryState('kept')" class="button success">
+                                <span class="icon-star"></span>
+                                <span ng-show="kept_count > 0">THE REST</span>
+                                <span ng-show="kept_count == 0">ALL</span>
+                            </a>
+                        </li>
+                        <li class="has-form">
+                            <a href="#" ng-click="setEntryState('discarded')" class="button alert">
+                                <span class="icon-trash"></span>
+                                <span ng-show="kept_count > 0">THE REST</span>
+                                <span ng-show="kept_count == 0">ALL</span>
+                            </a>
+                        </li>
                     </ul>
+
 
                 </section>
             </nav>

@@ -1,20 +1,16 @@
-<div ng-cloak ng-hide="entries.length > 0">
+<div ng-cloak ng-show="list_size == 0">
     Nothing to show!
 </div>
 
-<div ng-cloak ng-show="unhandled_entries == 0 && entries.length > 0" class="text-center">
-    <a href="#" ng-click="refresh()" class="button">MORE</a>
-</div>
-
 <ul id="entries" class="small-block-grid-1 medium-block-grid-3 large-block-grid-5">
-    <li class="entry" ng-repeat="entry in entries" ng-class="{discarded: entry.discarded, kept: entry.kept}">
+    <li class="entry" ng-repeat="entry in entries" ng-class="entry.state">
         <div class="inner">
             <header>
                 <div class="cap text-right">{{ entry.date | amCalendar}}</div>
                 <a class="headline"  ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a>
             </header>
             <div class="body">
-                <div class="domain"><a ng-href="http://{{ entry.domain }}">{{ entry.domain }}</a></div>
+                <div class="domain"><a ng-href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></div>
 
                 <ul class="discussions inline-list">
                     <li ng-if="entry.reddit_link">
@@ -28,7 +24,8 @@
             </div>
 
             <footer>
-                <a href="#" ng-click="keep(entry)" class="text-center"><span class="icon-star"></span></a>
+                <a href="#" ng-show="entry.state != 'kept'" ng-click="setEntryState('kept', entry)" class="text-center"><span class="icon-star"></span></a>
+                <a href="#" ng-show="entry.state == 'kept'" ng-click="setEntryState('discarded', entry)" class="text-center"><span class="icon-trash"></span></a>
             </footer>
         </div>
     </li>

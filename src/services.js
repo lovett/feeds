@@ -8,11 +8,8 @@ appServices.factory('List', ['$resource', function ($resource) {
         add: {
             method: 'POST'
         },
-        discard: {
+        update: {
             method: 'POST'
-        },
-        keep: {
-            method: 'POST',
         }
     });
 }]);

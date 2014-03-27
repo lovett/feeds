@@ -111,7 +111,14 @@ server.get('/list/:name', function getList (request, response, next) {
     var end = start + page_size - 1;
     var key = 'entries:' + request.params.name;
 
-    var method = (request.params.name == 'kept')? 'zrevrange':'zrange';
+    var method, entry_state;
+    if (request.params.name == 'kept') {
+        method = 'zrevrange';
+        entry_state = 'kept'
+    } else {
+        method = 'zrange';
+        entry_state = 'unread';
+    }
 
     world.client[method](key, start, end, function (err, ids) {
         var multi = world.client.multi();
@@ -124,6 +131,7 @@ server.get('/list/:name', function getList (request, response, next) {
         ids.forEach(function (id) {
             multi.hgetall('entry:' + id, function (err, entry) {
                 entry.id = id;
+                entry.state = entry_state;
                 return entry;
             });
         });
@@ -131,7 +139,7 @@ server.get('/list/:name', function getList (request, response, next) {
         multi.exec(function (err, result) {
             var total_entries = result.shift();
             response.send({
-                entry_count: total_entries,
+                list_size: total_entries,
                 page: page,
                 page_count: Math.ceil(total_entries / page_size),
                 page_size: page_size,
@@ -151,7 +159,8 @@ server.post('/list/:name', function (request, response, next) {
     multi = world.client.multi();
     request.body.ids.forEach(function (id) {
         multi.zrem(key, id);
-        if (request.body.hasOwnProperty('keep')) {
+        multi.zrem('entries:kept', id);
+        if (request.body.hasOwnProperty('keep') && request.body.keep) {
             multi.zadd('entries:kept', +new Date(), id);
         }
     });
