@@ -16,16 +16,16 @@
                 </ul>
 
 
-                <section class="top-bar-section" ng-cloak ng-show="list_name">
+                <section class="top-bar-section" ng-cloak>
                     <ul class="right">
                         <li class="divider"></li>
-                        <li><a href="/entries/queued/">Queued</a></li>
+                        <li ng-class="{active: list_name == 'queued'}"><a href="/entries/queued/">Queued</a></li>
                         <li class="divider"></li>
-                        <li><a href="/entries/kept/">Kept</a></li>
+                        <li ng-class="{active: list_name == 'kept'}"><a href="/entries/kept/">Kept</a></li>
                         <li class="divider"></li>
-                        <li><a href="/feeds">Feeds</a></li>
+                        <li ng-class="{active: list_name == 'feeds'}"><a href="/feeds">Feeds</a></li>
                     </ul>
-                    <ul class="right" ng-show="list_name == 'queued'">
+                    <ul class="right" ng-show="list_name == 'queued' && list_size > 0">
                         <li class="has-form">
                             <a href="#" ng-click="setEntryState('kept')" class="button success">
                                 <span class="icon-star"></span>
