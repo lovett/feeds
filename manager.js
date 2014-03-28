@@ -57,7 +57,13 @@ dispatcher.on('_request', function (world, url) {
         body.query.results.feed.entry.forEach(function (entry) {
             self.emit(event, world, entry);
         });
+
     });
+});
+
+dispatcher.on('_requested', function (world, id) {
+    var key = 'feed:' + id;
+    world.client.hset(key, 'checked', +new Date())
 });
 
 dispatcher.on('_extract', function (world, entry) {
@@ -241,12 +247,15 @@ dispatcher.on('unpause', function (args, world) {
     this.emit('_schedule', args, world, 'on');
 });
 
+
 dispatcher.on('fetch', function (args, world) {
-    var callback;
+    var callback, id;
 
     callback = function (err, result) {
         Object.keys(result).forEach(function (feed) {
+            id = result[feed];
             this.emit('_request', world, feed);
+            this.emit('_requested', world, id);
         }, this);
     };
 

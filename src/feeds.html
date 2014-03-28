@@ -38,6 +38,7 @@
                         <tr>
                             <th width="200">Name</th>
                             <th>URL</th>
+                            <th width="150">Checked</th>
                             <th width="150">Added</th>
                             <th width="50"></th>
                         </tr>
@@ -46,6 +47,7 @@
                         <tr ng-repeat="feed in feeds">
                             <td>{{ feed.name }}</td>
                             <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.url }}</a></td>
+                            <td><span ng-bind="feed.checked | amCalendar"></span></td>
                             <td><span ng-bind="feed.added | amCalendar"></span></td>
                             <td><a ng-click="remove()" href=""><span class="icon-trash"></span></a></td>
                         </tr>
