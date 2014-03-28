@@ -16,9 +16,9 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
     };
 
     $scope.remove = function () {
-        List.discard({
+        List.update({
             'name': 'feeds',
-            remove: this.feed.url
+            'remove': this.feed.url
         });
         $route.reload();
     };
