@@ -162,6 +162,7 @@ server.post('/list/:name', function (request, response, next) {
         multi.zrem('entries:kept', id);
         if (request.body.hasOwnProperty('keep') && request.body.keep) {
             multi.zadd('entries:kept', +new Date(), id);
+            multi.publish('entry:download', id);
         }
     });
 
