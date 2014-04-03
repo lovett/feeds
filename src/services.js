@@ -6,7 +6,10 @@ appServices.factory('List', ['$resource', function ($resource) {
             method: 'GET'
         },
         add: {
-            method: 'POST'
+            method: 'PUT'
+        },
+        remove: {
+            method: 'DELETE'
         },
         update: {
             method: 'POST'

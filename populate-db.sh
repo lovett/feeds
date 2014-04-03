@@ -8,8 +8,9 @@ SERVER=http://localhost:8081/list/feeds
 
 redis-cli flushdb
 
-curl -H 'Content-Type: application/json;charset=UTF-8' -d '{"name":"feeds","add":{"url":"http://www.reddit.com/r/programming/.rss","name":"Reddit Programming"}}' $SERVER
-curl -H 'Content-Type: application/json;charset=UTF-8' -d '{"name":"feeds","add":{"url":"https://news.ycombinator.com/rss","name":"Hacker News"}}' $SERVER
-curl -H 'Content-Type: application/json;charset=UTF-8' -d '{"name":"feeds","add":{"url":"http://rss.slashdot.org/Slashdot/slashdot","name":"Slashdot"}}' $SERVER
-curl -H 'Content-Type: application/json;charset=UTF-8' -d '{"name":"feeds","add":{"url":"http://feeds.nytimes.com/nyt/rss/Technology","name":"NYTimes Technology"}}' $SERVER
-node manager.js fetch
+curl -X PUT -H 'Content-Type: application/json;charset=UTF-8' -d '[{"url":"http://www.reddit.com/r/programming/.rss","name":"Reddit Programming"},
+{"url":"https://news.ycombinator.com/rss","name":"Hacker News"},
+{"url":"http://rss.slashdot.org/Slashdot/slashdot","name":"Slashdot"},
+{"url":"http://feeds.nytimes.com/nyt/rss/Technology","name":"NYTimes Technology"}]' $SERVER
+
+#node manager.js fetch

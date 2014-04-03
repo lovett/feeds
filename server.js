@@ -86,6 +86,75 @@ var getFeeds = function (request, response, next) {
     });
 };
 
+/**
+ * Unsubscribe from a feed
+ * --------------------------------------------------------------------
+ *
+ * The feed metadata (feed:<id> key) and its entries will be kept. 
+ */
+var deleteFeed = function (request, response, next) {
+    var multi = world.client.multi();
+
+    if (!(request.body instanceof Array)) {
+        request.body = [request.body];
+    }
+    
+    request.body.forEach(function (id) {
+        multi.hdel(world.keys.feeds, id);
+    });
+
+    multi.exec(function (err, result) {
+        next.ifError(err);
+        response.send(204);
+        next();
+    });
+    
+};
+
+/**
+ * Subscribe to a feed
+ * --------------------------------------------------------------------
+ *
+ * Resubscribing to an already-subscribed feed is allowed.
+ */
+var putFeed = function (request, response, next) {
+    var multi = world.client.multi();
+    
+    // accept both single and multiple
+    if (!(request.body instanceof Array)) {
+        request.body = [request.body];
+    }
+
+    var feeds = [];
+    request.body.forEach(function (item) {
+        var feed = {}
+        feed.url = item.url || null;
+        feed.name = item.name || feed.url;
+
+        if (!feed.url) {
+            return next(new restify.InvalidArgumentError("Feed URL not specified"));
+        }
+
+        feed.id = world.hash(feed.url);
+
+        feeds.push(feed);
+    });
+
+    feeds.forEach(function (feed) {
+        var key = world.keys.feed(feed.id);
+        multi.hmset(key, feed);
+        
+        key = world.keys.feeds;
+        multi.hset(key, feed.id, +new Date());
+    });
+
+    multi.exec(function (err, result) {
+        next.ifError(err);
+        response.send(feeds);
+        return next();
+    });
+};
+
 var postFeed = function (request, response, next) {
     var multi = world.client.multi();
 
@@ -257,6 +326,10 @@ server.get('/list/:name', getList);
 
 server.post('/list/feeds', postFeed);
 server.post('/list/:name', postList);
+
+server.put('/list/feeds', putFeed);
+
+server.del('/list/feeds', deleteFeed);    
 
 /**
  * Run a search

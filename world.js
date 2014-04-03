@@ -16,7 +16,14 @@ module.exports = {
     archivePath: function (hash) {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },
-    archiveHash: function (key) {
-        return hash = this.cityhash.hash64(key).value;
+    hash: function (key) {
+        return this.cityhash.hash64(key).value;
+    },
+    keys: {
+        feeds: "feeds",
+        feed: function (id) {
+            return "feed:" + id;
+        }
     }
+    
 };
