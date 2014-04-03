@@ -4,20 +4,61 @@ var fs = require('fs');
 var server = restify.createServer();
 var elasticsearch = require('elasticsearch');
 
-var serveIndex = function (req, res, next) {
-    fs.readFile(__dirname + '/dist/index.html', function (err, data) {
+/**
+ * Standard middleware
+ * --------------------------------------------------------------------
+ */
+server.use(restify.queryParser({ mapParams: false }));
+server.use(restify.gzipResponse());
+server.use(restify.bodyParser({ mapParams: false }));
+
+/**
+ * Custom middleware for mapping requests to index.html
+ * --------------------------------------------------------------------
+ *
+ * Certain URLs should return the contents of dist/index.html to
+ * enable the single page application model. But this mapping should
+ * not interfere with 404 handling.
+ *
+ * Restify's serveStatic middleware can't accommodate this because
+ * it's a rewrite--the file path served is not the file path
+ * requested.
+ *
+ * This needs to be registered before any routes. 
+ */
+server.use(function (request, response, next) {
+
+    // Json requests will be handled elsewhere
+    if (request.is('json')) {
+        return next();
+    }
+    
+    var roots = ['search', 'entries', 'feeds'];
+    var path = request.path().split('/');
+
+    // The first element will be empty due to the request path's
+    // leading slash. The actual root is in path[1]
+    if (roots.indexOf(path[1]) == -1) {
+        return next();
+    }
+    
+    fs.readFile('./dist/index.html', function (err, data) {
         if (err) {
             next(err);
             return;
         }
-
-        res.setHeader('Content-Type', 'text/html');
-        res.writeHead(200);
-        res.end(data);
+        
+        response.setHeader('Content-Type', 'text/html');
+        response.writeHead(200);
+        response.end(data);
         next();
     });
-};
+});
 
+/**
+ * Return a list of subscribed feeds
+ * --------------------------------------------------------------------
+ */
 var getFeeds = function (request, response, next) {
     world.client.hgetall('feeds', function (err, result) {
         if (!result) {
@@ -45,7 +86,7 @@ var getFeeds = function (request, response, next) {
     });
 };
 
-var updateFeed = function (request, response, next) {
+var postFeed = function (request, response, next) {
     var multi = world.client.multi();
 
     if (!request.body.hasOwnProperty('add')) {
@@ -186,7 +227,7 @@ var getList = function (request, response, next) {
     return next();
 };
 
-var updateList = function (request, response, next) {
+var postList = function (request, response, next) {
     var key, multi;
 
     key = 'entries:' + request.params.name;
@@ -207,34 +248,50 @@ var updateList = function (request, response, next) {
     });
 };
 
-server.use(restify.queryParser({ mapParams: false }));
-server.use(restify.gzipResponse());
-server.use(restify.bodyParser({ mapParams: false }));
-
-server.get('/entries/.*', serveIndex);
-server.get('/feeds', serveIndex);
+/**
+ * Route setup
+ * --------------------------------------------------------------------
+ */
 server.get('/list/feeds', getFeeds);
-server.post('/list/feeds', updateFeed);
 server.get('/list/:name', getList);
-server.post('/list/:name', updateList);
 
+server.post('/list/feeds', postFeed);
+server.post('/list/:name', postList);
+
+/**
+ * Run a search
+ * --------------------------------------------------------------------
+ *
+ * Only called if the request has asked for json. 
+ */
 server.get('/search/.*', function (request, response, next) {
-    if (request.is('json')) {
-        findEntries(request, response, next);
-    } else {
-        serveIndex(request, response, next);
-    }
+    findEntries(request, response, next);
 });
 
+/**
+ * Static serving of files under dist/fonts
+ * --------------------------------------------------------------------
+ *
+ * Subdirectories under dist need separate routes because serveStatic
+ * only considers the specified directory, not its children.
+ */
 server.get(/\/fonts\/?.*/, restify.serveStatic({
     'directory': './dist/fonts',
 }));
 
+/**
+ * Static serving of files under dist
+ * --------------------------------------------------------------------
+ */
 server.get('/.*', restify.serveStatic({
     'directory': './dist/',
     'default': 'index.html'
 }));
 
+/**
+ * Listening begins
+ * --------------------------------------------------------------------
+ */
 server.listen(world.config.http.port, function() {
     console.log('%s listening at %s', server.name, server.url);
 });

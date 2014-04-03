@@ -1,5 +1,13 @@
 var appControllers = angular.module('appControllers', []);
 
+
+appControllers.controller('SearchController', ['$rootScope', '$scope', '$route', function ($rootScope, $scope, $route) {
+    $scope.search = function (query) {
+        alert(query.terms);
+    };
+    
+}]);
+
 appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', 'List', function ($rootScope, $scope, $route, List) {
     $rootScope.list_name = 'feeds';
 

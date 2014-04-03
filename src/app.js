@@ -11,11 +11,16 @@ app.config(['$routeProvider', function ($routeProvider) {
         templateUrl: '/feeds.html'
     });
     
+    $routeProvider.when('/search/:terms', {
+        controller: 'SearchController',
+        templateUrl: '/entries.html'
+    });
+
     $routeProvider.when('/entries/:name/:page?', {
         controller: 'ListController',
         templateUrl: '/entries.html'
     });
-    
+
     $routeProvider.otherwise({
         redirectTo: '/entries/queued/'
     });
