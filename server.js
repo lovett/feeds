@@ -2,7 +2,7 @@ var world = require('./world');
 var restify = require('restify');
 var fs = require('fs');
 var server = restify.createServer();
-
+var elasticsearch = require('elasticsearch');
 
 var serveIndex = function (req, res, next) {
     fs.readFile(__dirname + '/dist/index.html', function (err, data) {
@@ -18,16 +18,7 @@ var serveIndex = function (req, res, next) {
     });
 };
 
-server.use(restify.queryParser({ mapParams: false }));
-server.use(restify.gzipResponse());
-server.use(restify.bodyParser({ mapParams: false }));
-
-server.get('/entries/.*', serveIndex);
-server.get('/feeds', serveIndex);
-
-
-server.get('/list/feeds', function (request, response, next) {
-
+var getFeeds = function (request, response, next) {
     world.client.hgetall('feeds', function (err, result) {
         if (!result) {
             response.send({
@@ -52,9 +43,9 @@ server.get('/list/feeds', function (request, response, next) {
             return next();
         });
     });
-});
+};
 
-server.post('/list/feeds', function (request, response, next) {
+var updateFeed = function (request, response, next) {
     var multi = world.client.multi();
 
     if (!request.body.hasOwnProperty('add')) {
@@ -102,9 +93,53 @@ server.post('/list/feeds', function (request, response, next) {
         return next();
     });
 
-});
+};
 
-server.get('/list/:name', function getList (request, response, next) {
+
+var findEntries = function (request, response, next) {
+    var terms = request.params.terms;
+    var client = new elasticsearch.Client({
+          host: 'localhost:9200',
+          log: 'trace'
+    });
+
+    var params = {
+        q: terms,
+        fields: ['entry_id']
+    };
+
+    var search = client.search(params);
+
+    var success = function (body) {
+        var multi = world.client.multi();
+        
+        // entry list
+        body.hits.hits.forEach(function (hit) {
+            multi.hgetall('entry:' + hit.fields.entry_id, function (err, entry) {
+                entry.id = hit.fields.entry_id;
+                return entry;
+            });
+        });
+
+        multi.exec(function (err, result) {
+            var total_entries = result.shift();
+            response.send({
+                list_size: total_entries,
+                entries: result
+            });
+        });
+
+    }
+
+    var failure = function (error) {
+        response.send(error);
+    }
+
+    search.then(success, failure);
+    next();
+};
+
+var getList = function (request, response, next) {
     var page = Math.abs(request.query.page) || 1;
     var page_size = Math.min(Math.abs(request.query.page_size) || 10, 50);
     var start = (page - 1) * page_size;
@@ -149,9 +184,9 @@ server.get('/list/:name', function getList (request, response, next) {
         });
     });
     return next();
-});
+};
 
-server.post('/list/:name', function (request, response, next) {
+var updateList = function (request, response, next) {
     var key, multi;
 
     key = 'entries:' + request.params.name;
@@ -170,6 +205,25 @@ server.post('/list/:name', function (request, response, next) {
         response.send(204);
         return next();
     });
+};
+
+server.use(restify.queryParser({ mapParams: false }));
+server.use(restify.gzipResponse());
+server.use(restify.bodyParser({ mapParams: false }));
+
+server.get('/entries/.*', serveIndex);
+server.get('/feeds', serveIndex);
+server.get('/list/feeds', getFeeds);
+server.post('/list/feeds', updateFeed);
+server.get('/list/:name', getList);
+server.post('/list/:name', updateList);
+
+server.get('/search/.*', function (request, response, next) {
+    if (request.is('json')) {
+        findEntries(request, response, next);
+    } else {
+        serveIndex(request, response, next);
+    }
 });
 
 server.get(/\/fonts\/?.*/, restify.serveStatic({
@@ -180,7 +234,6 @@ server.get('/.*', restify.serveStatic({
     'directory': './dist/',
     'default': 'index.html'
 }));
-
 
 server.listen(world.config.http.port, function() {
     console.log('%s listening at %s', server.name, server.url);
