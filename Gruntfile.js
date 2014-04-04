@@ -43,16 +43,6 @@ module.exports = function(grunt) {
             }
         },
 
-        concurrent: {
-            dev: {
-                tasks: ['nodemon:server', 'nodemon:indexer', 'nodemon:downloader', 'watch'],
-                options: {
-                    logConcurrentOutput: true,
-                    limit: 5
-                }
-            }
-        },
-
         copy: {
             main: {
                 expand: true,
@@ -84,16 +74,22 @@ module.exports = function(grunt) {
 
         nodemon: {
             server: {
-                script: 'server.js',
+                script: 'server/index.js',
                 options: {
-                    ignore: ['Gruntfile.js']
+                    watch: 'server'
                 }
             },
             indexer: {
-                script: 'indexer.js'
+                script: 'indexer/index.js',
+                options: {
+                    watch: 'indexer'
+                }
             },
             downloader: {
-                script: 'downloader.js'
+                script: 'downloader/index.js',
+                options: {
+                    watch: 'downloader'
+                }
             }
         },
 
@@ -128,7 +124,6 @@ module.exports = function(grunt) {
     });
 
 
-    grunt.loadNpmTasks('grunt-concurrent');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
@@ -139,6 +134,6 @@ module.exports = function(grunt) {
 
     // Default task(s)
     grunt.registerTask('build', ['clean:pre_build', 'uglify', 'less', 'concat', 'copy', 'clean:post_build']);
-    grunt.registerTask('default', ['concurrent:dev']);
+    grunt.registerTask('default', ['watch']);
 
 };

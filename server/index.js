@@ -1,4 +1,4 @@
-var world = require('./world');
+var world = require('../world');
 var restify = require('restify');
 var fs = require('fs');
 var server = restify.createServer();
@@ -24,7 +24,7 @@ server.use(restify.bodyParser({ mapParams: false }));
  * it's a rewrite--the file path served is not the file path
  * requested.
  *
- * This needs to be registered before any routes. 
+ * This needs to be registered before any routes.
  */
 server.use(function (request, response, next) {
 
@@ -32,7 +32,7 @@ server.use(function (request, response, next) {
     if (request.is('json')) {
         return next();
     }
-    
+
     var roots = ['search', 'entries', 'feeds'];
     var path = request.path().split('/');
 
@@ -41,13 +41,13 @@ server.use(function (request, response, next) {
     if (roots.indexOf(path[1]) == -1) {
         return next();
     }
-    
+
     fs.readFile('./dist/index.html', function (err, data) {
         if (err) {
             next(err);
             return;
         }
-        
+
         response.setHeader('Content-Type', 'text/html');
         response.writeHead(200);
         response.end(data);
@@ -90,7 +90,7 @@ var getFeeds = function (request, response, next) {
  * Unsubscribe from a feed
  * --------------------------------------------------------------------
  *
- * The feed metadata (feed:<id> key) and its entries will be kept. 
+ * The feed metadata (feed:<id> key) and its entries will be kept.
  */
 var deleteFeed = function (request, response, next) {
     var multi = world.client.multi();
@@ -98,7 +98,7 @@ var deleteFeed = function (request, response, next) {
     if (!(request.body instanceof Array)) {
         request.body = [request.body];
     }
-    
+
     request.body.forEach(function (id) {
         multi.hdel(world.keys.feeds, id);
     });
@@ -108,7 +108,7 @@ var deleteFeed = function (request, response, next) {
         response.send(204);
         next();
     });
-    
+
 };
 
 /**
@@ -119,7 +119,7 @@ var deleteFeed = function (request, response, next) {
  */
 var putFeed = function (request, response, next) {
     var multi = world.client.multi();
-    
+
     // accept both single and multiple
     if (!(request.body instanceof Array)) {
         request.body = [request.body];
@@ -143,7 +143,7 @@ var putFeed = function (request, response, next) {
     feeds.forEach(function (feed) {
         var key = world.keys.feed(feed.id);
         multi.hmset(key, feed);
-        
+
         key = world.keys.feeds;
         multi.hset(key, feed.id, +new Date());
     });
@@ -222,7 +222,7 @@ var findEntries = function (request, response, next) {
 
     var success = function (body) {
         var multi = world.client.multi();
-        
+
         // entry list
         body.hits.hits.forEach(function (hit) {
             multi.hgetall('entry:' + hit.fields.entry_id, function (err, entry) {
@@ -329,13 +329,13 @@ server.post('/list/:name', postList);
 
 server.put('/list/feeds', putFeed);
 
-server.del('/list/feeds', deleteFeed);    
+server.del('/list/feeds', deleteFeed);
 
 /**
  * Run a search
  * --------------------------------------------------------------------
  *
- * Only called if the request has asked for json. 
+ * Only called if the request has asked for json.
  */
 server.get('/search/.*', function (request, response, next) {
     findEntries(request, response, next);

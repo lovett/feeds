@@ -1,4 +1,4 @@
-var world = require("./world");
+var world = require("../world");
 var redis = require("redis");
 var subscriber = redis.createClient();
 var htmlparser = require("htmlparser2");
@@ -17,14 +17,14 @@ subscriber.on("subscribe", function (channel, count) {
 
 subscriber.on("message", function (channel, id) {
     var key = "entry:" + id;
-    
+
     world.client.hgetall(key, function (err, entry) {
         var hash = world.hash(entry.url);
         var path = world.archivePath(hash);
         var html = fs.readFileSync(path, {encoding: 'utf-8'})
         var page_text = '';
         var current_tag;
-        
+
         var parser = new htmlparser.Parser({
             lowerCaseTags: true,
             onopentag: function(name, attribs) {
@@ -57,7 +57,7 @@ subscriber.on("message", function (channel, id) {
 
         parser.parseComplete(html);
     });
-    
+
 });
 
 subscriber.subscribe("entry:index");

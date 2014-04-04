@@ -1,4 +1,4 @@
-var world = require("./world");
+var world = require("../world");
 var redis = require("redis");
 var subscriber = redis.createClient();
 var fs = require("fs");
@@ -11,7 +11,7 @@ subscriber.on("subscribe", function (channel, count) {
 
 subscriber.on("message", function (channel, id) {
     var key = "entry:" + id;
-    
+
     world.client.hget(key, "url", function (err, url) {
         var hash = world.archiveHash(url);
         var file_path = world.archivePath(hash);
@@ -27,9 +27,7 @@ subscriber.on("message", function (channel, id) {
 
 
     });
-    
+
 });
 
 subscriber.subscribe("entry:download");
-
-

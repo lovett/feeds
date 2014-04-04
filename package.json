@@ -27,8 +27,7 @@
     "grunt-contrib-copy": "~0.5.0",
     "grunt-nodemon": "^0.2.1",
     "config": "~0.4.33",
-    "less": "^1.7.0",
-    "grunt-concurrent": "^0.5.0"
+    "less": "^1.7.0"
   },
   "dependencies": {
     "moment": "~2.5.0",
