@@ -47,8 +47,7 @@ module.exports = function(grunt) {
             main: {
                 expand: true,
                 flatten: true,
-                src: ['bower_components/foundation/js/vendor/modernizr.js',
-                      'bower_components/jquery/dist/jquery.min.map',
+                src: ['bower_components/jquery/dist/jquery.min.map',
                       'bower_components/angular/angular.min.js.map',
                       'bower_components/angular-route/angular-route.min.js.map',
                       'bower_components/angular-resource/angular-resource.min.js.map',

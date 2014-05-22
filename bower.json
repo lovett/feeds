@@ -1,8 +1,8 @@
 {
-  "name": "feeds",
+  "name": "headlines",
   "main": "index.js",
   "version": "0.0.0",
-  "homepage": "https://github.com/lovett/feeds",
+  "homepage": "https://github.com/lovett/headlines",
   "authors": [
     "Bill Lovett <bill@ilovett.com>"
   ],
@@ -16,12 +16,12 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.2.6",
-    "angular-route": "~1.2.6",
-    "angular-resource": "~1.2.6",
-    "angular-moment": "~0.6.0",
-    "foundation": "~5.2.0",
-    "jquery": "~2.1.0",
-    "lodash": "~2.4.1"
+    "angular": "1.2.16",
+    "angular-route": "1.2.16",
+    "angular-resource": "1.2.16",
+    "angular-moment": "0.6.2",
+    "foundation": "5.2.2",
+    "jquery": "2.1.1",
+    "lodash": "2.4.1"
   }
 }
