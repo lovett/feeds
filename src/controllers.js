@@ -33,7 +33,9 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
 }]);
 
 appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', 'List', function ($rootScope, $scope, $routeParams, $route, List) {
-
+    if (!$routeParams.name) {
+        return;
+    }
     List.get({'name': $routeParams.name, page: $routeParams.page}, function (response) {
         for (var key in response) {
             if (key.substr(0, 1) === '$') {
