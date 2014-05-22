@@ -51,7 +51,7 @@ server.use(function (request, response, next) {
         response.setHeader('Content-Type', 'text/html');
         response.writeHead(200);
         response.end(data);
-        next();
+        return next(false);
     });
 });
 
