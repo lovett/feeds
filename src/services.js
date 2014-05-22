@@ -6,7 +6,8 @@ appServices.factory('List', ['$resource', function ($resource) {
             method: 'GET'
         },
         add: {
-            method: 'PUT'
+            method: 'PUT',
+            isArray: true
         },
         remove: {
             method: 'DELETE'

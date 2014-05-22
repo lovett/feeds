@@ -31,24 +31,27 @@
                 <h2>Active Subscriptions</h2>
             </div>
             <div class="large-12 columns">
-                <p ng-show="feeds.length == 0">You aren't subscribed to any feeds.</p>
-
-                <table ng-show="feeds.length > 0">
+                <p>
+                    You are
+                    <span ng-pluralize count="feedCount" when="{'0': 'not subscribed to any feeds', 'one': 'subscribed to 1 feed', 'other': 'subscribed to {} feeds'}"></span>
+                </p>
+                
+                <table ng-show="feedCount > 0">
                     <thead>
                         <tr>
                             <th width="200">Name</th>
                             <th>URL</th>
-                            <th width="150">Checked</th>
-                            <th width="150">Added</th>
+                            <th width="175">Added</th>
+                            <th width="175">Checked</th>
                             <th width="50"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="feed in feeds">
+                        <tr ng-repeat="(id, feed) in feeds">
                             <td>{{ feed.name }}</td>
                             <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.url }}</a></td>
-                            <td><span ng-bind="feed.checked | amCalendar"></span></td>
                             <td><span ng-bind="feed.added | amCalendar"></span></td>
+                            <td><span ng-bind="(feed.checked | amCalendar) || 'never'"></span></td>
                             <td><a ng-click="remove()" href=""><span class="icon-trash"></span></a></td>
                         </tr>
                     </tbody>

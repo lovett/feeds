@@ -11,24 +11,41 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', '$route',
 appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', 'List', function ($rootScope, $scope, $route, List) {
     $rootScope.list_name = 'feeds';
 
+    $scope.feedCount = 0;
+
     List.get({'name': 'feeds'}, function (response) {
-        $scope.feeds = response.feeds;
+        $scope.feeds = {};
+        _.forEach(response.feeds, function (feed) {
+            $scope.feeds[feed.id] = feed;
+            $scope.feedCount++;
+        });
     });
 
     $scope.add = function () {
-        List.add({
-            'name': 'feeds',
-            add: {url:$scope.url, name: $scope.name}
+        List.add({name: 'feeds'}, {
+            url: $scope.url,
+            name: $scope.name
+        }, function (response) {
+            _.forEach(response, function (feed) {
+                $scope.feeds[feed.id] = feed;
+                $scope.feedCount++;
+                $scope.url = null;
+                $scope.name = null;
+            });
+        }, function (err) {
         });
-        $route.reload();
     };
 
     $scope.remove = function () {
+        var feed_id = this.feed.id;
         List.update({
             'name': 'feeds',
-            'remove': this.feed.url
+            'remove': feed_id
+        }, function (resp) {
+            delete $scope.feeds[feed_id]
+            $scope.feedCount = _.size($scope.feeds);
+        }, function (err) {
         });
-        $route.reload();
     };
 }]);
 

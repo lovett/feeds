@@ -128,6 +128,7 @@ var putFeed = function (request, response, next) {
     var feeds = [];
     request.body.forEach(function (item) {
         var feed = {}
+        console.log(item);
         feed.url = item.url || null;
         feed.name = item.name || feed.url;
 
@@ -142,6 +143,7 @@ var putFeed = function (request, response, next) {
 
     feeds.forEach(function (feed) {
         var key = world.keys.feed(feed.id);
+        feed.added = +new Date();
         multi.hmset(key, feed);
 
         key = world.keys.feeds;
