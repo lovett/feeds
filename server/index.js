@@ -71,7 +71,7 @@ var getFeeds = function (request, response, next) {
         var multi = world.client.multi();
 
         Object.keys(result).forEach(function (key) {
-            multi.hgetall('feed:' + result[key], function (err, feed) {
+            multi.hgetall('feed:' + key, function (err, feed) {
                 return feed;
             });
         });
@@ -340,17 +340,6 @@ server.del('/list/feeds', deleteFeed);
 server.get('/search/.*', function (request, response, next) {
     findEntries(request, response, next);
 });
-
-/**
- * Static serving of files under dist/fonts
- * --------------------------------------------------------------------
- *
- * Subdirectories under dist need separate routes because serveStatic
- * only considers the specified directory, not its children.
- */
-server.get(/\/fonts\/?.*/, restify.serveStatic({
-    'directory': './dist/fonts',
-}));
 
 /**
  * Static serving of files under dist
