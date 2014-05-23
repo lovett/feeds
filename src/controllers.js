@@ -21,16 +21,22 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
         });
     });
 
-    $scope.add = function () {
+    $scope.add = function (feed) {
+
+        if ($scope.newFeedForm.$invalid) {
+            $scope.newFeedForm.submitted = true;
+            return;
+        }
+            
         List.add({name: 'feeds'}, {
-            url: $scope.url,
-            name: $scope.name
+            url: feed.url,
+            name: feed.name
         }, function (response) {
             _.forEach(response, function (feed) {
                 $scope.feeds[feed.id] = feed;
                 $scope.feedCount++;
-                $scope.url = null;
-                $scope.name = null;
+                $scope.feed = {};
+                $scope.newFeedForm.submitted = false;
             });
         }, function (err) {
         });

@@ -1,4 +1,4 @@
-<form id="feeds" ng-submit="add()">
+<form id="feeds" name="newFeedForm" ng-submit="add(feed)" novalidate="novalidate">
     <section>
         <div class="row">
             <div class="large-12 columns">
@@ -8,19 +8,28 @@
         <div class="row">
 
             <div class="medium-3 columns">
-                <label>
-                    <input type="text" ng-model="name" id="name" name="name" value="" size="50" placeholder="Name" />
+                <label ng-class="{'error': newFeedForm.name.$invalid}">
+                    <input type="text" ng-model="feed.name" id="name" name="name" value="" size="50" placeholder="Name" required="required" ng-minlength="3" ng-maxlength="20" autocomplete="off" />
                 </label>
+                <div ng-show="newFeedForm.name.$invalid && newFeedForm.submitted">
+                    <small class="error" ng-show="newFeedForm.name.$error.required">This field is required</small>
+                    <small class="error" ng-show="newFeedForm.name.$error.minlength">That name is too short</small>
+                    <small class="error" ng-show="newFeedForm.name.$error.maxlength">That name is too long</small>
+                </div>
+                
             </div>
             <div class="medium-7 columns">
-                <label>
-                    <input type="text" ng-model="url" id="url" name="url" value="" size="50" placeholder="URL" />
+                <label ng-class="{'error': newFeedForm.url.$invalid}">
+                    <input type="url" ng-model="feed.url" id="url" name="url" value="" size="50" placeholder="URL" required="required" autocomplete="off" />
                 </label>
+                <div ng-show="newFeedForm.url.$invalid && newFeedForm.submitted">
+                    <small class="error" ng-show="newFeedForm.url.$error.required">This field is required</small>
+                    <small class="error" ng-show="newFeedForm.url.$error.url">That's not a valid URL</small>
+                </div>
             </div>
             <div class="medium-2 columns">
                 <input type="submit" class="button postfix" />
             </div>
-
         </div>
     </section>
 
@@ -40,18 +49,18 @@
                     <thead>
                         <tr>
                             <th width="200">Name</th>
-                            <th>URL</th>
                             <th width="175">Added</th>
-                            <th width="175">Checked</th>
+                            <th width="175">Last Checked</th>
+                            <th width="175">Last Updated</th>
                             <th width="50"></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="(id, feed) in feeds">
-                            <td>{{ feed.name }}</td>
-                            <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.url }}</a></td>
+                            <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.name }}</a></td>
                             <td><span ng-bind="feed.added | amCalendar"></span></td>
                             <td><span ng-bind="(feed.checked | amCalendar) || 'never'"></span></td>
+                            <td><span ng-bind="(feed.updated | amCalendar) || 'never'"></span></td>
                             <td><a ng-click="remove()" href=""><span class="icon-trash"></span></a></td>
                         </tr>
                     </tbody>
