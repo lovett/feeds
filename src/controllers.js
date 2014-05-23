@@ -5,21 +5,38 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', '$route',
     $scope.search = function (query) {
         alert(query.terms);
     };
-    
+
 }]);
 
 appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', 'List', function ($rootScope, $scope, $route, List) {
     $rootScope.list_name = 'feeds';
 
-    $scope.feedCount = 0;
+    $scope.sortField = null;
+    $scope.sortDirection = null;
 
     List.get({'name': 'feeds'}, function (response) {
-        $scope.feeds = {};
-        _.forEach(response.feeds, function (feed) {
-            $scope.feeds[feed.id] = feed;
-            $scope.feedCount++;
-        });
+        $scope.feeds = response.feeds;
+        $scope.sortBy('name');
     });
+
+
+    $scope.sortBy = function (field, direction) {
+        if (field !== $scope.sortField) {
+            $scope.sortField = field;
+            $scope.sortDirection = 'asc';
+        } else {
+            $scope.sortDirection = ($scope.sortDirection === 'asc')? 'desc':'asc';
+        }
+
+
+        $scope.feeds = _.sortBy($scope.feeds, function (feed) {
+            return feed[$scope.sortField];
+        });
+
+        if ($scope.sortDirection === 'desc') {
+            $scope.feeds = $scope.feeds.reverse();
+        }
+    }
 
     $scope.add = function (feed) {
 
@@ -27,7 +44,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             $scope.newFeedForm.submitted = true;
             return;
         }
-            
+
         List.add({name: 'feeds'}, {
             url: feed.url,
             name: feed.name
@@ -48,8 +65,9 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             'name': 'feeds',
             'remove': feed_id
         }, function (resp) {
-            delete $scope.feeds[feed_id]
-            $scope.feedCount = _.size($scope.feeds);
+            $scope.feeds = _.reject($scope.feeds, function (feed) {
+                return feed.id === feed_id;
+            });
         }, function (err) {
         });
     };

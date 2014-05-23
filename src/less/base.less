@@ -84,3 +84,24 @@ MAIN {
         width: 100%;
     }
 }
+
+.sort {
+    background-color: #666;
+    color: white;
+
+    A {
+        color: white;
+    }
+}
+
+THEAD TH A {
+    display: block;
+}
+
+.sortAsc .sort A:after {
+    content: ' \25BC';
+}
+
+.sortDesc .sort A:after {
+    content: ' \25B2';
+}
