@@ -21,8 +21,12 @@ module.exports = {
     },
     keys: {
         feeds: "feeds",
-        feed: function (id) {
-            return "feed:" + id;
+        feedSubscriptions: "feeds:subscriptions",
+        feed: function (userId, feedId) {
+            return "feed:" + feedId + ":" + userId;
+        },
+        feedList: function(userId) {
+            return "feeds:" + userId;
         }
     }
     

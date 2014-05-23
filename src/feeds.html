@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="medium-2 columns">
-                <input type="submit" class="button postfix" />
+                <input type="submit" class="button postfix" value="Subscribe"/>
             </div>
         </div>
     </section>
@@ -49,7 +49,7 @@
                     <thead>
                         <tr ng-class="{'sortAsc': sortDirection === 'asc', 'sortDesc': sortDirection === 'desc'}" >
                             <th width="200" ng-class="{'sort': sortField === 'name'}"><a ng-click="sortBy('name')" href="">Name</a></th>
-                            <th width="175" ng-class="{'sort': sortField === 'added'}"><a ng-click="sortBy('added')" href="">Added</a></th>
+                            <th width="175" ng-class="{'sort': sortField === 'subscribed'}"><a ng-click="sortBy('subscribed')" href="">Subscribed</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'checked'}"><a ng-click="sortBy('checked')" href="">Last Checked</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'updated'}"><a ng-click="sortBy('updated')" href="">Last Updated</a></th>
                             <th width="50"></th>
@@ -58,7 +58,7 @@
                     <tbody>
                         <tr ng-repeat="feed in feeds">
                             <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.name }}</a></td>
-                            <td><span ng-bind="feed.added | amCalendar"></span></td>
+                            <td><span ng-bind="feed.subscribed | amCalendar"></span></td>
                             <td><span ng-bind="(feed.checked | amCalendar) || 'never'"></span></td>
                             <td><span ng-bind="(feed.updated | amCalendar) || 'never'"></span></td>
                             <td><a ng-click="remove()" href=""><span class="icon-trash"></span></a></td>

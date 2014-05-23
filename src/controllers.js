@@ -14,11 +14,16 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
     $scope.sortField = null;
     $scope.sortDirection = null;
 
-    List.get({'name': 'feeds'}, function (response) {
-        $scope.feeds = response.feeds;
-        $scope.sortBy('name');
-    });
+    var populate = function (response) {
+        $scope.feeds = [];
+        _.forEach(response.feeds, function (values, key) {
+            values.id = key;
+            $scope.feeds.push(values);
+        });
+        $scope.sortBy('name', 'asc');
+    };        
 
+    List.get({'name': 'feeds'}, populate);
 
     $scope.sortBy = function (field, direction) {
         if (field !== $scope.sortField) {
@@ -45,30 +50,24 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             return;
         }
 
-        List.add({name: 'feeds'}, {
-            url: feed.url,
-            name: feed.name
+        List.update({name: 'feeds'}, {
+            subscribe: {
+                url: feed.url,
+                name: feed.name
+            }
         }, function (response) {
-            _.forEach(response, function (feed) {
-                $scope.feeds[feed.id] = feed;
-                $scope.feedCount++;
-                $scope.feed = {};
-                $scope.newFeedForm.submitted = false;
-            });
+            populate();
+            $scope.newFeedForm.submitted = false;
         }, function (err) {
         });
     };
 
     $scope.remove = function () {
         var feed_id = this.feed.id;
-        List.update({
-            'name': 'feeds',
-            'remove': feed_id
-        }, function (resp) {
-            $scope.feeds = _.reject($scope.feeds, function (feed) {
-                return feed.id === feed_id;
-            });
-        }, function (err) {
+        console.log(feed_id);
+        List.update({name: 'feeds'}, {
+            unsubscribe: feed_id
+        }, populate, function (err) {
         });
     };
 }]);

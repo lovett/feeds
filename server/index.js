@@ -56,31 +56,57 @@ server.use(function (request, response, next) {
 });
 
 /**
+ * Custom middleware for casting request parameters to expected data types
+ * --------------------------------------------------------------------
+ * If we get something that should be an array, but isn't, make it so. 
+ */
+server.use(function (request, response, next) {
+    if (request.method !== 'POST') return next();
+    
+    var keys = ['subscribe', 'unsubscribe'];
+    keys.forEach(function (key) {
+        if (!request.body.hasOwnProperty(key)) {
+            return;
+        }
+
+        if (!(request.body[key] instanceof Array)) {
+            request.body[key] = [request.body[key]];
+        }
+    });
+
+    return next();
+            
+});
+
+/**
  * Return a list of subscribed feeds
  * --------------------------------------------------------------------
  */
-var getFeeds = function (request, response, next) {
-    world.client.hgetall('feeds', function (err, result) {
-        if (!result) {
-            response.send({
-                feeds: []
-            });
-            return next();
-        }
+var feedList = function (request, response, next) {
+    var key;
+    var feeds = {};
+    var multi = world.client.multi();
 
-        var multi = world.client.multi();
+    key = world.keys.feedList(1);
 
-        Object.keys(result).forEach(function (key) {
-            multi.hgetall('feed:' + key, function (err, feed) {
-                return feed;
+    world.client.smembers(key, function (err, result) {
+        result.forEach(function (feedId) {
+            key = world.keys.feed(1, feedId);
+            multi.hgetall(key, function (err, feed) {
+                feeds[feedId] = feed;
             });
+
+            key = world.keys.feeds;
+            multi.hget(key, feedId, function (err, url) {
+                feeds[feedId].url = url;
+            });
+            
         });
 
         multi.exec(function (err, result) {
             response.send({
-                feeds: result
+                feeds: feeds
             });
-
             return next();
         });
     });
@@ -90,23 +116,23 @@ var getFeeds = function (request, response, next) {
  * Unsubscribe from a feed
  * --------------------------------------------------------------------
  *
- * The feed metadata (feed:<id> key) and its entries will be kept.
+ * The feed's entries will be kept.
  */
-var deleteFeed = function (request, response, next) {
+var feedUnsubscribe = function (request, response, next) {
     var multi = world.client.multi();
 
-    if (!(request.body instanceof Array)) {
-        request.body = [request.body];
+    if (!request.body.hasOwnProperty('unsubscribe')) {
+        return next();
     }
 
-    request.body.forEach(function (id) {
-        multi.hdel(world.keys.feeds, id);
+    request.body.unsubscribe.forEach(function (id) {
+        multi.srem(world.keys.feedList(1), id);
+        multi.hincrby(world.keys.feedSubscriptions, id, -1);
     });
 
     multi.exec(function (err, result) {
         next.ifError(err);
-        response.send(204);
-        next();
+        return next();
     });
 
 };
@@ -117,18 +143,18 @@ var deleteFeed = function (request, response, next) {
  *
  * Resubscribing to an already-subscribed feed is allowed.
  */
-var putFeed = function (request, response, next) {
+var feedSubscribe = function (request, response, next) {
+    
     var multi = world.client.multi();
 
-    // accept both single and multiple
-    if (!(request.body instanceof Array)) {
-        request.body = [request.body];
+    var feeds = [];
+
+    if (!request.body.hasOwnProperty('subscribe')) {
+        return next();
     }
 
-    var feeds = [];
-    request.body.forEach(function (item) {
+    request.body.subscribe.forEach(function (item) {
         var feed = {}
-        console.log(item);
         feed.url = item.url || null;
         feed.name = item.name || feed.url;
 
@@ -142,71 +168,34 @@ var putFeed = function (request, response, next) {
     });
 
     feeds.forEach(function (feed) {
-        var key = world.keys.feed(feed.id);
-        feed.added = +new Date();
-        multi.hmset(key, feed);
+        var key;
 
+        // Map the feed id to its url (with no concern for whether a mapping already exists)
         key = world.keys.feeds;
-        multi.hset(key, feed.id, +new Date());
+        multi.hset(key, feed.id, feed.url);
+
+        // Subscribe the user to the feed
+        key = world.keys.feedList(1);
+        multi.sadd(key, feed.id);
+
+        // Capture user-specific metadata about the subscription
+        key = world.keys.feed(1, feed.id);
+        multi.hmset(key, {
+            name: feed.name,
+            subscribed: +new Date(),
+        });
+
+        // Update the total subscriptions to this feed
+        key = world.keys.feedSubscriptions;
+        multi.hincrby(key, feed.id, 1);
+
     });
 
     multi.exec(function (err, result) {
         next.ifError(err);
-        response.send(feeds);
-        return next();
+        next();
     });
 };
-
-var postFeed = function (request, response, next) {
-    var multi = world.client.multi();
-
-    if (!request.body.hasOwnProperty('add')) {
-        request.body.add = [];
-    }
-
-    if (!(request.body.add instanceof Array)) {
-        request.body.add = [request.body.add];
-    }
-
-    if (!request.body.hasOwnProperty('remove')) {
-        request.body.remove = [];
-    }
-
-    if (!(request.body.remove instanceof Array)) {
-        request.body.remove = [request.body.remove];
-    }
-
-    request.body.add.forEach(function (feed) {
-        multi.hexists('feeds', feed.url, function (err, result) {
-            if (result === 0) {
-                world.client.incr('feeds:counter', function (err, feed_id) {
-                    world.client.hset('feeds', feed.url, feed_id);
-                    world.client.hmset('feed:' + feed_id, {
-                        'url': feed.url,
-                        'name': feed.name,
-                        'added': +new Date()
-                    });
-                    world.client.hset('feeds:schedule', feed_id, world.config.feed_check_interval);
-                });
-            }
-        });
-    });
-
-    request.body.remove.forEach(function (url) {
-        multi.hget('feeds', url, function (err, feed_id) {
-            world.client.del('feeds:' + feed_id);
-            world.client.hdel('feeds', url);
-            world.client.hdel('feeds:schedule', feed_id);
-        });
-    });
-
-    multi.exec(function (err, result) {
-        response.send(204);
-        return next();
-    });
-
-};
-
 
 var findEntries = function (request, response, next) {
     var terms = request.params.terms;
@@ -320,21 +309,17 @@ var postList = function (request, response, next) {
 };
 
 /**
- * Route setup
+ * Routes
  * --------------------------------------------------------------------
  */
-server.get('/list/feeds', getFeeds);
-server.get('/list/:name', getList);
+server.get('/list/feeds', feedList);
+server.post('/list/feeds', feedSubscribe, feedUnsubscribe, feedList);
 
-server.post('/list/feeds', postFeed);
+server.get('/list/:name', getList);
 server.post('/list/:name', postList);
 
-server.put('/list/feeds', putFeed);
-
-server.del('/list/feeds', deleteFeed);
-
 /**
- * Run a search
+ * Search
  * --------------------------------------------------------------------
  *
  * Only called if the request has asked for json.
