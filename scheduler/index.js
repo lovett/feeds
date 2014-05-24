@@ -7,7 +7,6 @@ subscriber.on("subscribe", function (channel, count) {
 });
 
 subscriber.on("message", function (channel, id) {
-    console.log('message: ' + channel + ' with id ' + id);
     if (channel === 'feed:reschedule') {
         scheduleFeed(id);
     }
@@ -37,22 +36,26 @@ var scheduleFeed = function (id) {
             var updated = parseInt(result.shift(), 10) || 0;
             var nextCheck = parseInt(result.shift(), 10) || 0;
             var newNextCheck = 0;
-            
-            // The next check should be at least 1 interval from the last update.
+
             if (updated > 0 && nextCheck <= (updated + interval)) {
+                // The feed has been updated since it was last checked.
+                // The next check should be at least one interval from the last update
                 newNextCheck = updated + interval;
             } else if (nextCheck === 0) {
+                // The feed has never been checked. Check it now.
+                console.log(id + ' has never been checked');
                 newNextCheck = now;
+            } else {
+                // Check the feed at a future time.
+                console.log(id + ' was checked before; check again in future');
+                newNextCheck = now + interval;
             }
 
-            if (newNextCheck > 0) {
-                multi.hset(key, 'nextCheck', newNextCheck);
-                multi.zadd(world.keys.feedQueueKey, id, updated + interval);
-                multi.exec();
-                console.log('Rescheduled ' + id);
-            } else {
-                console.log('Nothing to do for ' + id);
-            }
+            multi.hset([key, 'nextCheck', newNextCheck]);
+            multi.zadd([world.keys.feedQueueKey, newNextCheck, id]);
+            multi.exec(function (err, result) {
+                console.log('Rescheduled ' + id + ' to ' + newNextCheck);
+            });
         });
     });
 }

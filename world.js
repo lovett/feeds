@@ -33,5 +33,5 @@ module.exports = {
         },
         feedQueueKey: 'feeds:queue'
     },
-    minFetchInterval: 6000
+    minFetchInterval: 5 * 60 * 1000
 };
