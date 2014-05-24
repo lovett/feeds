@@ -22,12 +22,15 @@ module.exports = {
     keys: {
         feeds: "feeds",
         feedSubscriptions: "feeds:subscriptions",
-        feed: function (userId, feedId) {
-            return "feed:" + feedId + ":" + userId;
+        feed: function (feedId, userId) {
+            var value = 'feed:' + feedId;
+            if (userId) {
+                value += ':' + userId;
+            }
+            return value;
         },
         feedList: function(userId) {
             return "feeds:" + userId;
         }
     }
-    
 };

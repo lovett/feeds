@@ -91,7 +91,7 @@ var feedList = function (request, response, next) {
 
     world.client.smembers(key, function (err, result) {
         result.forEach(function (feedId) {
-            key = world.keys.feed(1, feedId);
+            key = world.keys.feed(feedId, 1);
             multi.hgetall(key, function (err, feed) {
                 feeds[feedId] = feed;
             });
@@ -127,7 +127,7 @@ var feedUnsubscribe = function (request, response, next) {
 
     request.body.unsubscribe.forEach(function (id) {
         multi.srem(world.keys.feedList(1), id);
-        multi.hincrby(world.keys.feedSubscriptions, id, -1);
+        multi.zincrby(world.keys.feedSubscriptions, -1, id);
     });
 
     multi.exec(function (err, result) {
@@ -162,24 +162,25 @@ var feedSubscribe = function (request, response, next) {
             return next(new restify.InvalidArgumentError("Feed URL not specified"));
         }
 
-        feed.id = world.hash(feed.url);
-
         feeds.push(feed);
     });
 
     feeds.forEach(function (feed) {
-        var key;
+        var key, id;
+
+        id = world.hash(feed.url);
 
         // Map the feed id to its url (with no concern for whether a mapping already exists)
         key = world.keys.feeds;
-        multi.hset(key, feed.id, feed.url);
+        multi.hset(key, id, feed.url);
 
         // Subscribe the user to the feed
         key = world.keys.feedList(1);
-        multi.sadd(key, feed.id);
+        multi.sadd(key, id);
 
         // Capture user-specific metadata about the subscription
-        key = world.keys.feed(1, feed.id);
+        // (for now, fake the user id)
+        key = world.keys.feed(id, 1);
         multi.hmset(key, {
             name: feed.name,
             subscribed: +new Date(),
@@ -187,7 +188,7 @@ var feedSubscribe = function (request, response, next) {
 
         // Update the total subscriptions to this feed
         key = world.keys.feedSubscriptions;
-        multi.hincrby(key, feed.id, 1);
+        multi.zincrby(key, 1, id);
 
     });
 
