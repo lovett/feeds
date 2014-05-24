@@ -91,15 +91,28 @@ var feedList = function (request, response, next) {
 
     world.client.smembers(key, function (err, result) {
         result.forEach(function (feedId) {
+
+            // User-specific fields
             key = world.keys.feed(feedId, 1);
             multi.hgetall(key, function (err, feed) {
                 feeds[feedId] = feed;
             });
 
+            // User-agnostic fields
+            key = world.keys.feed(feedId);
+            multi.hgetall(key, function (err, result) {
+                result = result || {};
+                Object.keys(result).forEach(function (key) {
+                    feeds[feedId][key] = result[key];
+                });
+            });
+            
+
             key = world.keys.feeds;
             multi.hget(key, feedId, function (err, url) {
                 feeds[feedId].url = url;
             });
+
             
         });
 

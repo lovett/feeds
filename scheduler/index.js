@@ -13,8 +13,8 @@ var main = function () {
         ids.forEach(function (id) {
             var key = world.keys.feed(id);
             
-            multi.hmget([key, 'lastUpdate', 'nextCheck'], function (err, result) {
-                var lastUpdate = parseInt(result.shift(), 10) || 0;
+            multi.hmget([key, 'updated', 'nextCheck'], function (err, result) {
+                var updated = parseInt(result.shift(), 10) || 0;
                 var nextCheck = parseInt(result.shift(), 10) || 0;
 
                 if (nextCheck > now) {
@@ -22,9 +22,9 @@ var main = function () {
                     return;
                 }
 
-                if (lastUpdate > now - minMS) {
+                if (updated > now - minMS) {
                     console.log(id + ' was recently updated, and does not to be checked');
-                    world.client.hset(key, 'nextCheck', lastUpdate + minMS); 
+                    world.client.hset(key, 'nextCheck', updated + minMS); 
                     return;
                 }
 
