@@ -3,7 +3,7 @@ var redis = require("redis");
 
 var main = function () {
     var now = new Date().getTime();
-    world.client.zrangebyscore([world.keys.feedSubscriptions, 1, '+inf'],  function (err, ids) {
+    world.client.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'],  function (err, ids) {
         if (err) throw err;
 
         var multi = world.client.multi();
@@ -11,7 +11,7 @@ var main = function () {
         var minMS = 1 * 60 * 60 * 1000;
 
         ids.forEach(function (id) {
-            var key = world.keys.feed(id);
+            var key = world.keys.feedKey(id);
             
             multi.hmget([key, 'updated', 'nextCheck'], function (err, result) {
                 var updated = parseInt(result.shift(), 10) || 0;

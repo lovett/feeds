@@ -20,16 +20,15 @@ module.exports = {
         return this.cityhash.hash64(key).value;
     },
     keys: {
-        feeds: "feeds",
-        feedSubscriptions: "feeds:subscriptions",
-        feed: function (feedId, userId) {
+        feedSubscriptionsKey: "feeds:subscriptions",
+        feedKey: function (feedId, userId) {
             var value = 'feed:' + feedId;
             if (userId) {
                 value += ':' + userId;
             }
             return value;
         },
-        feedList: function(userId) {
+        feedListKey: function(userId) {
             return "feeds:" + userId;
         }
     }

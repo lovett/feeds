@@ -87,33 +87,26 @@ var feedList = function (request, response, next) {
     var feeds = {};
     var multi = world.client.multi();
 
-    key = world.keys.feedList(1);
+    key = world.keys.feedListKey(1);
 
     world.client.smembers(key, function (err, result) {
         result.forEach(function (feedId) {
 
             // User-specific fields
-            key = world.keys.feed(feedId, 1);
+            key = world.keys.feedKey(feedId, 1);
             multi.hgetall(key, function (err, feed) {
                 feeds[feedId] = feed;
             });
 
             // User-agnostic fields
-            key = world.keys.feed(feedId);
+            key = world.keys.feedKey(feedId);
             multi.hgetall(key, function (err, result) {
                 result = result || {};
                 Object.keys(result).forEach(function (key) {
                     feeds[feedId][key] = result[key];
                 });
             });
-            
 
-            key = world.keys.feeds;
-            multi.hget(key, feedId, function (err, url) {
-                feeds[feedId].url = url;
-            });
-
-            
         });
 
         multi.exec(function (err, result) {
@@ -183,24 +176,25 @@ var feedSubscribe = function (request, response, next) {
 
         id = world.hash(feed.url);
 
-        // Map the feed id to its url (with no concern for whether a mapping already exists)
-        key = world.keys.feeds;
-        multi.hset(key, id, feed.url);
-
         // Subscribe the user to the feed
-        key = world.keys.feedList(1);
+        // (for now, fake the user id)
+        key = world.keys.feedListKey(1);
         multi.sadd(key, id);
 
-        // Capture user-specific metadata about the subscription
+        // User-specific metadata about the feed
         // (for now, fake the user id)
-        key = world.keys.feed(id, 1);
+        key = world.keys.feedKey(id, 1);
         multi.hmset(key, {
             name: feed.name,
             subscribed: +new Date(),
         });
 
+        // User-netutral metdata about the feed
+        key = world.keys.feedKey(id);
+        multi.hsetnx(key, 'url', feed.url);
+
         // Update the total subscriptions to this feed
-        key = world.keys.feedSubscriptions;
+        key = world.keys.feedSubscriptionsKey;
         multi.zincrby(key, 1, id);
 
     });
