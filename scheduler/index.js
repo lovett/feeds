@@ -1,46 +1,61 @@
-var world = require("../world");
-var redis = require("redis");
+var world = require('../world');
+var redis = require('redis');
+var subscriber = redis.createClient();
 
-var main = function () {
+subscriber.on("subscribe", function (channel, count) {
+    world.logger.info("Subscribed to " + channel);
+});
+
+subscriber.on("message", function (channel, id) {
+    console.log('message: ' + channel + ' with id ' + id);
+    if (channel === 'feed:reschedule') {
+        scheduleFeed(id);
+    }
+});
+
+var scheduleFeed = function (id) {
     var now = new Date().getTime();
-    world.client.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'],  function (err, ids) {
-        if (err) throw err;
+    var multi = world.client.multi();
+    var interval = world.minFetchInterval;
 
-        var multi = world.client.multi();
 
-        var minMS = 1 * 60 * 60 * 1000;
+    world.client.zscore(world.keys.feedSubscriptionsKey, id, function (err, score) {
+        var key = world.keys.feedKey(id);
+        score = parseInt(score, 10);
 
-        ids.forEach(function (id) {
-            var key = world.keys.feedKey(id);
-            
-            multi.hmget([key, 'updated', 'nextCheck'], function (err, result) {
-                var updated = parseInt(result.shift(), 10) || 0;
-                var nextCheck = parseInt(result.shift(), 10) || 0;
-
-                if (nextCheck > now) {
-                    console.log(id + ' does not need to be checked for another ' + (nextCheck - now) + ' ms');
-                    return;
-                }
-
-                if (updated > now - minMS) {
-                    console.log(id + ' was recently updated, and does not to be checked');
-                    world.client.hset(key, 'nextCheck', updated + minMS); 
-                    return;
-                }
-
-                console.log('Fetching ' + id);
-
-                world.client.publish('feed:fetch', id, function (err, received) {
-                    world.client.hset(key, 'nextCheck', now + minMS); 
-                });
+        // No more subscribers
+        if (score === 0) {
+            multi.hdel(key, 'nextCheck');
+            multi.zrem(world.keys.feedQueueKey, id);
+            multi.exec(function (err, result) {
             });
-        });
+            return;
+        }
+        
+        // At least one subscriber
+        world.client.hmget([key, 'updated', 'nextCheck'], function (err, result) {
+            var updated = parseInt(result.shift(), 10) || 0;
+            var nextCheck = parseInt(result.shift(), 10) || 0;
+            var newNextCheck = 0;
+            
+            // The next check should be at least 1 interval from the last update.
+            if (updated > 0 && nextCheck <= (updated + interval)) {
+                newNextCheck = updated + interval;
+            } else if (nextCheck === 0) {
+                newNextCheck = now;
+            }
 
-        multi.exec(function (err, result) {
-            setTimeout(main, 5 * 1000);
+            if (newNextCheck > 0) {
+                multi.hset(key, 'nextCheck', newNextCheck);
+                multi.zadd(world.keys.feedQueueKey, id, updated + interval);
+                multi.exec();
+                console.log('Rescheduled ' + id);
+            } else {
+                console.log('Nothing to do for ' + id);
+            }
         });
-
     });
 }
 
-main();
+subscriber.subscribe('feed:reschedule')
+

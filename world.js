@@ -30,6 +30,8 @@ module.exports = {
         },
         feedListKey: function(userId) {
             return "feeds:" + userId;
-        }
-    }
+        },
+        feedQueueKey: 'feeds:queue'
+    },
+    minFetchInterval: 6000
 };

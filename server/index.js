@@ -132,8 +132,9 @@ var feedUnsubscribe = function (request, response, next) {
     }
 
     request.body.unsubscribe.forEach(function (id) {
-        multi.srem(world.keys.feedList(1), id);
-        multi.zincrby(world.keys.feedSubscriptions, -1, id);
+        multi.srem(world.keys.feedListKey(1), id);
+        multi.zincrby(world.keys.feedSubscriptionsKey, -1, id);
+        multi.publish('feed:reschedule', id);
     });
 
     multi.exec(function (err, result) {
@@ -195,7 +196,10 @@ var feedSubscribe = function (request, response, next) {
 
         // Update the total subscriptions to this feed
         key = world.keys.feedSubscriptionsKey;
+
         multi.zincrby(key, 1, id);
+
+        multi.publish('feed:reschedule', id);
 
     });
 
