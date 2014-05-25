@@ -34,6 +34,7 @@ var scheduleFeed = function (feedId) {
             multi.exec(function (err, result) {
                 if (err) logger.error(err);
             });
+            logger.trace({feed: feedId}, 'dequeued, no subscribers');
             return;
         }
         

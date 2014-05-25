@@ -1,8 +1,8 @@
 var world = require('../world');
 var restify = require('restify');
-var fs = require('fs');
 var server = restify.createServer();
 var elasticsearch = require('elasticsearch');
+var logger = world.logger.child({source: 'webserver'});
 
 /**
  * Standard middleware
@@ -11,6 +11,15 @@ var elasticsearch = require('elasticsearch');
 server.use(restify.queryParser({ mapParams: false }));
 server.use(restify.gzipResponse());
 server.use(restify.bodyParser({ mapParams: false }));
+
+
+/**
+ * Logging
+ * --------------------------------------------------------------------
+ */
+server.on('after', restify.auditLogger({
+    log: logger
+}));
 
 /**
  * Custom middleware for mapping requests to index.html
@@ -42,7 +51,7 @@ server.use(function (request, response, next) {
         return next();
     }
 
-    fs.readFile('./dist/index.html', function (err, data) {
+    world.fs.readFile('./dist/index.html', function (err, data) {
         if (err) {
             next(err);
             return;
@@ -85,11 +94,11 @@ server.use(function (request, response, next) {
 var feedList = function (request, response, next) {
     var key;
     var feeds = {};
-    var multi = world.client.multi();
+    var multi = world.redisClient.multi();
 
     key = world.keys.feedListKey(1);
 
-    world.client.smembers(key, function (err, result) {
+    world.redisClient.smembers(key, function (err, result) {
         result.forEach(function (feedId) {
 
             // User-specific fields
@@ -125,7 +134,7 @@ var feedList = function (request, response, next) {
  * The feed's entries will be kept.
  */
 var feedUnsubscribe = function (request, response, next) {
-    var multi = world.client.multi();
+    var multi = world.redisClient.multi();
 
     if (!request.body.hasOwnProperty('unsubscribe')) {
         return next();
@@ -152,7 +161,7 @@ var feedUnsubscribe = function (request, response, next) {
  */
 var feedSubscribe = function (request, response, next) {
     
-    var multi = world.client.multi();
+    var multi = world.redisClient.multi();
 
     var feeds = [];
 
@@ -200,6 +209,7 @@ var feedSubscribe = function (request, response, next) {
         multi.zincrby(key, 1, id);
 
         multi.publish('feed:reschedule', id);
+        request.log.trace({feed: id}, 'reschedule');
 
     });
 
@@ -224,7 +234,7 @@ var findEntries = function (request, response, next) {
     var search = client.search(params);
 
     var success = function (body) {
-        var multi = world.client.multi();
+        var multi = world.redisClient.multi();
 
         // entry list
         body.hits.hits.forEach(function (hit) {
@@ -268,8 +278,8 @@ var getList = function (request, response, next) {
         entry_state = 'unread';
     }
 
-    world.client[method](key, start, end, function (err, ids) {
-        var multi = world.client.multi();
+    world.redisClient[method](key, start, end, function (err, ids) {
+        var multi = world.redisClient.multi();
 
         multi.zcard(key, function (err, result) {
             return result;
@@ -304,7 +314,7 @@ var postList = function (request, response, next) {
 
     key = 'entries:' + request.params.name;
 
-    multi = world.client.multi();
+    multi = world.redisClient.multi();
     request.body.ids.forEach(function (id) {
         multi.zrem(key, id);
         multi.zrem('entries:kept', id);
@@ -354,5 +364,5 @@ server.get('/.*', restify.serveStatic({
  * --------------------------------------------------------------------
  */
 server.listen(world.config.http.port, function() {
-    console.log('%s listening at %s', server.name, server.url);
+    console.log('Listening on %s', server.url);
 });
