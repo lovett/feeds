@@ -24,7 +24,9 @@ module.exports = {
             }
         ]
     }),
-
+    fs: require('fs'),
+    mkdirp: require('mkdirp'),
+    path: require('path'),
     archivePath: function (hash) {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },

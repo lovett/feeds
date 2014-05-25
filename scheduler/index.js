@@ -74,11 +74,11 @@ var scheduleFeed = function (feedId) {
 }
 
 world.redisPubsubClient.on('subscribe', function (channel, count) {
-    logger.trace({channel: channel, count: count}, 'subscribed');
+    logger.trace({channel: channel, count: count}, 'listening on channel');
 });
 
 world.redisPubsubClient.on('message', function (channel, feedId) {
-    logger.trace({channel: channel, feed: feedId}, 'message');
+    logger.trace({channel: channel, feed: feedId}, 'received message');
     scheduleFeed(feedId);
 });
 
