@@ -2,6 +2,7 @@
     "http": {
         "port": 8081
     },
-    "feed_check_interval": 120
+    "logPath": "headlines.log",
+    "logLevel": "trace"
 
 }

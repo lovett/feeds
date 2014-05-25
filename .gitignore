@@ -9,3 +9,4 @@ config/*
 .nodemonignore
 dist
 archive
+*.log

@@ -1,7 +1,13 @@
+var config = require('config');
+var redis = require('redis');
+var bunyan = require('bunyan');
+
 module.exports = {
-    config: require('config'),
+    config: config,
     events: require('events'),
-    client: require('redis').createClient(),
+    client: redis.createClient(),
+    redisClient: redis.createClient(),
+    redisPubsubClient: redis.createClient(),
     request: require('request'),
     url: require('url'),
     util: require('util'),
@@ -9,10 +15,16 @@ module.exports = {
     console: console,
     moment: require('moment'),
     cityhash: require('cityhash'),
-    logger: function () {
-        var l = require('little-logger');
-        return new l.Logger('debug');
-    }(),
+    logger: bunyan.createLogger({
+        name: 'headlines',
+        streams: [
+            {
+                path: config.logPath,
+                level: config.logLevel
+            }
+        ]
+    }),
+
     archivePath: function (hash) {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },
@@ -32,6 +44,5 @@ module.exports = {
             return "feeds:" + userId;
         },
         feedQueueKey: 'feeds:queue'
-    },
-    minFetchInterval: 5 * 60 * 1000
+    }
 };
