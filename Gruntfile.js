@@ -78,6 +78,18 @@ module.exports = function(grunt) {
                     watch: 'server'
                 }
             },
+            feedfetcher: {
+                script: 'feedfetcher/index.js',
+                options: {
+                    watch: 'feedfetcher'
+                }
+            },
+            scheduler: {
+                script: 'scheduler/index.js',
+                options: {
+                    watch: 'scheduler'
+                }
+            },
             indexer: {
                 script: 'indexer/index.js',
                 options: {
