@@ -31,13 +31,13 @@
                     
                     <ul class="right">
                         <li class="divider"></li>
-                        <li ng-class="{active: list_name == 'queued'}"><a href="/entries/queued/">Queued</a></li>
+                        <li ng-class="{active: list_name == 'unread'}"><a href="/entries/unread/">Unread</a></li>
                         <li class="divider"></li>
                         <li ng-class="{active: list_name == 'kept'}"><a href="/entries/kept/">Kept</a></li>
                         <li class="divider"></li>
                         <li ng-class="{active: list_name == 'feeds'}"><a href="/feeds">Feeds</a></li>
                     </ul>
-                    <ul class="right" ng-show="list_name == 'queued' && list_size > 0">
+                    <ul class="right" ng-show="list_name == 'unread' && list_size > 0">
                         <li class="has-form">
                             <a href="#" ng-click="setEntryState('kept')" class="button success">
                                 <span class="icon-star"></span>

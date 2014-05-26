@@ -268,54 +268,58 @@ var findEntries = function (request, response, next) {
     next();
 };
 
-var getList = function (request, response, next) {
+var entryList = function (request, response, next) {
     var page = Math.abs(request.query.page) || 1;
-    var page_size = Math.min(Math.abs(request.query.page_size) || 10, 50);
-    var start = (page - 1) * page_size;
-    var end = start + page_size - 1;
-    var key = 'entries:' + request.params.name;
+    var pageSize = Math.min(Math.abs(request.query.page_size) || 10, 50);
+    var start = (page - 1) * pageSize;
+    var end = start + pageSize - 1;
 
-    var method, entry_state;
-    if (request.params.name == 'kept') {
-        method = 'zrevrange';
-        entry_state = 'kept'
+    var key;
+
+    if (request.params.name == 'unread') {
+        // (for now, fake the user id)
+        key = world.keys.unreadKey(1);
     } else {
-        method = 'zrange';
-        entry_state = 'unread';
+        // TODO: handle other lists
+        next();
     }
 
-    world.redisClient[method](key, start, end, function (err, ids) {
+    world.redisClient.lrange(key, start, end, function (err, entryIds) {
         var multi = world.redisClient.multi();
 
-        multi.zcard(key, function (err, result) {
-            return result;
+        multi.llen(key, function (err, totalEntries) {
+            return totalEntries;
         });
-
+                   
         // entry list
-        ids.forEach(function (id) {
-            multi.hgetall('entry:' + id, function (err, entry) {
-                entry.id = id;
-                entry.state = entry_state;
+        entryIds.forEach(function (entryId) {
+            multi.hgetall(world.keys.entryKey(entryId), function (err, entry) {
+                if (err) {
+                    logger.error(err);
+                    next();
+                }
+                
+                entry.id = entryId;
                 return entry;
             });
         });
 
-        multi.exec(function (err, result) {
-            var total_entries = result.shift();
+        multi.exec(function (err, results) {
+            var totalEntries = results.shift();
             response.send({
-                list_size: total_entries,
+                list_size: totalEntries,
                 page: page,
-                page_count: Math.ceil(total_entries / page_size),
-                page_size: page_size,
+                page_count: Math.ceil(totalEntries / pageSize),
+                page_size: pageSize,
                 page_start: start,
-                entries: result
+                entries: results
             });
+            return next();
         });
     });
-    return next();
 };
 
-var postList = function (request, response, next) {
+var listUpdate = function (request, response, next) {
     var key, multi;
 
     key = 'entries:' + request.params.name;
@@ -343,8 +347,8 @@ var postList = function (request, response, next) {
 server.get('/list/feeds', feedList);
 server.post('/list/feeds', feedSubscribe, feedUnsubscribe, feedList);
 
-server.get('/list/:name', getList);
-server.post('/list/:name', postList);
+server.get('/list/:name', entryList);
+server.post('/list/:name', listUpdate);
 
 /**
  * Search

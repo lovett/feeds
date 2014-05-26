@@ -110,8 +110,8 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
     $rootScope.list_name = $routeParams.name;
 
-    if ($routeParams.name === 'queued') {
-        $scope.queued_list = true;
+    if ($routeParams.name === 'unread') {
+        $scope.unread_list = true;
     } else if ($routeParams.name === 'kept') {
         $scope.kept_list = true;
     }
