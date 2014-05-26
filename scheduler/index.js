@@ -56,7 +56,7 @@ var scheduleFeed = function (feedId) {
                 newNextCheck = now;
             } else {
                 // The feed was previously checked
-                verdict = 'reschedule';
+                verdict = 'rescheduled';
                 newNextCheck = now + interval;
             }
             
@@ -79,7 +79,7 @@ world.redisPubsubClient.on('subscribe', function (channel, count) {
 });
 
 world.redisPubsubClient.on('message', function (channel, feedId) {
-    logger.trace({channel: channel, feed: feedId}, 'received message');
+    logger.trace({channel: channel, feed: feedId}, 'scheduling');
     scheduleFeed(feedId);
 });
 
