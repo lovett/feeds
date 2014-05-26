@@ -3,6 +3,6 @@
         "port": 8081
     },
     "logPath": "headlines.log",
-    "logLevel": "trace"
-
+    "logLevel": "trace",
+    "feedCheckIntervalMinutes": 10
 }

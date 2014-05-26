@@ -1,7 +1,6 @@
 var world = require('../world');
 var logger = world.logger.child({source: 'scheduler'});
 
-
 /**
  * Figure out when the next fetch of a feed should occur
  * --------------------------------------------------------------------
@@ -15,7 +14,7 @@ var logger = world.logger.child({source: 'scheduler'});
 var scheduleFeed = function (feedId) {
     var now = new Date().getTime();
     var multi = world.redisClient.multi();
-    var interval = 5 * 60 * 1000; // 5 minutes
+    var interval = world.feedCheckInterval;
 
     world.redisClient.zscore(world.keys.feedSubscriptionsKey, feedId, function (err, score) {
         if (err) {
@@ -42,27 +41,32 @@ var scheduleFeed = function (feedId) {
         world.redisClient.hmget([key, 'updated', 'nextCheck'], function (err, result) {
             var updated = parseInt(result.shift(), 10) || 0;
             var nextCheck = parseInt(result.shift(), 10) || 0;
-            var newNextCheck = 0;
+            var details = {};
 
             var verdict;
             if (updated > 0 && updated + interval > nextCheck) {
                 // The feed was recently updated.
                 // The next check should be relative to the last update.
                 verdict = 'up-to-date';
-                newNextCheck = updated + interval;
+                details.nextCheck = updated + interval;
             } else if (nextCheck === 0) {
                 // The feed has never been checked
                 verdict = 'new feed';
-                newNextCheck = now;
+                details.nextCheck = now;
+                details.prevCheck = 0;
             } else {
                 // The feed was previously checked
                 verdict = 'rescheduled';
-                newNextCheck = now + interval;
+                details.prevCheck = nextCheck;
+                details.nextCheck = now + interval;
             }
+
+            // round to the nearest whole minute
+            details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
             
-            logger.trace({feed: feedId, updated: updated, nextCheck: nextCheck, newNextCheck: newNextCheck}, verdict);
+            logger.trace({feed: feedId, details: details}, verdict);
                 
-            multi.hset([key, 'nextCheck', newNextCheck]);
+            multi.hmset(key, details);
             multi.zadd([world.keys.feedQueueKey, newNextCheck, feedId]);
             multi.exec(function (err, result) {
                 if (err) {

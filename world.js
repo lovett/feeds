@@ -33,6 +33,10 @@ module.exports = {
     hash: function (key) {
         return this.cityhash.hash64(key).value;
     },
+    minToMs: function (min) {
+        return min * 60 * 1000;
+    },
+    feedCheckInterval: Math.max(10, config.feedCheckIntervalMinutes) * 60 * 1000,
     keys: {
         // A sorted set of how many users are subscribed to each feed
         // The set memeber is a feed id. The score is the number of
