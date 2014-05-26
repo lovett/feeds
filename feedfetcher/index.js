@@ -29,10 +29,10 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
             }
         })
     };
-    
+
     world.request(options, function (err, response, body) {
         var map, processEvent;
-        
+
         if (err) {
             world.logger.error(erro);
             self.emit('fetched');
@@ -69,15 +69,12 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
 });
 
 /**
- * Dequeue a feed following a fetch and request rescheduling
+ * Request rescheduling after a fetch
  * --------------------------------------------------------------------
  * This is an EventEmitter callback.
  */
 dispatcher.on('fetched', function (feedId) {
-    world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err, result) {
-        logger.trace({feedId: feedId}, 'dequeued');
-        world.redisClient.publish('feed:reschedule', feedId);
-    });
+    world.redisClient.publish('feed:reschedule', feedId);
 });
 
 /**
@@ -141,7 +138,7 @@ dispatcher.on('processEntry:slashdot', function (feedId, entry) {
         title: entry.title.replace(/<\/?.*?>/g, ''),
         date: world.moment(entry.updated).format('X') * 1000
     };
-    
+
     this.emit('storeEntry', feedId, fields);
 });
 
@@ -154,7 +151,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
         url: entry.link.href,
         title: entry.title
     };
-    
+
     var callback = function (error, dom) {
         dom.forEach(function (node) {
             if (node.type !== 'tag') return;
@@ -175,7 +172,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
     var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
     var parser = new world.htmlparser.Parser(handler);
     parser.parseComplete(entry.summary.content);
-    
+
 });
 
 /**
@@ -189,7 +186,7 @@ dispatcher.on('processEntry:reddit', function (feedId, entry) {
         title: entry.title,
         date: world.moment(entry.date).format('X') * 1000
     };
-    
+
     var callback = function (error, dom) {
         dom.forEach(function (node) {
             if (node.type !== 'tag') return;
@@ -223,7 +220,7 @@ dispatcher.on('processEntry:reddit', function (feedId, entry) {
  * --------------------------------------------------------------------
  */
 dispatcher.on('storeEntry', function (feedId, entry) {
-    
+
     var entryId = world.hash(entry.url);
 
     var entryKey = world.keys.entryKey(entryId);
@@ -231,7 +228,7 @@ dispatcher.on('storeEntry', function (feedId, entry) {
     world.redisClient.hget(entryKey, 'added', function (err, added) {
         var multi = world.redisClient.multi();
         var isNew = false;
-        
+
         if (!added) {
             // The entry is new
             entry.added = new Date().getTime()
@@ -279,14 +276,14 @@ dispatcher.on('storeEntry', function (feedId, entry) {
  * put it back on with a new timestamp.
  */
 
-var runInterval = 30 * 1000; // 30 seconds
+var runInterval = 10 * 1000; // 10 seconds
 
 var main = function () {
     var now = new Date().getTime();
 
     // Number of feeds to process per run
     var batchSize = 1;
-    
+
     world.redisClient.zrangebyscore([world.keys.feedQueueKey, '-inf', now, 'LIMIT', 0, batchSize], function (err, feedIds) {
         if (err) {
             logger.error(err);
@@ -296,25 +293,39 @@ var main = function () {
         if (feedIds.length == 0) return;
 
         feedIds.forEach(function (feedId) {
-            world.redisClient.hget(world.keys.feedKey(feedId), 'url', function (err, url) {
+
+            world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err, result) {
+                logger.trace({feedId: feedId}, 'pickup');
+            });
+
+            world.redisClient.hmget([world.keys.feedKey(feedId), 'url', 'nextCheck', 'prevCheck'], function (err, result) {
+                var url = result.shift();
+                var nextCheck = parseInt(result.shift(), 10) || 0;
+                var prevCheck = parseInt(result.shift(), 10) || 0;
+
                 if (err) {
                     logger.error(err);
                     return;
                 }
 
-                // A feed without a url; this shouldn't happen
+                // Sanity check: url should exist
                 if (!url) {
                     logger.warn({feedId: feedId}, 'url missing');
                     return;
                 }
-                
-                logger.info({feedId: feedId, feedUrl: url}, 'starting fetch');
 
-                dispatcher.emit('fetch', feedId, url);                
+                // Sanity check: nextCheck and prevCheck should be at
+                // least one interval apart
+                if (nextCheck - prevCheck < world.feedCheckInterval) {
+                    logger.error({feedId: feedId, nextCheck: nextCheck, prevCheck: prevCheck}, 'refusing fetch - too soon');
+                    return;
+                };
+
+                dispatcher.emit('fetch', feedId, url);
             });
         });
     });
-    
+
     setTimeout(main, runInterval);
 };
 
