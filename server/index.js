@@ -140,10 +140,11 @@ var feedUnsubscribe = function (request, response, next) {
         return next();
     }
 
-    request.body.unsubscribe.forEach(function (id) {
-        multi.srem(world.keys.feedListKey(1), id);
-        multi.zincrby(world.keys.feedSubscriptionsKey, -1, id);
-        multi.publish('feed:reschedule', id);
+    request.body.unsubscribe.forEach(function (feedId) {
+        multi.srem(world.keys.feedListKey(1), feedId);
+        multi.srem(world.keys.feedSubscribersKey(feedId), 1);
+        multi.zincrby(world.keys.feedSubscriptionsKey, -1, feedId);
+        multi.publish('feed:reschedule', feedId);
     });
 
     multi.exec(function (err, result) {
@@ -182,34 +183,39 @@ var feedSubscribe = function (request, response, next) {
     });
 
     feeds.forEach(function (feed) {
-        var key, id;
+        var key, feedId;
 
-        id = world.hash(feed.url);
+        feedId = world.hash(feed.url);
 
         // Subscribe the user to the feed
         // (for now, fake the user id)
         key = world.keys.feedListKey(1);
-        multi.sadd(key, id);
+        multi.sadd(key, feedId);
+
+        // Account for the subscription in the reverse direction
+        // (for now, fake the user id)
+        key = world.keys.feedSubscribersKey(feedId);
+        multi.sadd(key, 1);
 
         // User-specific metadata about the feed
         // (for now, fake the user id)
-        key = world.keys.feedKey(id, 1);
+        key = world.keys.feedKey(feedId, 1);
         multi.hmset(key, {
             name: feed.name,
             subscribed: +new Date(),
         });
 
         // User-netutral metdata about the feed
-        key = world.keys.feedKey(id);
+        key = world.keys.feedKey(feedId);
         multi.hsetnx(key, 'url', feed.url);
 
         // Update the total subscriptions to this feed
         key = world.keys.feedSubscriptionsKey;
 
-        multi.zincrby(key, 1, id);
+        multi.zincrby(key, 1, feedId);
 
-        multi.publish('feed:reschedule', id);
-        request.log.trace({feed: id}, 'reschedule');
+        multi.publish('feed:reschedule', feedId);
+        request.log.trace({feed: feedId}, 'reschedule');
 
     });
 
