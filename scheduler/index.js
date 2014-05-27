@@ -44,7 +44,10 @@ var scheduleFeed = function (feedId) {
             var details = {};
 
             var verdict;
-            if (updated > 0 && updated + interval > nextCheck) {
+            if (nextCheck > now) {
+                verdict = 'declined - next check is in future';
+                details.nextCheck = nextCheck;
+            } else if (updated > 0 && updated + interval > nextCheck) {
                 // The feed was recently updated.
                 // The next check should be relative to the last update.
                 verdict = 'up-to-date';
@@ -67,7 +70,7 @@ var scheduleFeed = function (feedId) {
             logger.trace({feed: feedId, details: details}, verdict);
                 
             multi.hmset(key, details);
-            multi.zadd([world.keys.feedQueueKey, newNextCheck, feedId]);
+            multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
             multi.exec(function (err, result) {
                 if (err) {
                     logger.error(err);
@@ -79,7 +82,7 @@ var scheduleFeed = function (feedId) {
 }
 
 world.redisPubsubClient.on('subscribe', function (channel, count) {
-    logger.trace({channel: channel, count: count}, 'listening on channel');
+    logger.trace({channel: channel, count: count}, 'listening');
 });
 
 world.redisPubsubClient.on('message', function (channel, feedId) {
@@ -89,3 +92,29 @@ world.redisPubsubClient.on('message', function (channel, feedId) {
 
 world.redisPubsubClient.subscribe('feed:reschedule');
 
+logger.trace('startup');
+
+
+/**
+ * Reschedule forgotten feeds
+ * --------------------------------------------------------------------
+ *
+ * Ideally, this script is always running and never misses a
+ * reschedule message. But if there is downtime, a missed recheduling
+ * will cause a feed to never get back into the fetch queue. To
+ * prevent that, attempt to reschedule all active feeds.
+ *
+ * It would be tempting to only consider feeds whose nextCheck is in
+ * the past, but there is no single key for that.
+ */
+world.redisClient.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'], function (err, result) {
+    if (err) {
+        logger.error(err);
+        return;
+    }
+
+    result.forEach(function (feedId) {
+        scheduleFeed(feedId);
+    });
+    
+});
