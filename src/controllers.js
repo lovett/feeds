@@ -56,7 +56,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
                 name: feed.name
             }
         }, function (response) {
-            populate();
+            populate(response);
             $scope.newFeedForm.submitted = false;
         }, function (err) {
         });
