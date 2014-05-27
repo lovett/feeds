@@ -6,6 +6,18 @@ var app = angular.module('App', [
 ]);
 
 app.config(['$routeProvider', function ($routeProvider) {
+
+    moment.lang('en', {
+        calendar : {
+            lastDay : '[Yesterday at] LT',
+            sameDay : '[Today at] LT',
+            nextDay : '[Tomorrow at] LT',
+            lastWeek : 'dddd [at] LT',
+            nextWeek : '[next] dddd [at] LT',
+            sameElse : 'L'
+        }
+    });
+    
     $routeProvider.when('/feeds', {
         controller: 'FeedController',
         templateUrl: '/feeds.html'
