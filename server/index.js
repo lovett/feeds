@@ -17,9 +17,9 @@ server.use(restify.bodyParser({ mapParams: false }));
  * Logging
  * --------------------------------------------------------------------
  */
-server.on('after', restify.auditLogger({
-    log: logger
-}));
+//server.on('after', restify.auditLogger({
+//    log: logger
+//}));
 
 /**
  * Custom middleware for mapping requests to index.html
@@ -374,5 +374,5 @@ server.get('/.*', restify.serveStatic({
  * --------------------------------------------------------------------
  */
 server.listen(world.config.http.port, function() {
-    console.log('Listening on %s', server.url);
+    logger.trace({address: server.url}, 'listening')
 });
