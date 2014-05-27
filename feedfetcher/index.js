@@ -248,6 +248,9 @@ dispatcher.on('storeEntry', function (feedId, entry) {
             // Mark the entry as unread
             // (for now, fake the user id)
             multi.lpush(world.keys.unreadKey(1), entryId);
+
+            // Advance the feed's updated date
+            multi.hset(world.keys.feedKey(feedId), 'updated', entry.added);
         }
 
         multi.exec(function (err, result) {
@@ -290,7 +293,9 @@ var main = function () {
             return;
         }
 
-        if (feedIds.length == 0) return;
+        if (feedIds.length == 0) {
+            return;
+        }
 
         feedIds.forEach(function (feedId) {
 
@@ -317,7 +322,7 @@ var main = function () {
                 // Sanity check: nextCheck and prevCheck should be at
                 // least one interval apart
                 if (nextCheck - prevCheck < world.feedCheckInterval) {
-                    logger.error({feedId: feedId, nextCheck: nextCheck, prevCheck: prevCheck}, 'refusing fetch - too soon');
+                    logger.warn({feedId: feedId, nextCheck: nextCheck, prevCheck: prevCheck}, 'refusing fetch - too soon');
                     return;
                 };
 
@@ -330,3 +335,4 @@ var main = function () {
 };
 
 main();
+logger.trace('startup');
