@@ -34,7 +34,7 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
         var map, processEvent;
 
         if (err) {
-            world.logger.error(erro);
+            world.logger.error(err);
             self.emit('fetched');
             return;
         }
