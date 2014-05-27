@@ -60,21 +60,15 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
             return true;
         });
 
-        body.query.results.feed.entry.forEach(function (entry) {
+        // Presumably the feed is ordered newest to oldest
+        body.query.results.feed.entry.reverse().forEach(function (entry) {
             self.emit(processEvent, feedId, entry);
         });
 
-        self.emit('fetched', feedId);
+        // Request rescheduling
+        world.redisClient.publish('feed:reschedule', feedId);
+        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
     });
-});
-
-/**
- * Request rescheduling after a fetch
- * --------------------------------------------------------------------
- * This is an EventEmitter callback.
- */
-dispatcher.on('fetched', function (feedId) {
-    world.redisClient.publish('feed:reschedule', feedId);
 });
 
 /**
@@ -228,6 +222,7 @@ dispatcher.on('storeEntry', function (feedId, entry) {
     world.redisClient.hget(entryKey, 'added', function (err, added) {
         var multi = world.redisClient.multi();
         var isNew = false;
+        var key;
 
         if (!added) {
             // The entry is new
@@ -250,7 +245,14 @@ dispatcher.on('storeEntry', function (feedId, entry) {
             multi.lpush(world.keys.unreadKey(1), entryId);
 
             // Advance the feed's updated date
-            multi.hset(world.keys.feedKey(feedId), 'updated', entry.added);
+            key = world.keys.feedKey(feedId);
+            multi.hget(key, 'updated', function (err, updated) {
+                updated = parseInt(updated, 10) || 0;
+
+                if (entry.added > updated) {
+                    world.redisClient.hset(key, 'updated', entry.added);
+                }
+            });
         }
 
         multi.exec(function (err, result) {
@@ -262,8 +264,6 @@ dispatcher.on('storeEntry', function (feedId, entry) {
                 logger.trace({feedId: feedId, entry: entryId}, 'updated entry');
             }
         });
-
-        return;
     });
 });
 
