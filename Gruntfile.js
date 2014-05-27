@@ -3,6 +3,8 @@ module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
+        CONFIG: grunt.file.readJSON("config/default.json"),
+        
         clean: {
             pre_build: {
                 src: ['dist/*']
@@ -104,6 +106,52 @@ module.exports = function(grunt) {
             }
         },
 
+        http: {
+            onefeed: {
+                options: {
+                    url: 'http://localhost:<%= CONFIG.http.port %>/list/feeds',
+                    method: 'POST',
+                    json: {
+                        subscribe: [
+                            {name: 'Reddit Programming', url: 'http://www.reddit.com/r/programming/.rss'},
+                        ]
+                    }
+                }
+            },
+            twofeeds: {
+                options: {
+                    url: 'http://localhost:<%= CONFIG.http.port %>/list/feeds',
+                    method: 'POST',
+                    json: {
+                        subscribe: [
+                            {name: 'Reddit Programming', url: 'http://www.reddit.com/r/programming/.rss'},
+                            {name: 'Hacker News', url: 'https://news.ycombinator.com/rss'}
+                        ]
+                    }
+                }
+            },
+            allfeeds: {
+                options: {
+                    url: 'http://localhost:<%= CONFIG.http.port %>/list/feeds',
+                    method: 'POST',
+                    json: {
+                        subscribe: [
+                            {name: 'Reddit Programming', url: 'http://www.reddit.com/r/programming/.rss'},
+                            {name: 'Hacker News', url: 'https://news.ycombinator.com/rss'},
+                            {name: 'Slashdot', url: 'http://rss.slashdot.org/Slashdot/slashdot'},
+                            {name: 'NYTimes Technology', url: 'http://feeds.nytimes.com/nyt/rss/Technology'}
+                        ]
+                    }
+                }
+            },
+        },
+
+        shell: {
+            "reset-redis": {
+                command: "redis-cli flushdb"
+            }
+        },
+
         uglify: {
             js: {
                 options: {
@@ -141,7 +189,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-http');                     
     grunt.loadNpmTasks('grunt-nodemon');
+    grunt.loadNpmTasks('grunt-shell');
 
     // Default task(s)
     grunt.registerTask('build', ['clean:pre_build', 'uglify', 'less', 'concat', 'copy', 'clean:post_build']);
