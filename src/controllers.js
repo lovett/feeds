@@ -121,20 +121,17 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
     }
 
 
-    $rootScope.setEntryState = function (state, entry) {
-        var ids, listName, listAction;
+    $rootScope.setEntryState = function (newState, entry) {
+        var ids, listName, listSegment;
 
-        if (state == 'kept') {
+        if (newState == 'kept') {
             listName = 'kept';
-            listAction = 'add';
-        } else if (state == 'discarded') {
-            listName = 'kept';
-            listAction = 'remove';
-        } else {
-            listName = 'unread';
-            listAction = 'remove';
+            listSegment = 'additions';
+        } else if (newState == 'discarded') {
+            listName = $routeParams.name;
+            listSegment = 'removals';
         }
-        
+
         if (angular.isDefined(entry)) {
             ids = [entry.id];
         } else {
@@ -147,16 +144,16 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
         }
 
-        List.update({name: listName}, {ids: ids, action: listAction}, function (data) {
+        List.update({name: listName, segment: listSegment}, {ids: ids}, function (data) {
             _.forEach($scope.entries, function (entry) {
                 if (data.ids.indexOf(entry.id) > -1) {
-                    entry.state = state;
+                    entry.state = newState;
                 }
             });
 
             $rootScope.entry_count -= ids.length;
 
-            if (state === 'kept') {
+            if (newState === 'kept') {
                 $rootScope.kept_count += ids.length;
             }
 

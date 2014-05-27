@@ -318,46 +318,45 @@ var entryList = function (request, response, next) {
     });
 };
 
-var listUpdate = function (request, response, next) {
+var addToList = function (request, response, next) {
     var multi = world.redisClient.multi();
+    var ids = request.body.ids;
+    var key;
 
     // for now, fake the user id
-    var unreadKey = world.keys.unreadKey(1);
-    var keptKey = world.keys.keptKey(1);
+    if (request.params.name == 'kept') {
 
-    var listName = request.params.name;
-    var action = request.body.action;
+        // Add to the kept list
+        key = world.keys.keptKey(1);
+        ids.forEach(function (id) {
+            multi.lpush(key, id);
+            //multi.publish('entry:kept', id);
+        });
 
-    var ids = request.body.ids;
-
-    var removeFrom = function (key) {
+        // When an entry is kept, it is no longer unread
+        // Remove it from the unread list
+        key = world.keys.unreadKey(1);
         ids.forEach(function (id) {
             multi.lrem(key, 0, id);
         });
-    }
 
-    if (listName === 'kept' && action === 'add') {
-        // Remove from the unread list
-        removeFrom(unreadKey);
+    } else if (request.params.name == 'unread') {
 
-        // Add to the kept list
-        multi.lpush(keptKey, ids);
+        // Add to the unread list
+        key = world.keys.unreadKey(1);
+        ids.forEach(function (id) {
+            multi.lpush(key, id);
+        });
 
-        // Request download
-        //multi.publish('entry:download', ids);
-    }
+        // When an entry is unread, it is no longer kept
+        // Remove it from the kept list
+        key = world.keys.unreadKey(1);
+        ids.forEach(function (id) {
+            multi.lrem(key, 0, id);
+            //multi.publish('entry:discarded', id);
+        });
 
-    if (listName === 'kept' && action === 'remove') {
-        // Remove from the kept list
-        removeFrom(keptKey);
-
-        // Purge download
-        //multi.publish('entry:purge', ids);
-    }
-
-    if (listName === 'unread' && action === 'remove') {
-        // Remove from the unread list
-        removeFrom(unreadKey);
+        
     }
 
     multi.exec(function (err, replies) {
@@ -369,7 +368,41 @@ var listUpdate = function (request, response, next) {
         }
         next();
     });
+};
+
+var removeFromList = function (request, response, next) {
+    var multi = world.redisClient.multi();
+    var ids = request.body.ids;
+    var key;
+    var publishDiscard = false;
+
+    // for now, fake the user id
+    console.log(request.params.name);
+    if (request.params.name === 'kept') {
+        key = world.keys.keptKey(1);
+        publishDiscard = true;
+    } else if (request.params.name === 'unread') {
+        key = world.keys.unreadKey(1);
+    }
+
+    console.log(key);
     
+    ids.forEach(function (id) {
+        multi.lrem(key, 0, id);
+        if (publishDiscard) {
+            multi.publish('entry:discarded', id);
+        }
+    });
+
+    multi.exec(function (err, replies) {
+        if (err) {
+            logger.error({redis: err}, 'redis error');
+            response.send(500);
+        } else {
+            response.send(204);
+        }
+        next();
+    });
 };
 
 /**
@@ -380,7 +413,9 @@ server.get('/list/feeds', feedList);
 server.post('/list/feeds', feedSubscribe, feedUnsubscribe, feedList);
 
 server.get('/list/:name', entryList);
-server.post('/list/:name', listUpdate);
+
+server.post('/list/:name/additions', addToList);
+server.post('/list/:name/removals', removeFromList);
 
 /**
  * Search
