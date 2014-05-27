@@ -51,7 +51,7 @@ var scheduleFeed = function (feedId) {
                 details.nextCheck = now;
                 details.prevCheck = 0;
             } else if (nextCheck > now) {
-                verdict = 'left as-is, next check is in future';
+                verdict = 'left as-is';
                 details.nextCheck = nextCheck;
             } else {
                 // The feed was previously checked
@@ -88,7 +88,7 @@ world.redisPubsubClient.on('message', function (channel, feedId) {
 
 world.redisPubsubClient.subscribe('feed:reschedule');
 
-logger.trace('startup');
+logger.info('startup');
 
 
 /**
@@ -113,4 +113,17 @@ world.redisClient.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'], fu
         scheduleFeed(feedId);
     });
     
+});
+
+/**
+ * Clean up on shutdown 
+ * --------------------------------------------------------------------
+ * nodemon sends the SIGUSR2 signal during restart
+ */
+process.once('SIGUSR2', function () {
+    world.redisPubsubClient.unsubscribe('feed:reschedule');
+    world.redisClient.unref();
+    world.redisPubsubClient.unref();
+    logger.info('shutting down');
+    process.kill(process.pid, 'SIGUSR2');
 });

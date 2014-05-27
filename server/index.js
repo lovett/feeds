@@ -67,11 +67,11 @@ server.use(function (request, response, next) {
 /**
  * Custom middleware for casting request parameters to expected data types
  * --------------------------------------------------------------------
- * If we get something that should be an array, but isn't, make it so. 
+ * If we get something that should be an array, but isn't, make it so.
  */
 server.use(function (request, response, next) {
     if (request.method !== 'POST') return next();
-    
+
     var keys = ['subscribe', 'unsubscribe'];
     keys.forEach(function (key) {
         if (!request.body.hasOwnProperty(key)) {
@@ -84,7 +84,7 @@ server.use(function (request, response, next) {
     });
 
     return next();
-            
+
 });
 
 /**
@@ -161,7 +161,7 @@ var feedUnsubscribe = function (request, response, next) {
  * Resubscribing to an already-subscribed feed is allowed.
  */
 var feedSubscribe = function (request, response, next) {
-    
+
     var multi = world.redisClient.multi();
 
     var feeds = [];
@@ -290,7 +290,7 @@ var entryList = function (request, response, next) {
         multi.llen(key, function (err, totalEntries) {
             return totalEntries;
         });
-                   
+
         // entry list
         entryIds.forEach(function (entryId) {
             multi.hgetall(world.keys.entryKey(entryId), function (err, entry) {
@@ -298,7 +298,7 @@ var entryList = function (request, response, next) {
                     logger.error(err);
                     next();
                 }
-                
+
                 entry.id = entryId;
                 return entry;
             });
@@ -374,5 +374,15 @@ server.get('/.*', restify.serveStatic({
  * --------------------------------------------------------------------
  */
 server.listen(world.config.http.port, function() {
-    logger.trace({address: server.url}, 'listening')
+    logger.info({address: server.url}, 'startup')
+});
+
+/**
+ * Clean up on shutdown
+ * --------------------------------------------------------------------
+ * nodemon sends the SIGUSR2 signal during restart
+ */
+process.once('SIGUSR2', function () {
+    logger.info('shutting down');
+    process.kill(process.pid, 'SIGUSR2');
 });

@@ -282,6 +282,7 @@ dispatcher.on('storeEntry', function (feedId, entry) {
 var runInterval = 10 * 1000; // 10 seconds
 
 var main = function () {
+
     var now = new Date().getTime();
 
     // Number of feeds to process per run
@@ -335,4 +336,16 @@ var main = function () {
 };
 
 main();
-logger.trace('startup');
+logger.info('startup');
+
+/**
+ * Clean up on shutdown
+ * --------------------------------------------------------------------
+ * nodemon sends the SIGUSR2 signal during restart
+ */
+process.once('SIGUSR2', function () {
+    world.redisClient.unref();
+    world.redisPubsubClient.unref();
+    logger.info('shutting down');
+    process.kill(process.pid, 'SIGUSR2');
+});
