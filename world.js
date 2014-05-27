@@ -17,6 +17,13 @@ module.exports = {
     cityhash: require('cityhash'),
     logger: bunyan.createLogger({
         name: 'headlines',
+        serializers: {
+            redis: function (err) {
+                var firstMessage = err.shift().message.replace('Error: ', '');
+                console.error(firstMessage);
+                return firstMessage
+            }
+        },
         streams: [
             {
                 path: config.logPath,
@@ -85,6 +92,11 @@ module.exports = {
         // A set of feed ids that have not yet been read by a user.
         unreadKey: function (userId) {
             return 'user:' + userId + ':unread';
+        },
+
+        // A set of feed ids that a user has saved
+        keptKey: function (userId) {
+            return 'user:' + userId + ':kept';
         }
     }
 };

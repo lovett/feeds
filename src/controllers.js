@@ -100,6 +100,10 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             if (temp.hostname.substring(0, 4) == 'www.') {
                 entry.domain = entry.domain.substring(4);
             }
+
+            if ($routeParams.name === 'kept') {
+                entry.state = 'kept';
+            }
         });
 
         $rootScope.list_size = $scope.list_size;
@@ -118,7 +122,19 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
 
     $rootScope.setEntryState = function (state, entry) {
-        var ids;
+        var ids, listName, listAction;
+
+        if (state == 'kept') {
+            listName = 'kept';
+            listAction = 'add';
+        } else if (state == 'discarded') {
+            listName = 'kept';
+            listAction = 'remove';
+        } else {
+            listName = 'unread';
+            listAction = 'remove';
+        }
+        
         if (angular.isDefined(entry)) {
             ids = [entry.id];
         } else {
@@ -131,7 +147,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
         }
 
-        List.update({'keep': (state === 'kept'), 'name': $routeParams.name, ids: ids}, function (data) {
+        List.update({name: listName}, {ids: ids, action: listAction}, function (data) {
             _.forEach($scope.entries, function (entry) {
                 if (data.ids.indexOf(entry.id) > -1) {
                     entry.state = state;

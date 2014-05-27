@@ -276,12 +276,11 @@ var entryList = function (request, response, next) {
 
     var key;
 
+    // (for now, fake the user id)
     if (request.params.name == 'unread') {
-        // (for now, fake the user id)
         key = world.keys.unreadKey(1);
-    } else {
-        // TODO: handle other lists
-        next();
+    } else if (request.params.name == 'kept') {
+        key = world.keys.keptKey(1);
     }
 
     world.redisClient.lrange(key, start, end, function (err, entryIds) {
@@ -320,24 +319,57 @@ var entryList = function (request, response, next) {
 };
 
 var listUpdate = function (request, response, next) {
-    var key, multi;
+    var multi = world.redisClient.multi();
 
-    key = 'entries:' + request.params.name;
+    // for now, fake the user id
+    var unreadKey = world.keys.unreadKey(1);
+    var keptKey = world.keys.keptKey(1);
 
-    multi = world.redisClient.multi();
-    request.body.ids.forEach(function (id) {
-        multi.zrem(key, id);
-        multi.zrem('entries:kept', id);
-        if (request.body.hasOwnProperty('keep') && request.body.keep) {
-            multi.zadd('entries:kept', +new Date(), id);
-            multi.publish('entry:download', id);
+    var listName = request.params.name;
+    var action = request.body.action;
+
+    var ids = request.body.ids;
+
+    var removeFrom = function (key) {
+        ids.forEach(function (id) {
+            multi.lrem(key, 0, id);
+        });
+    }
+
+    if (listName === 'kept' && action === 'add') {
+        // Remove from the unread list
+        removeFrom(unreadKey);
+
+        // Add to the kept list
+        multi.lpush(keptKey, ids);
+
+        // Request download
+        //multi.publish('entry:download', ids);
+    }
+
+    if (listName === 'kept' && action === 'remove') {
+        // Remove from the kept list
+        removeFrom(keptKey);
+
+        // Purge download
+        //multi.publish('entry:purge', ids);
+    }
+
+    if (listName === 'unread' && action === 'remove') {
+        // Remove from the unread list
+        removeFrom(unreadKey);
+    }
+
+    multi.exec(function (err, replies) {
+        if (err) {
+            logger.error({redis: err}, 'redis error');
+            response.send(500);
+        } else {
+            response.send(204);
         }
+        next();
     });
-
-    multi.exec(function (err, result) {
-        response.send(204);
-        return next();
-    });
+    
 };
 
 /**
