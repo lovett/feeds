@@ -44,19 +44,15 @@ var scheduleFeed = function (feedId) {
             var details = {};
 
             var verdict;
-            if (nextCheck > now) {
-                verdict = 'declined - next check is in future';
-                details.nextCheck = nextCheck;
-            } else if (updated > 0 && updated + interval > nextCheck) {
-                // The feed was recently updated.
-                // The next check should be relative to the last update.
-                verdict = 'up-to-date';
-                details.nextCheck = updated + interval;
-            } else if (nextCheck === 0) {
+
+            if (nextCheck === 0) {
                 // The feed has never been checked
                 verdict = 'new feed';
                 details.nextCheck = now;
                 details.prevCheck = 0;
+            } else if (nextCheck > now) {
+                verdict = 'left as-is, next check is in future';
+                details.nextCheck = nextCheck;
             } else {
                 // The feed was previously checked
                 verdict = 'rescheduled';
