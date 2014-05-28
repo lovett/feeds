@@ -16,7 +16,7 @@
 
 
                 <section class="top-bar-section" ng-cloak>
-                    <ul class="left" ng-show="list_size > 0">
+                    <ul class="left" ng-show="listSize > 0">
                         <li class="has-form">
                             <form name="searchForm" ng-controller="ListController" ng-submit="search(query)" class="row collapse" novalidate>
                                 <div class="large-8 small-9 columns">
@@ -31,25 +31,25 @@
                     
                     <ul class="right">
                         <li class="divider"></li>
-                        <li ng-class="{active: list_name == 'unread'}"><a href="/entries/unread/">Unread</a></li>
+                        <li ng-class="{active: listName == 'unread'}"><a href="/entries/unread/">Unread</a></li>
                         <li class="divider"></li>
-                        <li ng-class="{active: list_name == 'kept'}"><a href="/entries/kept/">Kept</a></li>
+                        <li ng-class="{active: listName == 'kept'}"><a href="/entries/kept/">Kept</a></li>
                         <li class="divider"></li>
-                        <li ng-class="{active: list_name == 'feeds'}"><a href="/feeds">Feeds</a></li>
+                        <li ng-class="{active: listName == 'feeds'}"><a href="/feeds">Feeds</a></li>
                     </ul>
-                    <ul class="right" ng-show="list_name == 'unread' && list_size > 0">
+                    <ul class="right" ng-show="listName == 'unread' && listSize > 0">
                         <li class="has-form">
                             <a href="#" ng-click="setEntryState('kept')" class="button success">
                                 <span class="icon-star"></span>
-                                <span ng-show="kept_count > 0">THE REST</span>
-                                <span ng-show="kept_count == 0">ALL</span>
+                                <span ng-show="keptCount > 0">THE REST</span>
+                                <span ng-show="keptCount == 0">ALL</span>
                             </a>
                         </li>
                         <li class="has-form">
                             <a href="#" ng-click="setEntryState('discarded')" class="button alert">
                                 <span class="icon-trash"></span>
-                                <span ng-show="kept_count > 0">THE REST</span>
-                                <span ng-show="kept_count == 0">ALL</span>
+                                <span ng-show="keptCount > 0">THE REST</span>
+                                <span ng-show="keptCount == 0">ALL</span>
                             </a>
                         </li>
                     </ul>

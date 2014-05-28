@@ -1,16 +1,18 @@
 module.exports = function(grunt) {
 
+    require('load-grunt-tasks')(grunt);
+    
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
-        CONFIG: grunt.file.readJSON("config/default.json"),
+        CONFIG: grunt.file.readJSON('config/default.json'),
         
         clean: {
-            pre_build: {
+            preBuild: {
                 src: ['dist/*']
             },
-            post_build: {
-                src: ["dist/app.min.js", "dist/app.css"]
+            postBuild: {
+                src: ['dist/app.min.js', 'dist/app.css']
             }
         },
 
@@ -66,10 +68,31 @@ module.exports = function(grunt) {
             }
         },
 
+        githooks: {
+            all: {
+                'pre-commit': 'jshint'
+            }
+        },
+
+        jshint: {
+            node: {
+                options: {
+                    jshintrc: '.jshintrc-node'
+                },
+                src: ['Gruntfile.js', 'server/index.js', 'scheduler/index.js', 'feedfetcher/index.js']
+            },
+            browser: {
+                options: {
+                    jshintrc: '.jshintrc-browser'
+                },
+                src: ['src/**.js']
+            }
+        },
+        
         less: {
             main: {
-                src: "src/less/*.less",
-                dest: "dist/app.css"
+                src: 'src/less/*.less',
+                dest: 'dist/app.css'
             }
         },
 
@@ -147,8 +170,8 @@ module.exports = function(grunt) {
         },
 
         shell: {
-            "reset-redis": {
-                command: "redis-cli flushdb"
+            'reset-redis': {
+                command: 'redis-cli flushdb'
             }
         },
 
@@ -182,19 +205,8 @@ module.exports = function(grunt) {
 
     });
 
-
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-contrib-concat');
-    grunt.loadNpmTasks('grunt-contrib-copy');
-    grunt.loadNpmTasks('grunt-contrib-less');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-http');                     
-    grunt.loadNpmTasks('grunt-nodemon');
-    grunt.loadNpmTasks('grunt-shell');
-
     // Default task(s)
-    grunt.registerTask('build', ['clean:pre_build', 'uglify', 'less', 'concat', 'copy', 'clean:post_build']);
+    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'concat', 'copy', 'clean:postBuild']);
     grunt.registerTask('default', ['watch']);
 
 };

@@ -47,7 +47,7 @@ server.use(function (request, response, next) {
 
     // The first element will be empty due to the request path's
     // leading slash. The actual root is in path[1]
-    if (roots.indexOf(path[1]) == -1) {
+    if (roots.indexOf(path[1]) === -1) {
         return next();
     }
 
@@ -70,7 +70,9 @@ server.use(function (request, response, next) {
  * If we get something that should be an array, but isn't, make it so.
  */
 server.use(function (request, response, next) {
-    if (request.method !== 'POST') return next();
+    if (request.method !== 'POST') {
+        return next();
+    }
 
     var keys = ['subscribe', 'unsubscribe'];
     keys.forEach(function (key) {
@@ -118,11 +120,17 @@ var feedList = function (request, response, next) {
 
         });
 
-        multi.exec(function (err, result) {
-            response.send({
-                feeds: feeds
-            });
-            return next();
+        multi.exec(function (err) {
+            if (err) {
+                logger.error({redis: err}, 'redis error');
+                response.send(500);
+                next(false);
+            } else {
+                response.send({
+                    feeds: feeds
+                });
+            }
+            next();
         });
     });
 };
@@ -147,11 +155,13 @@ var feedUnsubscribe = function (request, response, next) {
         multi.publish('feed:reschedule', feedId);
     });
 
-    multi.exec(function (err, result) {
+    multi.exec(function (err) {
+        if (err) {
+            logger.error({redis: err}, 'redis error');
+        }
         next.ifError(err);
-        return next();
+        next();
     });
-
 };
 
 /**
@@ -171,12 +181,12 @@ var feedSubscribe = function (request, response, next) {
     }
 
     request.body.subscribe.forEach(function (item) {
-        var feed = {}
+        var feed = {};
         feed.url = item.url || null;
         feed.name = item.name || feed.url;
 
         if (!feed.url) {
-            return next(new restify.InvalidArgumentError("Feed URL not specified"));
+            return next(new restify.InvalidArgumentError('Feed URL not specified'));
         }
 
         feeds.push(feed);
@@ -219,9 +229,14 @@ var feedSubscribe = function (request, response, next) {
 
     });
 
-    multi.exec(function (err, result) {
-        next.ifError(err);
-        next();
+    multi.exec(function (err) {
+        if (err) {
+            logger.error({redis: err}, 'redis error');
+            response.send(500);
+            next(false);
+        } else {
+            next();
+        }
     });
 };
 
@@ -244,25 +259,24 @@ var findEntries = function (request, response, next) {
 
         // entry list
         body.hits.hits.forEach(function (hit) {
-            multi.hgetall('entry:' + hit.fields.entry_id, function (err, entry) {
-                entry.id = hit.fields.entry_id;
+            multi.hgetall('entry:' + hit.fields.id, function (err, entry) {
+                entry.id = hit.fields.id;
                 return entry;
             });
         });
 
         multi.exec(function (err, result) {
-            var total_entries = result.shift();
             response.send({
-                list_size: total_entries,
+                listSize: result.shift(),
                 entries: result
             });
         });
 
-    }
+    };
 
     var failure = function (error) {
         response.send(error);
-    }
+    };
 
     search.then(success, failure);
     next();
@@ -270,16 +284,16 @@ var findEntries = function (request, response, next) {
 
 var entryList = function (request, response, next) {
     var page = Math.abs(request.query.page) || 1;
-    var pageSize = Math.min(Math.abs(request.query.page_size) || 10, 50);
+    var pageSize = Math.min(Math.abs(request.query.size) || 10, 50);
     var start = (page - 1) * pageSize;
     var end = start + pageSize - 1;
 
     var key;
 
     // (for now, fake the user id)
-    if (request.params.name == 'unread') {
+    if (request.params.name === 'unread') {
         key = world.keys.unreadKey(1);
-    } else if (request.params.name == 'kept') {
+    } else if (request.params.name === 'kept') {
         key = world.keys.keptKey(1);
     }
 
@@ -306,11 +320,11 @@ var entryList = function (request, response, next) {
         multi.exec(function (err, results) {
             var totalEntries = results.shift();
             response.send({
-                list_size: totalEntries,
+                listSize: totalEntries,
                 page: page,
-                page_count: Math.ceil(totalEntries / pageSize),
-                page_size: pageSize,
-                page_start: start,
+                pageCount: Math.ceil(totalEntries / pageSize),
+                pageSize: pageSize,
+                pageStart: start,
                 entries: results
             });
             return next();
@@ -324,7 +338,7 @@ var addToList = function (request, response, next) {
     var key;
 
     // for now, fake the user id
-    if (request.params.name == 'kept') {
+    if (request.params.name === 'kept') {
 
         // Add to the kept list
         key = world.keys.keptKey(1);
@@ -340,7 +354,7 @@ var addToList = function (request, response, next) {
             multi.lrem(key, 0, id);
         });
 
-    } else if (request.params.name == 'unread') {
+    } else if (request.params.name === 'unread') {
 
         // Add to the unread list
         key = world.keys.unreadKey(1);
@@ -359,14 +373,15 @@ var addToList = function (request, response, next) {
         
     }
 
-    multi.exec(function (err, replies) {
+    multi.exec(function (err) {
         if (err) {
             logger.error({redis: err}, 'redis error');
             response.send(500);
+            next(false);
         } else {
             response.send(204);
+            next();
         }
-        next();
     });
 };
 
@@ -394,14 +409,15 @@ var removeFromList = function (request, response, next) {
         }
     });
 
-    multi.exec(function (err, replies) {
+    multi.exec(function (err) {
         if (err) {
             logger.error({redis: err}, 'redis error');
             response.send(500);
+            next(false);
         } else {
             response.send(204);
+            next();
         }
-        next();
     });
 };
 
@@ -441,7 +457,7 @@ server.get('/.*', restify.serveStatic({
  * --------------------------------------------------------------------
  */
 server.listen(world.config.http.port, function() {
-    logger.info({address: server.url}, 'startup')
+    logger.info({address: server.url}, 'startup');
 });
 
 /**

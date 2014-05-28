@@ -6,6 +6,7 @@ var app = angular.module('App', [
 ]);
 
 app.config(['$routeProvider', function ($routeProvider) {
+    'use strict';
 
     moment.lang('en', {
         calendar : {
@@ -39,10 +40,12 @@ app.config(['$routeProvider', function ($routeProvider) {
 }]);
 
 app.config(['$locationProvider', function ($locationProvider) {
+    'use strict';
     $locationProvider.html5Mode(true);
 }]);
 
 
 app.run(function () {
+    'use strict';
     $(document).foundation();
 });

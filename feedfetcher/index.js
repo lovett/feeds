@@ -10,10 +10,10 @@ var dispatcher = new world.events.EventEmitter();
  * http://www.yqlblog.net/blog/2013/03/07/yql-feednormalizer-table/
  */
 dispatcher.on('fetch', function (feedId, feedUrl) {
-    var self, parsed_url, options;
+    var self, parsedUrl, options;
 
     self = this;
-    parsed_url = world.url.parse(feedUrl);
+    parsedUrl = world.url.parse(feedUrl);
 
     logger.info({feedId: feedId, feedUrl: feedUrl}, 'fetching feed');
 
@@ -34,14 +34,14 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
         var map, processEvent;
 
         if (err) {
-            world.logger.error(err);
-            self.emit('fetched');
+            world.logger.error({err: err}, 'yql request failed, will try later');
+            world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
 
         if (response.statusCode !== 200) {
-            logger.error({feedId: feedId, feedUrl: feedUrl, statusCode: response.statusCode}, 'yql request failed');
-            self.emit('fetched');
+            logger.error({feedId: feedId, feedUrl: feedUrl, statusCode: response.statusCode}, 'yql error, will try later');
+            world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
 
@@ -49,11 +49,11 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
             'reddit.com': 'reddit',
             'news.ycombinator.com': 'hn',
             'slashdot.org': 'slashdot'
-        }
+        };
 
         processEvent = 'processEntry';
         Object.keys(map).some(function (key) {
-            if (parsed_url.host.indexOf(key) == -1) {
+            if (parsedUrl.host.indexOf(key) === -1) {
                 return false;
             }
             processEvent += ':' + map[key];
@@ -95,15 +95,15 @@ dispatcher.on('processEntry', function (feedId, entry) {
 
     if (entry.link instanceof Array) {
         entry.link.forEach(function (element) {
-            if (element.hasOwnProperty('rel') && element.rel == 'alternate') {
+            if (element.hasOwnProperty('rel') && element.rel === 'alternate') {
                 fields.url = element.href;
                 return element.href;
-            };
+            }
         });
     }
 
     if (entry.origLink) {
-        fields.url = entry.origLink.content
+        fields.url = entry.origLink.content;
     }
 
     // date
@@ -148,13 +148,17 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
 
     var callback = function (error, dom) {
         dom.forEach(function (node) {
-            if (node.type !== 'tag') return;
+            if (node.type !== 'tag') {
+                return;
+            }
 
-            if (node.name !== 'a') return;
+            if (node.name !== 'a') {
+                return;
+            }
 
             node.children.forEach(function (child) {
-                if (child.data == 'Comments') {
-                    fields.hn_link = node.attribs.href;
+                if (child.data === 'Comments') {
+                    fields.hnLink = node.attribs.href;
                     return;
                 }
             });
@@ -175,27 +179,33 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
  */
 dispatcher.on('processEntry:reddit', function (feedId, entry) {
     var fields = {
-        reddit_comments: 0,
-        reddit_link: entry.link.href,
+        redditComments: 0,
+        redditLink: entry.link.href,
         title: entry.title,
         date: world.moment(entry.date).format('X') * 1000
     };
 
     var callback = function (error, dom) {
         dom.forEach(function (node) {
-            if (node.type !== 'tag') return;
+            if (node.type !== 'tag') {
+                return;
+            }
 
-            if (node.name !== 'a') return;
+            if (node.name !== 'a') {
+                return;
+            }
 
             node.children.forEach(function (child) {
-                if (child.data == '[link]') {
+                if (child.data === '[link]') {
                     fields.url = node.attribs.href;
                     return;
                 }
 
                 if (child.data.indexOf('comment') > -1) {
-                    fields.reddit_comments = child.data.replace(/[^0-9]/g, '');
-                    if (fields.reddit_comments === '') fields.reddit_comments = 0;
+                    fields.redditComments = child.data.replace(/[^0-9]/g, '');
+                    if (fields.redditComments === '') {
+                        fields.redditComments = 0;
+                    }
                     return;
                 }
             });
@@ -226,7 +236,7 @@ dispatcher.on('storeEntry', function (feedId, entry) {
 
         if (!added) {
             // The entry is new
-            entry.added = new Date().getTime()
+            entry.added = new Date().getTime();
             isNew = true;
         } else {
             entry.added = added;
@@ -255,8 +265,10 @@ dispatcher.on('storeEntry', function (feedId, entry) {
             });
         }
 
-        multi.exec(function (err, result) {
-            if (err) logger.error(err);
+        multi.exec(function (err) {
+            if (err) {
+                logger.error(err);
+            }
 
             if (isNew) {
                 logger.trace({feedId: feedId, entry: entryId}, 'saved new entry');
@@ -294,14 +306,18 @@ var main = function () {
             return;
         }
 
-        if (feedIds.length == 0) {
+        if (feedIds.length === 0) {
             return;
         }
 
         feedIds.forEach(function (feedId) {
 
-            world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err, result) {
-                logger.trace({feedId: feedId}, 'pickup');
+            world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {
+                if (err) {
+                    logger.error({redis: err}, 'redis error');
+                } else {
+                    logger.trace({feedId: feedId}, 'pickup');
+                }
             });
 
             world.redisClient.hmget([world.keys.feedKey(feedId), 'url', 'nextCheck', 'prevCheck'], function (err, result) {
@@ -325,7 +341,7 @@ var main = function () {
                 if (nextCheck - prevCheck < world.feedCheckInterval) {
                     logger.warn({feedId: feedId, nextCheck: nextCheck, prevCheck: prevCheck}, 'refusing fetch - too soon');
                     return;
-                };
+                }
 
                 dispatcher.emit('fetch', feedId, url);
             });

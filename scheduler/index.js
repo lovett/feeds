@@ -17,32 +17,31 @@ var scheduleFeed = function (feedId) {
     var interval = world.feedCheckInterval;
 
     world.redisClient.zscore(world.keys.feedSubscriptionsKey, feedId, function (err, score) {
+        var key = world.keys.feedKey(feedId);
+
         if (err) {
             logger.error(err);
             return;
         }
 
-        var key = world.keys.feedKey(feedId);
-
-        score = parseInt(score, 10);
-
         // The feed has no subscribers
-        if (score === 0) {
+        if (parseInt(score, 10) === 0) {
             multi.hdel(key, 'nextCheck');
             multi.zrem(world.keys.feedQueueKey, feedId);
-            multi.exec(function (err, result) {
-                if (err) logger.error(err);
+            multi.exec(function (err) {
+                if (err) {
+                    logger.error(err);
+                } else {
+                    logger.trace({feed: feedId}, 'dequeued, no subscribers');
+                }
             });
-            logger.trace({feed: feedId}, 'dequeued, no subscribers');
             return;
         }
         
         // The feed has at least one subscriber
-        world.redisClient.hmget([key, 'updated', 'nextCheck'], function (err, result) {
-            var updated = parseInt(result.shift(), 10) || 0;
+        world.redisClient.hmget([key, 'nextCheck'], function (err, result) {
             var nextCheck = parseInt(result.shift(), 10) || 0;
             var details = {};
-
             var verdict;
 
             if (nextCheck === 0) {
@@ -67,15 +66,15 @@ var scheduleFeed = function (feedId) {
                 
             multi.hmset(key, details);
             multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
-            multi.exec(function (err, result) {
+            multi.exec(function (err) {
                 if (err) {
                     logger.error(err);
-                    return;
                 }
+                return;
             });
         });
     });
-}
+};
 
 world.redisPubsubClient.on('subscribe', function (channel, count) {
     logger.trace({channel: channel, count: count}, 'listening');

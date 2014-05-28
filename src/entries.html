@@ -1,5 +1,5 @@
-<div ng-cloak ng-show="list_size == 0">
-    Nothing to show!
+<div ng-cloak ng-show="listSize == 0">
+    This list is empty.
 </div>
 
 <ul id="entries" class="small-block-grid-1 medium-block-grid-3 large-block-grid-5">
@@ -13,11 +13,11 @@
                 <div class="domain"><a ng-href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></div>
 
                 <ul class="discussions inline-list">
-                    <li ng-if="entry.reddit_link">
-                        <a ng-href="{{entry.reddit_link}}" target="_blank">Reddit: {{ entry.reddit_comments}}</a>
+                    <li ng-if="entry.redditLink">
+                        <a ng-href="{{entry.redditLink}}" target="_blank">Reddit: {{ entry.redditComments}}</a>
                     </li>
-                    <li ng-if="entry.hn_link">
-                        <a ng-href="{{entry.hn_link}}" target="_blank">Hacker News</a>
+                    <li ng-if="entry.hnLink">
+                        <a ng-href="{{entry.hnLink}}" target="_blank">Hacker News</a>
                     </li>
                 </ul>
 

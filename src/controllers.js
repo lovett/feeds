@@ -1,15 +1,17 @@
 var appControllers = angular.module('appControllers', []);
 
 
-appControllers.controller('SearchController', ['$rootScope', '$scope', '$route', function ($rootScope, $scope, $route) {
-    $scope.search = function (query) {
-        alert(query.terms);
+appControllers.controller('SearchController', ['$rootScope', '$scope', function ($rootScope, $scope) {
+    'use strict';
+    $scope.search = function () {
+        return false;
     };
 
 }]);
 
 appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', 'List', function ($rootScope, $scope, $route, List) {
-    $rootScope.list_name = 'feeds';
+    'use strict';
+    $rootScope.listName = 'feeds';
 
     $scope.sortField = null;
     $scope.sortDirection = null;
@@ -25,7 +27,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
 
     List.get({'name': 'feeds'}, populate);
 
-    $scope.sortBy = function (field, direction) {
+    $scope.sortBy = function (field) {
         if (field !== $scope.sortField) {
             $scope.sortField = field;
             $scope.sortDirection = 'asc';
@@ -41,7 +43,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
         if ($scope.sortDirection === 'desc') {
             $scope.feeds = $scope.feeds.reverse();
         }
-    }
+    };
 
     $scope.add = function (feed) {
 
@@ -58,38 +60,40 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
         }, function (response) {
             populate(response);
             $scope.newFeedForm.submitted = false;
-        }, function (err) {
         });
     };
 
     $scope.remove = function () {
-        var feed_id = this.feed.id;
-        console.log(feed_id);
+        var feedId = this.feed.id;
         List.update({name: 'feeds'}, {
-            unsubscribe: feed_id
-        }, populate, function (err) {
-        });
+            unsubscribe: feedId
+        }, populate);
     };
 }]);
 
 appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', 'List', function ($rootScope, $scope, $routeParams, $route, List) {
+    'use strict';
+    
     if (!$routeParams.name) {
         return;
     }
     List.get({'name': $routeParams.name, page: $routeParams.page}, function (response) {
-        for (var key in response) {
-            if (key.substr(0, 1) === '$') {
-                continue;
+        var key, value;
+        for (key in response) {
+            if (response.hasOwnProperty(key)) {
+                if (key.substr(0, 1) === '$') {
+                    continue;
+                }
+                
+                if (typeof response[key] === 'number') {
+                    value = parseInt(response[key], 10);
+                } else {
+                    value = response[key];
+                }
+                
+                $scope[key] = value;
             }
-
-            if (typeof response[key] === 'number') {
-                value = parseInt(response[key], 10);
-            } else {
-                value = response[key];
-            }
-
-            $scope[key] = value;
-        };
+        }
 
         $scope.entries.map(function (entry) {
             var temp;
@@ -97,7 +101,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             temp.href = entry.url;
             entry.domain = temp.hostname;
 
-            if (temp.hostname.substring(0, 4) == 'www.') {
+            if (temp.hostname.substring(0, 4) === 'www.') {
                 entry.domain = entry.domain.substring(4);
             }
 
@@ -106,28 +110,28 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             }
         });
 
-        $rootScope.list_size = $scope.list_size;
-        $rootScope.entry_count = $scope.entries.length;
-        $rootScope.kept_count = 0;
+        $rootScope.listSize = $scope.listSize;
+        $rootScope.entryCount = $scope.entries.length;
+        $rootScope.keptCount = 0;
 
     });
 
-    $rootScope.list_name = $routeParams.name;
+    $rootScope.listName = $routeParams.name;
 
     if ($routeParams.name === 'unread') {
-        $scope.unread_list = true;
+        $scope.unreadList = true;
     } else if ($routeParams.name === 'kept') {
-        $scope.kept_list = true;
+        $scope.keptList = true;
     }
 
 
     $rootScope.setEntryState = function (newState, entry) {
         var ids, listName, listSegment;
 
-        if (newState == 'kept') {
+        if (newState === 'kept') {
             listName = 'kept';
             listSegment = 'additions';
-        } else if (newState == 'discarded') {
+        } else if (newState === 'discarded') {
             listName = $routeParams.name;
             listSegment = 'removals';
         }
@@ -151,13 +155,13 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
                 }
             });
 
-            $rootScope.entry_count -= ids.length;
+            $rootScope.entryCount -= ids.length;
 
             if (newState === 'kept') {
-                $rootScope.kept_count += ids.length;
+                $rootScope.keptCount += ids.length;
             }
 
-            if ($rootScope.entry_count < 1) {
+            if ($rootScope.entryCount < 1) {
                 $route.reload();
             }
 
