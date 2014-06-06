@@ -17,8 +17,8 @@
     "grunt-contrib-clean": "0.5.0",
     "grunt-contrib-concat": "0.4.0",
     "grunt-contrib-copy": "0.5.0",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-less": "0.11.0",
+    "grunt-contrib-jshint": "0.10.0",
+    "grunt-contrib-less": "0.11.1",
     "grunt-contrib-uglify": "0.4.0",
     "grunt-contrib-watch": "0.6.1",
     "grunt-githooks": "^0.3.1",
@@ -29,9 +29,9 @@
     "load-grunt-tasks": "^0.4.0"
   },
   "dependencies": {
-    "bunyan": "0.22.3",
+    "bunyan": "0.23.1",
     "cityhash": "0.0.5",
-    "config": "0.4.35",
+    "config": "0.4.36",
     "elasticsearch": "2.2.0",
     "htmlparser": "1.7.7",
     "htmlparser2": "3.7.2",
