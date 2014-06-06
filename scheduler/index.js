@@ -5,7 +5,7 @@ var logger = world.logger.child({source: 'scheduler'});
  * Figure out when the next fetch of a feed should occur
  * --------------------------------------------------------------------
  * This is a pubsub callback for the feed:reschedule channel, which
- * gets messages when a feed is added or removed from the web UI or 
+ * gets messages when a feed is added or removed from the web UI or
  * after the feed fetcher has completed a fetch.
  *
  * The interval is the minimum amount of time that should pass between
@@ -37,7 +37,7 @@ var scheduleFeed = function (feedId) {
             });
             return;
         }
-        
+
         // The feed has at least one subscriber
         world.redisClient.hmget([key, 'nextCheck'], function (err, result) {
             var nextCheck = parseInt(result.shift(), 10) || 0;
@@ -57,13 +57,16 @@ var scheduleFeed = function (feedId) {
                 verdict = 'rescheduled';
                 details.prevCheck = nextCheck;
                 details.nextCheck = now + interval;
+
+                // Add some additional time to make simultaneous fetching less likely
+                details.nextCheck += Math.floor(Math.random() * interval);
             }
 
             // round to the nearest whole minute
             details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
-            
+
             logger.trace({feed: feedId, details: details}, verdict);
-                
+
             multi.hmset(key, details);
             multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
             multi.exec(function (err) {
@@ -111,11 +114,11 @@ world.redisClient.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'], fu
     result.forEach(function (feedId) {
         scheduleFeed(feedId);
     });
-    
+
 });
 
 /**
- * Clean up on shutdown 
+ * Clean up on shutdown
  * --------------------------------------------------------------------
  * nodemon sends the SIGUSR2 signal during restart
  */
