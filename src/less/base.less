@@ -2,11 +2,24 @@
     display: none;
 }
 
-BODY {
+HTML, BODY {
+    height: 100%;
 }
 
 MAIN {
-    margin: 1em;
+    height: 100%;
+    padding: 1em;
+}
+
+.flex-wrapper {
+    height: 100%;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #entries {

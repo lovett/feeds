@@ -90,8 +90,6 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
         numEntries = 12;
     }
 
-    console.log(screenSize);
-
     List.get({'name': $routeParams.name, page: $routeParams.page, size: numEntries}, function (response) {
         var key, value;
         for (key in response) {
@@ -181,13 +179,6 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             }
 
         });
-
-
-
-    };
-
-    $rootScope.refresh = function () {
-        $route.reload();
     };
 
 }]);
