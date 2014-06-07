@@ -6,7 +6,7 @@
     <li class="entry" ng-repeat="entry in entries" ng-class="entry.state">
         <div class="inner">
             <header>
-                <div class="cap text-right">{{ entry.date | amCalendar}}</div>
+                <div class="cap text-right">added {{ entry.added | amCalendar}}</div>
                 <a class="headline"  ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a>
             </header>
             <div class="body">

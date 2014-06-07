@@ -10,20 +10,20 @@ app.config(['$routeProvider', function ($routeProvider) {
 
     moment.lang('en', {
         calendar : {
-            lastDay : '[Yesterday at] LT',
-            sameDay : '[Today at] LT',
-            nextDay : '[Tomorrow at] LT',
+            lastDay : '[yesterday at] LT',
+            sameDay : '[today at] LT',
+            nextDay : '[tomorrow at] LT',
             lastWeek : 'dddd [at] LT',
             nextWeek : '[next] dddd [at] LT',
             sameElse : 'L'
         }
     });
-    
+
     $routeProvider.when('/feeds', {
         controller: 'FeedController',
         templateUrl: '/feeds.html'
     });
-    
+
     $routeProvider.when('/search/:terms', {
         controller: 'SearchController',
         templateUrl: '/entries.html'
