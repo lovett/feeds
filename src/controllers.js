@@ -23,7 +23,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             $scope.feeds.push(values);
         });
         $scope.sortBy('name', 'asc');
-    };        
+    };
 
     List.get({'name': 'feeds'}, populate);
 
@@ -73,24 +73,39 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
 
 appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', 'List', function ($rootScope, $scope, $routeParams, $route, List) {
     'use strict';
-    
+
     if (!$routeParams.name) {
         return;
     }
-    List.get({'name': $routeParams.name, page: $routeParams.page}, function (response) {
+
+    var screenSize = $('#screen-size SPAN:visible').attr('class');
+    screenSize = screenSize.replace(/^show-for-([a-z]+)-only/, '$1');
+
+    var numEntries;
+    if (screenSize === 'small') {
+        numEntries = 5;
+    } else if (screenSize === 'medium') {
+        numEntries = 9;
+    } else {
+        numEntries = 12;
+    }
+
+    console.log(screenSize);
+
+    List.get({'name': $routeParams.name, page: $routeParams.page, size: numEntries}, function (response) {
         var key, value;
         for (key in response) {
             if (response.hasOwnProperty(key)) {
                 if (key.substr(0, 1) === '$') {
                     continue;
                 }
-                
+
                 if (typeof response[key] === 'number') {
                     value = parseInt(response[key], 10);
                 } else {
                     value = response[key];
                 }
-                
+
                 $scope[key] = value;
             }
         }
