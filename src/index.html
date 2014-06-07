@@ -23,12 +23,12 @@
                                     <input type="text" ng-model="query.terms" />
                                 </div>
                                 <div class="large-4 small-3 columns">
-                                    <a href="#" ng-click="search(query)" class="alert button expand">Search</a>
+                                    <a href="#" ng-click="search(query)" class="success button expand">Search</a>
                                 </div>
                             </form>
                         </li>
                     </ul>
-                    
+
                     <ul class="right">
                         <li class="divider"></li>
                         <li ng-class="{active: listName == 'unread'}"><a href="/entries/unread/">Unread</a></li>
@@ -39,17 +39,17 @@
                     </ul>
                     <ul class="right" ng-show="listName == 'unread' && listSize > 0">
                         <li class="has-form">
-                            <a href="#" ng-click="setEntryState('kept')" class="button success">
-                                <span class="icon-star"></span>
-                                <span ng-show="keptCount > 0">THE REST</span>
-                                <span ng-show="keptCount == 0">ALL</span>
+                            <a href="#" ng-click="setEntryState('kept')" class="button radius success">
+                                Star
+                                <span ng-show="keptCount > 0">the rest</span>
+                                <span ng-show="keptCount == 0">all</span>
                             </a>
                         </li>
                         <li class="has-form">
-                            <a href="#" ng-click="setEntryState('discarded')" class="button alert">
-                                <span class="icon-trash"></span>
-                                <span ng-show="keptCount > 0">THE REST</span>
-                                <span ng-show="keptCount == 0">ALL</span>
+                            <a href="#" ng-click="setEntryState('discarded')" class="button radius alert">
+                                Ignore
+                                <span ng-show="keptCount > 0">the rest</span>
+                                <span ng-show="keptCount == 0">all</span>
                             </a>
                         </li>
                     </ul>

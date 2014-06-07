@@ -23,6 +23,7 @@ MAIN {
         .cap {
             font-size: .6em;
             padding-bottom: .25em;
+            height: 1.5em;
         }
 
         .boot {
@@ -56,25 +57,24 @@ MAIN {
         FOOTER {
             A {
                 display: block;
-                margin-bottom: 0;
-                font-size: 1em;
-                background-color: #ccc;
-                padding: .25em 0;
+                width: 100%;
+                height: 2em;
+            }
+
+            .unsaved {
+                background: #ccc data-uri('../svg/star-empty.svg') no-repeat center;
+            }
+
+            .saved {
+                background: #ccc data-uri('../svg/star-filled.svg') no-repeat center;
             }
         }
 
     }
 
     .kept .inner {
-        background-color: #E5FFE0;
+        background-color: #ffffe9;
     }
-
-    .discarded {
-        opacity: .3;
-    }
-
-
-
 }
 
 #feeds SECTION {

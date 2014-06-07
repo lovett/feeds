@@ -2,7 +2,7 @@
     This list is empty.
 </div>
 
-<ul id="entries" class="small-block-grid-1 medium-block-grid-3 large-block-grid-5">
+<ul id="entries" class="small-block-grid-1 medium-block-grid-3 large-block-grid-4">
     <li class="entry" ng-repeat="entry in entries" ng-class="entry.state">
         <div class="inner">
             <header>
@@ -24,8 +24,8 @@
             </div>
 
             <footer>
-                <a href="#" ng-show="entry.state != 'kept'" ng-click="setEntryState('kept', entry)" class="text-center"><span class="icon-star"></span></a>
-                <a href="#" ng-show="entry.state == 'kept'" ng-click="setEntryState('discarded', entry)" class="text-center"><span class="icon-trash"></span></a>
+                <a href="#" ng-show="entry.state != 'kept'" ng-click="setEntryState('kept', entry)" class="text-center unsaved"></a>
+                <a href="#" ng-show="entry.state == 'kept'" ng-click="setEntryState('discarded', entry)" class="text-center saved"></a>
             </footer>
         </div>
     </li>

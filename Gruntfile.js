@@ -1,12 +1,12 @@
 module.exports = function(grunt) {
 
     require('load-grunt-tasks')(grunt);
-    
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
         CONFIG: grunt.file.readJSON('config/default.json'),
-        
+
         clean: {
             preBuild: {
                 src: ['dist/*']
@@ -38,7 +38,6 @@ module.exports = function(grunt) {
                     {
                         src: ['bower_components/foundation/css/normalize.css',
                               'bower_components/foundation/css/foundation.css',
-                              'font/icomoon/style.css',
                               'dist/app.css'
                              ],
                         dest: 'dist/headlines.css'
@@ -59,12 +58,6 @@ module.exports = function(grunt) {
                       'src/*',
                       '!src/less'],
                 dest: 'dist/'
-            },
-            font: {
-                expand: true,
-                flatten: true,
-                src: 'font/icomoon/fonts/*',
-                dest: 'dist/fonts'
             }
         },
 
@@ -88,7 +81,7 @@ module.exports = function(grunt) {
                 src: ['src/**.js']
             }
         },
-        
+
         less: {
             main: {
                 src: 'src/less/*.less',
