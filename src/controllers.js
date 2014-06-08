@@ -83,9 +83,9 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
     var numEntries;
     if (screenSize === 'small') {
-        numEntries = 5;
+        numEntries = 4;
     } else if (screenSize === 'medium') {
-        numEntries = 9;
+        numEntries = 8;
     } else {
         numEntries = 12;
     }

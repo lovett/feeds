@@ -2,24 +2,25 @@
     <p>There are no {{ listName }} entries.</p>
 </div>
 
-<ul id="entries" class="small-block-grid-1 medium-block-grid-3 large-block-grid-4">
+<ul id="entries" class="small-block-grid-1 medium-block-grid-2 large-block-grid-3">
     <li class="entry" ng-repeat="entry in entries" ng-class="entry.state">
         <div class="inner">
             <header>
-                <div class="cap text-right">added {{ entry.added | amCalendar}}</div>
                 <a class="headline"  ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a>
             </header>
             <div class="body">
-                <div class="domain"><a ng-href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></div>
+                <p class="domain">From <a href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></p>
+                <p>Added {{ entry.added | amCalendar}}</p>
 
-                <ul class="discussions inline-list">
-                    <li ng-if="entry.redditLink">
-                        <a ng-href="{{entry.redditLink}}" target="_blank">Reddit: {{ entry.redditComments}}</a>
-                    </li>
-                    <li ng-if="entry.hnLink">
+                <p class="discussions" ng-show="entry.redditLink || entry.hnLink">
+                    Discussed on
+                    <span ng-if="entry.redditLink">
+                        <a ng-href="{{entry.redditLink}}" target="_blank">Reddit</a>
+                    </span>
+                    <span ng-if="entry.hnLink">
                         <a ng-href="{{entry.hnLink}}" target="_blank">Hacker News</a>
-                    </li>
-                </ul>
+                    </span>
+                </p>
 
             </div>
 
