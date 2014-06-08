@@ -5,27 +5,6 @@ var elasticsearch = require('elasticsearch');
 var logger = world.logger.child({source: 'webserver'});
 
 /**
- * Environment variables
- * --------------------------------------------------------------------
- *
- * If the file env.json exists, declare its contents as environtment
- * variables.
- */
-var env;
-try {
-    env = world.fs.readFileSync('env.json', {encoding: 'utf8'});
-    env = JSON.parse(env);
-
-    Object.keys(env).forEach(function (key) {
-        process.env[key] = env[key];
-    });
-} catch (e) {
-}
-
-env = {};
-
-
-/**
  * Standard middleware
  * --------------------------------------------------------------------
  */
@@ -477,7 +456,7 @@ server.get('/.*', restify.serveStatic({
  * Listening begins
  * --------------------------------------------------------------------
  */
-server.listen(world.config.http.port, function() {
+server.listen(process.env.HEADLINES_HTTP_PORT, process.env.HEADLINES_HTTP_IP, function() {
     logger.info({address: server.url}, 'startup');
 });
 

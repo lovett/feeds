@@ -4,5 +4,5 @@
     },
     "logPath": "headlines.log",
     "logLevel": "trace",
-    "feedCheckIntervalMinutes": 10
+    "feedCheckIntervalMinutes": 60
 }

@@ -1,9 +1,28 @@
-var config = require('config');
 var redis = require('redis');
 var bunyan = require('bunyan');
+var fs = require('fs');
+
+/**
+ * Environment variables
+ * --------------------------------------------------------------------
+ *
+ * If the file env.json exists, declare its contents as environtment
+ * variables.
+ */
+var env;
+try {
+    env = fs.readFileSync('env.json', {encoding: 'utf8'});
+    env = JSON.parse(env);
+
+    Object.keys(env).forEach(function (key) {
+        process.env[key] = env[key];
+    });
+} catch (e) {
+}
+
+env = {};
 
 module.exports = {
-    config: config,
     events: require('events'),
     client: redis.createClient(),
     redisClient: redis.createClient(),
@@ -26,12 +45,12 @@ module.exports = {
         },
         streams: [
             {
-                path: config.logPath,
-                level: config.logLevel
+                path: process.env.HEADLINES_LOG,
+                level: process.env.HEADLINES_LOG_LEVEL
             }
         ]
     }),
-    fs: require('fs'),
+    fs: fs,
     mkdirp: require('mkdirp'),
     path: require('path'),
     archivePath: function (hash) {
@@ -43,7 +62,7 @@ module.exports = {
     minToMs: function (min) {
         return min * 60 * 1000;
     },
-    feedCheckInterval: Math.max(10, config.feedCheckIntervalMinutes) * 60 * 1000,
+    feedCheckInterval: Math.max(10, process.env.HEADLINES_FEED_CHECK_INTERVAL_MINUTES) * 60 * 1000,
     keys: {
         // A sorted set of how many users are subscribed to each feed
         // The set memeber is a feed id. The score is the number of
