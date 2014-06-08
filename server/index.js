@@ -5,6 +5,27 @@ var elasticsearch = require('elasticsearch');
 var logger = world.logger.child({source: 'webserver'});
 
 /**
+ * Environment variables
+ * --------------------------------------------------------------------
+ *
+ * If the file env.json exists, declare its contents as environtment
+ * variables.
+ */
+var env;
+try {
+    env = world.fs.readFileSync('env.json', {encoding: 'utf8'});
+    env = JSON.parse(env);
+
+    Object.keys(env).forEach(function (key) {
+        process.env[key] = env[key];
+    });
+} catch (e) {
+}
+
+env = {};
+
+
+/**
  * Standard middleware
  * --------------------------------------------------------------------
  */
@@ -370,7 +391,7 @@ var addToList = function (request, response, next) {
             //multi.publish('entry:discarded', id);
         });
 
-        
+
     }
 
     multi.exec(function (err) {
@@ -401,7 +422,7 @@ var removeFromList = function (request, response, next) {
     }
 
     console.log(key);
-    
+
     ids.forEach(function (id) {
         multi.lrem(key, 0, id);
         if (publishDiscard) {

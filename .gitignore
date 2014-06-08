@@ -10,3 +10,4 @@ config/*
 dist
 archive
 *.log
+env.json

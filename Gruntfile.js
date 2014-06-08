@@ -4,6 +4,7 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        env: grunt.file.readJSON("env.json"),
 
         CONFIG: grunt.file.readJSON('config/default.json'),
 
@@ -163,6 +164,32 @@ module.exports = function(grunt) {
             },
         },
 
+        'string-replace': {
+            dev: {
+                files: {
+                    'dist/index.html': 'dist/index.html'
+                },
+                options: {
+                    replacements: [{
+                        pattern: '<!-- livereload placeholder -->',
+                        replacement: '<script src="//<%= env.HEADLINES_DEV_HOST %>:<%= env.HEADLINES_LIVERELOAD %>/livereload.js"></script>'
+                    }]
+                }
+            },
+
+            prod: {
+                files: {
+                    'dist/index.html': 'dist/index.html'
+                },
+                options: {
+                    replacements: [{
+                        pattern: '<!-- livereload placeholder -->',
+                        replacement: ''
+                    }]
+                }
+            }
+        },
+
         shell: {
             'reset-redis': {
                 command: 'redis-cli flushdb'
@@ -182,7 +209,7 @@ module.exports = function(grunt) {
 
         watch: {
             options: {
-                livereload: true,
+                livereload: '<%= env.HEADLINES_LIVERELOAD %>',
                 atBegin: true
             },
 
@@ -199,8 +226,9 @@ module.exports = function(grunt) {
 
     });
 
+
     // Default task(s)
-    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'concat', 'copy', 'clean:postBuild']);
+    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'concat', 'copy', 'string-replace:dev', 'clean:postBuild']);
     grunt.registerTask('default', ['watch']);
 
 };
