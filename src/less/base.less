@@ -61,20 +61,12 @@ MAIN {
         .discussions {
             height: 2em;
 
-            SPAN A:after {
-                content: ', ';
+            SPAN {
+                padding-right: 1em;
             }
 
-            SPAN:last-child:before {
-                content: ' and ';
-            }
-
-            SPAN:first-child:before {
-                content: '';
-            }
-
-            SPAN:last-child A:after{
-                content: '';
+            SPAN:last-child {
+                padding-right: 0;
             }
         }
 

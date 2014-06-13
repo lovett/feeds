@@ -147,6 +147,8 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
     };
 
     var callback = function (error, dom) {
+        var id;
+        var self = this;
         dom.forEach(function (node) {
             if (node.type !== 'tag') {
                 return;
@@ -164,7 +166,30 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
             });
         });
 
-        this.emit('storeEntry', feedId, fields);
+        if (!fields.hnLink) {
+            self.emit('storeEntry', feedId, fields);
+        } else {
+            id = fields.hnLink.match(/id=(\d+)/)[1];
+
+            world.request('https://hn.algolia.com/api/v1/search?tags=story_' + id, function (err, resp, body) {
+                if (err || resp.statusCode !== 200) {
+                    logger.error({err: err, status: resp.statusCode}, 'algolia request failed');
+                } else {
+                    logger.trace({id: id}, 'queried algolia');
+                    body = JSON.parse(body);
+                    try {
+                        fields.hnComments = body.hits[0].num_comments;
+                    } catch(e) {
+                        fields.hnComments = 0;
+                    }
+                }
+
+                self.emit('storeEntry', feedId, fields);
+            });
+        }
+
+        logger.trace(fields, 'processed hn entry');
+
     };
 
     var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
@@ -312,13 +337,7 @@ var main = function () {
 
         feedIds.forEach(function (feedId) {
 
-            world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {
-                if (err) {
-                    logger.error({redis: err}, 'redis error');
-                } else {
-                    logger.trace({feedId: feedId}, 'pickup');
-                }
-            });
+            logger.trace({feedId: feedId}, 'pickup');
 
             world.redisClient.hmget([world.keys.feedKey(feedId), 'url', 'nextCheck', 'prevCheck'], function (err, result) {
                 var url = result.shift();
@@ -343,7 +362,14 @@ var main = function () {
                     return;
                 }
 
-                dispatcher.emit('fetch', feedId, url);
+                world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {
+                    if (err) {
+                        logger.error({redis: err}, 'redis error');
+                    } else {
+                        logger.trace({feedId: feedId}, 'dequeued');
+                        dispatcher.emit('fetch', feedId, url);
+                    }
+                });
             });
         });
     });

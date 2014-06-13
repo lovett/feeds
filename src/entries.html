@@ -13,12 +13,23 @@
                 <p>Added {{ entry.added | amCalendar}}</p>
 
                 <p class="discussions" ng-show="entry.redditLink || entry.hnLink">
-                    Discussed on
                     <span ng-if="entry.redditLink">
-                        <a ng-href="{{entry.redditLink}}" target="_blank">Reddit</a>
+                        <a ng-href="{{entry.redditLink}}" target="_blank">
+                            <ng-pluralize count="entry.redditComments"
+                                          when="{'0': 'No comments',
+                                                'one': '1 comment',
+                                                'other': '{} comments'}">
+                            </ng-pluralize>
+                            on Reddit</a>
                     </span>
                     <span ng-if="entry.hnLink">
-                        <a ng-href="{{entry.hnLink}}" target="_blank">Hacker News</a>
+                        <a ng-href="{{entry.hnLink}}" target="_blank">
+                            <ng-pluralize count="entry.hnComments"
+                                          when="{'0': 'No comments',
+                                                'one': '1 comment',
+                                                'other': '{} comments'}">
+                            </ng-pluralize>
+                            on Hacker News</a>
                     </span>
                 </p>
 
