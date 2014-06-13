@@ -65,13 +65,14 @@ var scheduleFeed = function (feedId) {
             // round to the nearest whole minute
             details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
 
-            logger.trace({feed: feedId, details: details}, verdict);
 
             multi.hmset(key, details);
             multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
             multi.exec(function (err) {
                 if (err) {
                     logger.error(err);
+                } else {
+                    logger.trace({feed: feedId, details: details}, verdict);
                 }
                 return;
             });
