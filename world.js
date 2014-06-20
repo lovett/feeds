@@ -114,8 +114,8 @@ module.exports = {
         },
 
         // A set of feed ids that a user has saved
-        keptKey: function (userId) {
-            return 'user:' + userId + ':kept';
+        savedKey: function (userId) {
+            return 'user:' + userId + ':saved';
         }
     }
 };

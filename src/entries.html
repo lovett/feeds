@@ -36,8 +36,8 @@
             </div>
 
             <footer>
-                <a href="#" ng-show="entry.state != 'kept'" ng-click="setEntryState('kept', entry)" class="text-center unsaved"></a>
-                <a href="#" ng-show="entry.state == 'kept'" ng-click="setEntryState('discarded', entry)" class="text-center saved"></a>
+                <a href="#" ng-show="entry.state != 'saved'" ng-click="setEntryState('saved', entry)" class="text-center unsaved"></a>
+                <a href="#" ng-show="entry.state == 'saved'" ng-click="setEntryState('discarded', entry)" class="text-center saved"></a>
             </footer>
         </div>
     </li>

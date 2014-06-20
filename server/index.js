@@ -293,8 +293,8 @@ var entryList = function (request, response, next) {
     // (for now, fake the user id)
     if (request.params.name === 'unread') {
         key = world.keys.unreadKey(1);
-    } else if (request.params.name === 'kept') {
-        key = world.keys.keptKey(1);
+    } else if (request.params.name === 'saved') {
+        key = world.keys.savedKey(1);
     }
 
     world.redisClient.lrange(key, start, end, function (err, entryIds) {
@@ -338,16 +338,16 @@ var addToList = function (request, response, next) {
     var key;
 
     // for now, fake the user id
-    if (request.params.name === 'kept') {
+    if (request.params.name === 'saved') {
 
-        // Add to the kept list
-        key = world.keys.keptKey(1);
+        // Add to the saved list
+        key = world.keys.savedKey(1);
         ids.forEach(function (id) {
             multi.lpush(key, id);
-            //multi.publish('entry:kept', id);
+            //multi.publish('entry:saved', id);
         });
 
-        // When an entry is kept, it is no longer unread
+        // When an entry is saved, it is no longer unread
         // Remove it from the unread list
         key = world.keys.unreadKey(1);
         ids.forEach(function (id) {
@@ -362,8 +362,8 @@ var addToList = function (request, response, next) {
             multi.lpush(key, id);
         });
 
-        // When an entry is unread, it is no longer kept
-        // Remove it from the kept list
+        // When an entry is unread, it is no longer saved
+        // Remove it from the saved list
         key = world.keys.unreadKey(1);
         ids.forEach(function (id) {
             multi.lrem(key, 0, id);
@@ -393,8 +393,8 @@ var removeFromList = function (request, response, next) {
 
     // for now, fake the user id
     console.log(request.params.name);
-    if (request.params.name === 'kept') {
-        key = world.keys.keptKey(1);
+    if (request.params.name === 'saved') {
+        key = world.keys.savedKey(1);
         publishDiscard = true;
     } else if (request.params.name === 'unread') {
         key = world.keys.unreadKey(1);

@@ -33,23 +33,23 @@
                         <li class="divider"></li>
                         <li ng-class="{active: listName == 'unread'}"><a href="/entries/unread/">Unread</a></li>
                         <li class="divider"></li>
-                        <li ng-class="{active: listName == 'kept'}"><a href="/entries/kept/">Kept</a></li>
+                        <li ng-class="{active: listName == 'saved'}"><a href="/entries/saved/">Saved</a></li>
                         <li class="divider"></li>
                         <li ng-class="{active: listName == 'feeds'}"><a href="/feeds">Feeds</a></li>
                     </ul>
                     <ul class="right" ng-show="listName == 'unread' && listSize > 0">
                         <li class="has-form">
-                            <a href="#" ng-click="setEntryState('kept')" class="button radius success">
-                                Star
-                                <span ng-show="keptCount > 0">the rest</span>
-                                <span ng-show="keptCount == 0">all</span>
+                            <a href="#" ng-click="setEntryState('saved')" class="button radius success">
+                                Save
+                                <span ng-show="savedCount > 0">the rest</span>
+                                <span ng-show="savedCount == 0">all</span>
                             </a>
                         </li>
                         <li class="has-form">
                             <a href="#" ng-click="setEntryState('discarded')" class="button radius alert">
                                 Ignore
-                                <span ng-show="keptCount > 0">the rest</span>
-                                <span ng-show="keptCount == 0">all</span>
+                                <span ng-show="savedCount > 0">the rest</span>
+                                <span ng-show="savedCount == 0">all</span>
                             </a>
                         </li>
                     </ul>

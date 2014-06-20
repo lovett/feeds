@@ -118,14 +118,14 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
                 entry.domain = entry.domain.substring(4);
             }
 
-            if ($routeParams.name === 'kept') {
-                entry.state = 'kept';
+            if ($routeParams.name === 'saved') {
+                entry.state = 'saved';
             }
         });
 
         $rootScope.listSize = $scope.listSize;
         $rootScope.entryCount = $scope.entries.length;
-        $rootScope.keptCount = 0;
+        $rootScope.savedCount = 0;
 
     });
 
@@ -133,16 +133,16 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
     if ($routeParams.name === 'unread') {
         $scope.unreadList = true;
-    } else if ($routeParams.name === 'kept') {
-        $scope.keptList = true;
+    } else if ($routeParams.name === 'saved') {
+        $scope.savedList = true;
     }
 
 
     $rootScope.setEntryState = function (newState, entry) {
         var ids, listName, listSegment;
 
-        if (newState === 'kept') {
-            listName = 'kept';
+        if (newState === 'saved') {
+            listName = 'saved';
             listSegment = 'additions';
         } else if (newState === 'discarded') {
             listName = $routeParams.name;
@@ -153,7 +153,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             ids = [entry.id];
         } else {
             ids = $scope.entries.reduce(function (current, entry) {
-                if (entry.state !== 'kept') {
+                if (entry.state !== 'saved') {
                     current.push(entry.id);
                 }
                 return current;
@@ -170,8 +170,8 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
             $rootScope.entryCount -= ids.length;
 
-            if (newState === 'kept') {
-                $rootScope.keptCount += ids.length;
+            if (newState === 'saved') {
+                $rootScope.savedCount += ids.length;
             }
 
             if ($rootScope.entryCount < 1) {
