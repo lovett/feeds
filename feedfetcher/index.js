@@ -45,6 +45,8 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
             return;
         }
 
+        logger.trace({feedId: feedId, feedUrl: feedUrl}, 'queried yql successfully');
+        
         map = {
             'reddit.com': 'reddit',
             'news.ycombinator.com': 'hn',
@@ -175,7 +177,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
                 if (err || resp.statusCode !== 200) {
                     logger.error({err: err, status: resp.statusCode}, 'algolia request failed');
                 } else {
-                    logger.trace({id: id}, 'queried algolia');
+                    logger.trace({id: id}, 'queried algolia successfully');
                     body = JSON.parse(body);
                     try {
                         fields.hnComments = body.hits[0].num_comments;
