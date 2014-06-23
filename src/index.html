@@ -55,6 +55,15 @@
                     </ul>
                 </section>
             </nav>
+            <section ng-show="showPager" id="pager">
+                <ul>
+                    <li ng-class="{hidden: page == 1}"><a href="{{ prevLink }}">Previous Page</a></li>
+                    <li class="current">Page {{ page }} of {{ pageCount }}</li>
+                    <li ng-class="{hidden: page == pageCount}"><a href="{{ nextLink }}">Next Page</a></li>
+                </ul>
+
+            </section>
+
         </div>
         <main ng-view></main>
 

@@ -12,6 +12,7 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', function 
 appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', 'List', function ($rootScope, $scope, $route, List) {
     'use strict';
     $rootScope.listName = 'feeds';
+    $rootScope.showPager = false;
 
     $scope.sortField = null;
     $scope.sortDirection = null;
@@ -126,6 +127,27 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
         $rootScope.listSize = $scope.listSize;
         $rootScope.entryCount = $scope.entries.length;
         $rootScope.savedCount = 0;
+        $rootScope.pageCount = parseInt(response.pageCount, 10) || 0;
+        $rootScope.page = parseInt(response.page, 10) || 1;
+
+        if ($routeParams.name !== 'saved') {
+            $rootScope.showPager = false;
+        } else {
+            $rootScope.showPager = ($rootScope.pageCount > 1);
+
+            if ($rootScope.pageCount == 0) {
+                $rootScope.prevLink = null;
+            } else {
+                $rootScope.prevLink = '/entries/' + $routeParams.name + '/' + ($rootScope.page - 1);
+            }
+
+            if ($rootScope.page < $rootScope.pageCount) {
+            $rootScope.nextLink = '/entries/' + $routeParams.name + '/' + ($rootScope.page + 1);
+            } else {
+                $rootScope.nextLink = null;
+            }
+        }
+
 
     });
 

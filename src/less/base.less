@@ -128,3 +128,38 @@ THEAD TH A {
 .sortDesc .sort A:after {
     content: ' \25B2';
 }
+
+#pager {
+    width: 100%;
+    background-color: #ccc;
+    color: black;
+
+    .hidden {
+        visibility: hidden;
+    }
+
+    UL {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        .flex-wrapper;
+        font-size: .75em;
+    }
+
+    .current {
+        padding: 0 1em;
+    }
+
+    A {
+        display: inline-block;
+        padding: .5em 1em;
+        text-transform: uppercase;
+        color: #333;
+    }
+
+    A:hover {
+        background-color: #666;
+        color: white;
+    }
+
+}
