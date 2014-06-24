@@ -1,6 +1,7 @@
 var redis = require('redis');
 var bunyan = require('bunyan');
 var fs = require('fs');
+var crypto = require('crypto');
 
 /**
  * Environment variables
@@ -33,7 +34,6 @@ module.exports = {
     htmlparser: require('htmlparser'),
     console: console,
     moment: require('moment'),
-    cityhash: require('cityhash'),
     logger: bunyan.createLogger({
         name: 'headlines',
         serializers: {
@@ -57,7 +57,9 @@ module.exports = {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },
     hash: function (key) {
-        return this.cityhash.hash64(key).value;
+        var sha = crypto.createHash('sha1');
+        sha.update(key, 'utf8');
+        return sha.digest('hex');
     },
     minToMs: function (min) {
         return min * 60 * 1000;
