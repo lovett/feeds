@@ -19,7 +19,9 @@ MAIN {
     display: -webkit-flex;
     display: flex;
     align-items: center;
+    -webkit-align-items: center;
     justify-content: center;
+    -webkit-justify-content: center;
 }
 
 #entries {
@@ -130,20 +132,14 @@ THEAD TH A {
 }
 
 #pager {
-    width: 100%;
     background-color: #ccc;
     color: black;
+    font-size: .75em;
+    justify-content: flex-end;
+    -webkit-justify-content: flex-end;
 
     .hidden {
         visibility: hidden;
-    }
-
-    UL {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-        .flex-wrapper;
-        font-size: .75em;
     }
 
     .current {
