@@ -57,6 +57,8 @@ module.exports = {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },
     hash: function (key) {
+        key = key.toLowerCase();
+        key = key.replace(/^https?:\/\//, '');
         var sha = crypto.createHash('sha1');
         sha.update(key, 'utf8');
         return sha.digest('hex');
