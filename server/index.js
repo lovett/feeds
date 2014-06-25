@@ -3,6 +3,8 @@ var restify = require('restify');
 var server = restify.createServer();
 var elasticsearch = require('elasticsearch');
 var logger = world.logger.child({source: 'webserver'});
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 
 /**
  * Standard middleware
@@ -88,6 +90,29 @@ server.use(function (request, response, next) {
     return next();
 
 });
+
+/**
+ * Authentication configuration
+ * --------------------------------------------------------------------
+ */
+passport.use(new LocalStrategy(function(username, password, done) {
+    var userKey = world.keys.userKey;
+
+    world.redisClient.get(userKey, function (err, result) {
+        var segments = result.split('$');
+        var key = segments.shift();
+        var salt = segments.shift();
+        var id = segments.shift();
+
+        world.userHash(password, salt, function (err, testKey) {
+            if (testKey.toString('hex') === key) {
+                return done(null, id);
+            } else {
+                return done(null, false, { message: 'Invalid login'});
+            }
+        });
+    });
+}));
 
 /**
  * Return a list of subscribed feeds
@@ -432,6 +457,11 @@ server.get('/list/:name', entryList);
 
 server.post('/list/:name/additions', addToList);
 server.post('/list/:name/removals', removeFromList);
+
+server.post('/authenticate', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login'
+}));
 
 /**
  * Search

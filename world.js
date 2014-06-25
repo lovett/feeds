@@ -56,6 +56,9 @@ module.exports = {
     archivePath: function (hash) {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },
+    userHash: function (password, salt, callback) {
+        crypto.pbkdf2(password, salt, 100000, 512, callback);
+    },
     hash: function (key) {
         key = key.toLowerCase();
         key = key.replace(/^https?:\/\//, '');
@@ -120,6 +123,11 @@ module.exports = {
         // A set of feed ids that a user has saved
         savedKey: function (userId) {
             return 'user:' + userId + ':saved';
+        },
+
+        // A string mapping a username hash to a hash and id
+        userKey: function (username) {
+            return 'user:' + username;
         }
     }
 };
