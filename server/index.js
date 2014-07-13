@@ -67,6 +67,36 @@ server.use(function (request, response, next) {
 });
 
 /**
+ * Custom middlware for serving less files
+ *
+ * They would otherwise go out as application/octet-stream, which the
+ * browser would be unable to display.
+ * --------------------------------------------------------------------
+ */
+server.use(function (request, response, next) {
+
+    var path = request.path();
+
+    if (!path.match(/\.less$/)) {
+        next();
+    }
+
+    var fileName = path.split('/').pop();
+
+    world.fs.readFile('./dist/less/' + fileName, function (err, data) {
+        if (err) {
+            next(err);
+            return;
+        }
+        response.setHeader('Content-Type', 'text/css');
+        response.writeHead(200);
+        response.end(data);
+        return next(false);
+    });
+});
+
+
+/**
  * Custom middleware for casting request parameters to expected data types
  * --------------------------------------------------------------------
  * If we get something that should be an array, but isn't, make it so.

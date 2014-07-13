@@ -13,7 +13,7 @@ module.exports = function(grunt) {
                 src: ['dist/*']
             },
             postBuild: {
-                src: ['dist/app.min.js', 'dist/app.css']
+                src: ['dist/app.min.js']
             }
         },
 
@@ -35,19 +35,18 @@ module.exports = function(grunt) {
                               'dist/app.min.js'
                              ],
                         dest: 'dist/headlines.js',
-                    },
-                    {
-                        src: ['bower_components/foundation/css/normalize.css',
-                              'bower_components/foundation/css/foundation.css',
-                              'dist/app.css'
-                             ],
-                        dest: 'dist/headlines.css'
                     }
                 ]
             }
         },
 
         copy: {
+            less: {
+                expand: true,
+                flatten: true,
+                src: 'src/less/*',
+                dest: 'dist/less'
+            },
             main: {
                 expand: true,
                 flatten: true,
@@ -60,6 +59,14 @@ module.exports = function(grunt) {
                       'src/*',
                       '!src/less'],
                 dest: 'dist/'
+            }
+        },
+
+        cssmin: {
+            combine: {
+                'src': ['bower_components/foundation/css/normalize.css',
+                        'bower_components/foundation/css/foundation.css'],
+                'dest': 'dist/css/lib.min.css'
             }
         },
 
@@ -86,8 +93,14 @@ module.exports = function(grunt) {
 
         less: {
             main: {
+                options: {
+                    compress: true,
+                    sourceMap: true,
+                    sourceMapFilename: 'dist/css/app.min.css.map',
+                    sourceMapURL: '/css/app.min.css.map'
+                },
                 src: 'src/less/*.less',
-                dest: 'dist/app.css'
+                dest: 'dist/css/app.min.css'
             }
         },
 
@@ -167,13 +180,20 @@ module.exports = function(grunt) {
         'string-replace': {
             dev: {
                 files: {
-                    'dist/index.html': 'dist/index.html'
+                    'dist/index.html': 'dist/index.html',
+                    'dist/css/app.min.css.map': 'dist/css/app.min.css.map'
                 },
                 options: {
-                    replacements: [{
-                        pattern: '<!-- livereload placeholder -->',
-                        replacement: '<script src="//<%= env.HEADLINES_DEV_HOST %>:<%= env.HEADLINES_LIVERELOAD %>/livereload.js"></script>'
-                    }]
+                    replacements: [
+                        {
+                            pattern: '<!-- livereload placeholder -->',
+                            replacement: '<script src="//<%= env.HEADLINES_DEV_HOST %>:<%= env.HEADLINES_LIVERELOAD %>/livereload.js"></script>'
+                        },
+                        {
+                            pattern: 'src/less',
+                            replacement: '/less'
+                        }
+                    ]
                 }
             },
 
@@ -228,7 +248,7 @@ module.exports = function(grunt) {
 
 
     // Default task(s)
-    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'concat', 'copy', 'string-replace:dev', 'clean:postBuild']);
+    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'cssmin', 'copy', 'concat', 'string-replace:dev', 'clean:postBuild']);
     grunt.registerTask('default', ['watch']);
 
 };
