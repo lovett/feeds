@@ -11,3 +11,13 @@ appServices.factory('List', ['$resource', function ($resource) {
         }
     });
 }]);
+
+
+appServices.factory('AuthService', ['$resource', function ($resource) {
+    'use strict';
+    return $resource('/authenticate', {}, {
+        'login': {
+            method: 'POST'
+        }
+    });
+}]);

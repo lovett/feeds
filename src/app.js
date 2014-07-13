@@ -34,6 +34,18 @@ app.config(['$routeProvider', function ($routeProvider) {
         templateUrl: '/entries.html'
     });
 
+    $routeProvider.when('/login', {
+        controller: 'LoginController',
+        templateUrl: '/login.html'
+    });
+
+    $routeProvider.when('/logout', {
+        controller: 'LoginController',
+        templateUrl: '/logout.html',
+        action: 'logout'
+    });
+    
+
     $routeProvider.otherwise({
         redirectTo: '/entries/unread/'
     });

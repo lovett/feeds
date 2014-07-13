@@ -44,12 +44,12 @@ server.use(function (request, response, next) {
         return next();
     }
 
-    var roots = ['search', 'entries', 'feeds'];
+    var aliases = ['search', 'entries', 'feeds', 'login', 'logout'];
     var path = request.path().split('/');
 
     // The first element will be empty due to the request path's
     // leading slash. The actual root is in path[1]
-    if (roots.indexOf(path[1]) === -1) {
+    if (aliases.indexOf(path[1]) === -1) {
         return next();
     }
 

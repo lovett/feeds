@@ -1,5 +1,36 @@
 var appControllers = angular.module('appControllers', []);
 
+appControllers.controller('LoginController', ['$scope', 'AuthService', function ($scope, AuthService) {
+    'use strict';
+
+    var loginSuccess, loginFailure;
+
+    loginSuccess = function () {
+        $location.path('/');
+    };
+
+    loginFailure = function () {
+        $scope.message = 'Please try again';
+    };
+
+    $scope.login = function () {
+        if ($scope.loginForm.$invalid) {
+            $scope.message = 'All fields are required';
+            return;
+        }
+
+        $scope.message = null;
+
+        AuthService.login({}, {
+            'username': $scope.login.username,
+            'password': $scope.login.password
+        }, loginSuccess, loginFailure);
+
+    };
+
+
+}]);
+
 
 appControllers.controller('SearchController', ['$rootScope', '$scope', function ($rootScope, $scope) {
     'use strict';
