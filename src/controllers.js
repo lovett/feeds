@@ -31,6 +31,34 @@ appControllers.controller('LoginController', ['$scope', 'AuthService', function 
 
 }]);
 
+appControllers.controller('SignupController', ['$scope', 'SignupService', function ($scope, SignupService) {
+    'use strict';
+
+    var signupSuccess, signupFailure
+
+    signupSuccess = function () {
+        $location.path('/');
+    };
+
+    signupFailure = function () {
+        $scope.message = 'Please try again';
+    };
+
+    $scope.signup = function () {
+        if ($scope.signupForm.$invalid) {
+            $scope.message = 'All fields are required';
+            return;
+        }
+
+        $scope.message = null;
+
+        SignupService.save({}, {
+            'username': $scope.signup.username,
+            'password': $scope.signup.password
+        }, signupSuccess, signupFailure);
+    }
+}]);
+
 
 appControllers.controller('SearchController', ['$rootScope', '$scope', function ($rootScope, $scope) {
     'use strict';

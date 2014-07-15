@@ -13,11 +13,16 @@ appServices.factory('List', ['$resource', function ($resource) {
 }]);
 
 
+appServices.factory('SignupService', ['$resource', function ($resource) {
+    'use strict';
+    return $resource('/signup', {});
+}]);
+
 appServices.factory('AuthService', ['$resource', function ($resource) {
     'use strict';
     return $resource('/authenticate', {}, {
         'login': {
             method: 'POST'
-        }
+        },
     });
 }]);
