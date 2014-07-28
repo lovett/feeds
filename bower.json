@@ -16,12 +16,15 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "1.2.20",
-    "angular-route": "1.2.20",
-    "angular-resource": "1.2.20",
+    "angular": "1.2.21",
+    "angular-route": "1.2.21",
+    "angular-resource": "1.2.21",
     "angular-moment": "0.7.1",
-    "foundation": "5.3.0",
+    "foundation": "5.3.1",
     "jquery": "2.1.1",
     "lodash": "2.4.1"
+  },
+  "resolutions": {
+    "angular": "1.2.21"
   }
 }
