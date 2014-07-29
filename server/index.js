@@ -1,10 +1,12 @@
 var world = require('../world');
+var crypto = require('crypto');
 var restify = require('restify');
 var server = restify.createServer();
 var elasticsearch = require('elasticsearch');
 var logger = world.logger.child({source: 'webserver'});
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var util = require('util');
 
 /**
  * Standard middleware
@@ -44,7 +46,7 @@ server.use(function (request, response, next) {
         return next();
     }
 
-    var aliases = ['search', 'entries', 'feeds', 'login', 'logout'];
+    var aliases = ['search', 'entries', 'feeds', 'login', 'logout', 'signup'];
     var path = request.path().split('/');
 
     // The first element will be empty due to the request path's
@@ -126,23 +128,27 @@ server.use(function (request, response, next) {
  * --------------------------------------------------------------------
  */
 passport.use(new LocalStrategy(function(username, password, done) {
-    var userKey = world.keys.userKey;
+    var userKey = world.keys.userKey(username);
 
     world.redisClient.get(userKey, function (err, result) {
-        var segments = result.split('$');
-        var key = segments.shift();
-        var salt = segments.shift();
+        var segments = result.split('/');
         var id = segments.shift();
+        var salt = segments.shift();
+        var hash = segments.shift();
 
-        world.userHash(password, salt, function (err, testKey) {
-            if (testKey.toString('hex') === key) {
-                return done(null, id);
+        world.userHash(password, salt, function (err, testHash) {
+            if (testHash.toString('hex') === hash) {
+                return done(null, { id: id});
             } else {
                 return done(null, false, { message: 'Invalid login'});
             }
         });
     });
 }));
+
+// Authentication
+server.use(passport.initialize());
+
 
 /**
  * Return a list of subscribed feeds
@@ -476,6 +482,45 @@ var removeFromList = function (request, response, next) {
     });
 };
 
+var createUser = function (req, res, next) {
+    var username = req.body.username;
+    var password = req.body.password;
+
+    crypto.randomBytes(16, function(err, buf) {
+        var salt, key;
+        if (err) {
+            logger.error({err: err}, 'user creation error while generating salt');
+            res.send(500);
+            next(false);
+        }
+
+        salt = buf.toString('hex');
+
+        world.userHash(password, salt, function (err, hash) {
+            if (err) {
+                logger.error({err: err}, 'user creation error while generating hash');
+                response.send(500);
+                next(false);
+            }
+
+            key = world.keys.userKey(username);
+
+            world.redisClient.incr(world.keys.userIdCounter, function (err, id) {
+                if (err) {
+                    logger.error({err: err}, 'failed to incremenet user counter');
+                    response(500);
+                    next(false);
+                }
+
+                world.redisClient.set(key, util.format('%s/%s/%s', id, salt, hash.toString('hex')));
+                res.send(204);
+                next();
+            });
+
+        });
+    });
+};
+
 /**
  * Routes
  * --------------------------------------------------------------------
@@ -488,10 +533,45 @@ server.get('/list/:name', entryList);
 server.post('/list/:name/additions', addToList);
 server.post('/list/:name/removals', removeFromList);
 
-server.post('/authenticate', passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login'
-}));
+server.post('/signup', createUser);
+
+server.post('/authenticate', function (request, response, next) {
+    if (request.body.action !== 'login') {
+        return next();
+    }
+
+    passport.authenticate('local', { session: false }, function (err, user, info) {
+        if (err) {
+            return next(err);
+        }
+
+        crypto.randomBytes(64, function(err, buf) {
+            var token = buf.toString('hex');
+            var key = world.keys.userTokenKey(token);
+            console.log(key);
+            console.log(user);
+            world.redisClient.set(key, user.id, function (err, result) {
+                world.redisClient.expire(key, 86400);
+                response.send({token: token});
+                next();
+            });
+        });
+    })(request, response, next);
+}, function (request, response, next) {
+    if (request.body.action !== 'logout') {
+        return next();
+    }
+
+    var key = world.keys.userTokenKey(request.body.token);
+    world.redisClient.del(key, function (err, result) {
+        if (err) {
+            return next(err);
+        }
+
+        response.send(204);
+        return next();
+    });
+});
 
 /**
  * Search

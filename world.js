@@ -57,7 +57,7 @@ module.exports = {
         return "archive/" + hash.substr(0, 1) + "/" + hash.substr(0, 2) + "/" + hash;
     },
     userHash: function (password, salt, callback) {
-        crypto.pbkdf2(password, salt, 100000, 512, callback);
+        crypto.pbkdf2(password, salt, 10000, 512, callback);
     },
     hash: function (key) {
         key = key.toLowerCase();
@@ -71,6 +71,9 @@ module.exports = {
     },
     feedCheckInterval: Math.max(10, process.env.HEADLINES_FEED_CHECK_INTERVAL_MINUTES) * 60 * 1000,
     keys: {
+        // A counter that provides numeric user ids. It is incremented during user signup.
+        userIdCounter: "user:count",
+
         // A sorted set of how many users are subscribed to each feed
         // The set memeber is a feed id. The score is the number of
         // subscribers.
@@ -125,9 +128,15 @@ module.exports = {
             return 'user:' + userId + ':saved';
         },
 
-        // A string mapping a username hash to a hash and id
+        // A string containing the id and password for a user
         userKey: function (username) {
             return 'user:' + username;
+        },
+
+        // A string mapping a token to a user id
+        userTokenKey: function (token) {
+            return 'token:' + token;
         }
+
     }
 };

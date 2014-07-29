@@ -22,7 +22,10 @@ appServices.factory('AuthService', ['$resource', function ($resource) {
     'use strict';
     return $resource('/authenticate', {}, {
         'login': {
-            method: 'POST'
+            method: 'POST',
         },
+        'logout': {
+            method: 'POST',
+        }
     });
 }]);

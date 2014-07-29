@@ -1,11 +1,18 @@
 var appControllers = angular.module('appControllers', []);
 
-appControllers.controller('LoginController', ['$scope', 'AuthService', function ($scope, AuthService) {
+appControllers.controller('LoginController', ['$scope', '$route', '$location', 'AuthService', function ($scope, $route, $location, AuthService) {
     'use strict';
 
-    var loginSuccess, loginFailure;
+    var token, loginSuccess, loginFailure, logoutSuccess, logoutFailure;
 
-    loginSuccess = function () {
+    $scope.remember = true;
+
+    loginSuccess = function (data) {
+        if ($scope.remember === true) {
+            localStorage.token = data.token;
+        } else {
+            sessionStorage.token = data.token;
+        }
         $location.path('/');
     };
 
@@ -22,16 +29,36 @@ appControllers.controller('LoginController', ['$scope', 'AuthService', function 
         $scope.message = null;
 
         AuthService.login({}, {
+            'action': 'login',
             'username': $scope.login.username,
             'password': $scope.login.password
         }, loginSuccess, loginFailure);
 
     };
 
+    logoutSuccess = function (data) {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+    };
+
+    logoutFailure = function () {
+    };
+
+    if ($route.current.action === 'logout') {
+        token = localStorage.token || sessionStorage.token;
+        if (!token) {
+            return;
+        }
+
+        AuthService.logout({}, {
+            'action': 'logout',
+            'token': token
+        }, logoutSuccess, logoutFailure);
+    }
 
 }]);
 
-appControllers.controller('SignupController', ['$scope', 'SignupService', function ($scope, SignupService) {
+appControllers.controller('SignupController', ['$scope', '$location', 'SignupService', function ($scope, $location, SignupService) {
     'use strict';
 
     var signupSuccess, signupFailure
