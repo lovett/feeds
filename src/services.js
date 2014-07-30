@@ -29,3 +29,50 @@ appServices.factory('AuthService', ['$resource', function ($resource) {
         }
     });
 }]);
+
+appServices.factory('UserService', [function () {
+    'use strict';
+
+    return {
+        setToken: function (value, persist) {
+            if (persist === true) {
+                localStorage.token = value;
+            } else {
+                sessionStorage.token = value;
+            }
+        },
+
+        hasToken: function () {
+            return this.getToken() !== undefined;
+        },
+
+        getToken: function () {
+            if (sessionStorage.token) {
+                return sessionStorage.token;
+            }
+            return localStorage.token;
+        },
+
+        forgetToken: function () {
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+        }
+    }
+}]);
+
+appServices.factory('HttpInterceptService', ['$q', '$location', 'UserService', function ($q, $location, UserService) {
+    var interceptor = {
+        'request': function (config) {
+            config.headers['X-Auth'] = UserService.getToken();
+            return config;
+        },
+        'responseError': function (response) {
+            if (response.status === 401) {
+                $location.path('/login');
+                return $q.reject(response);
+            }
+        }
+
+    }
+    return interceptor;
+}]);

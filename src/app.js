@@ -43,14 +43,13 @@ app.config(['$routeProvider', function ($routeProvider) {
         controller: 'SignupController',
         templateUrl: '/signup.html'
     });
-    
+
 
     $routeProvider.when('/logout', {
         controller: 'LoginController',
         templateUrl: '/logout.html',
         action: 'logout'
     });
-    
 
     $routeProvider.otherwise({
         redirectTo: '/entries/unread/'
@@ -60,6 +59,11 @@ app.config(['$routeProvider', function ($routeProvider) {
 app.config(['$locationProvider', function ($locationProvider) {
     'use strict';
     $locationProvider.html5Mode(true);
+}]);
+
+app.config(['$httpProvider', function ($httpProvider) {
+    'use strict';
+    $httpProvider.interceptors.push('HttpInterceptService');
 }]);
 
 

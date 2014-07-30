@@ -9,7 +9,7 @@ var dispatcher = new world.events.EventEmitter();
  *
  * http://www.yqlblog.net/blog/2013/03/07/yql-feednormalizer-table/
  */
-dispatcher.on('fetch', function (feedId, feedUrl) {
+dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
     var self, parsedUrl, options;
 
     self = this;
@@ -46,7 +46,7 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
         }
 
         logger.trace({feedId: feedId, feedUrl: feedUrl}, 'queried yql successfully');
-        
+
         map = {
             'reddit.com': 'reddit',
             'news.ycombinator.com': 'hn',
@@ -64,7 +64,7 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
 
         // Presumably the feed is ordered newest to oldest
         body.query.results.feed.entry.reverse().forEach(function (entry) {
-            self.emit(processEvent, feedId, entry);
+            self.emit(processEvent, feedId, entry, subscribers);
         });
 
         // Request rescheduling
@@ -80,7 +80,7 @@ dispatcher.on('fetch', function (feedId, feedUrl) {
  * This is the general-purpose processor. Certain feeds have custom
  * processors.
  */
-dispatcher.on('processEntry', function (feedId, entry) {
+dispatcher.on('processEntry', function (feedId, entry, subscribers) {
     var fields, date;
 
     fields = {};
@@ -121,28 +121,28 @@ dispatcher.on('processEntry', function (feedId, entry) {
         fields.date = world.moment(date).format('X') * 1000;
     }
 
-    this.emit('storeEntry', feedId, fields);
+    this.emit('storeEntry', feedId, fields, subscribers);
 });
 
 /**
  * Entry processor for Slashdot
  * --------------------------------------------------------------------
  */
-dispatcher.on('processEntry:slashdot', function (feedId, entry) {
+dispatcher.on('processEntry:slashdot', function (feedId, entry, subscribers) {
     var fields = {
         url: entry.link.href,
         title: entry.title.replace(/<\/?.*?>/g, ''),
         date: world.moment(entry.updated).format('X') * 1000
     };
 
-    this.emit('storeEntry', feedId, fields);
+    this.emit('storeEntry', feedId, fields, subscribers);
 });
 
 /**
  * Entry processor for Hacker News
  * --------------------------------------------------------------------
  */
-dispatcher.on('processEntry:hn', function (feedId, entry) {
+dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
     var fields = {
         url: entry.link.href,
         title: entry.title
@@ -169,7 +169,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
         });
 
         if (!fields.hnLink) {
-            self.emit('storeEntry', feedId, fields);
+            self.emit('storeEntry', feedId, fields, subscribers);
         } else {
             id = fields.hnLink.match(/id=(\d+)/)[1];
 
@@ -186,7 +186,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
                     }
                 }
 
-                self.emit('storeEntry', feedId, fields);
+                self.emit('storeEntry', feedId, fields, subscribers);
             });
         }
 
@@ -204,7 +204,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry) {
  * Entry processor for Reddit
  * --------------------------------------------------------------------
  */
-dispatcher.on('processEntry:reddit', function (feedId, entry) {
+dispatcher.on('processEntry:reddit', function (feedId, entry, subscribers) {
     var fields = {
         redditComments: 0,
         redditLink: entry.link.href,
@@ -238,7 +238,7 @@ dispatcher.on('processEntry:reddit', function (feedId, entry) {
             });
         });
 
-        this.emit('storeEntry', feedId, fields);
+        this.emit('storeEntry', feedId, fields, subscribers);
     };
 
     var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
@@ -250,7 +250,10 @@ dispatcher.on('processEntry:reddit', function (feedId, entry) {
  * Store an entry after it has been processed
  * --------------------------------------------------------------------
  */
-dispatcher.on('storeEntry', function (feedId, entry) {
+dispatcher.on('storeEntry', function (feedId, entry, subscribers) {
+
+    console.log(entry);
+    console.log(subscribers);
 
     var entryId = world.hash(entry.url);
 
@@ -278,8 +281,9 @@ dispatcher.on('storeEntry', function (feedId, entry) {
             multi.zadd(world.keys.feedEntriesKey(feedId), entry.added, entryId);
 
             // Mark the entry as unread
-            // (for now, fake the user id)
-            multi.lpush(world.keys.unreadKey(1), entryId);
+            subscribers.forEach(function (subscriber) {
+                multi.lpush(world.keys.unreadKey(subscriber), entryId);
+            });
 
             // Advance the feed's updated date
             key = world.keys.feedKey(feedId);
@@ -369,7 +373,12 @@ var main = function () {
                         logger.error({redis: err}, 'redis error');
                     } else {
                         logger.trace({feedId: feedId}, 'dequeued');
-                        dispatcher.emit('fetch', feedId, url);
+
+                        world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, subscribers) {
+                            if (subscribers.length > 0) {
+                                dispatcher.emit('fetch', feedId, url, subscribers);
+                            }
+                        });
                     }
                 });
             });

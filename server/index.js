@@ -131,6 +131,10 @@ passport.use(new LocalStrategy(function(username, password, done) {
     var userKey = world.keys.userKey(username);
 
     world.redisClient.get(userKey, function (err, result) {
+        if (result === null) {
+            return done(null, false, { message: 'Invalid login'});
+        }
+
         var segments = result.split('/');
         var id = segments.shift();
         var salt = segments.shift();
@@ -159,13 +163,13 @@ var feedList = function (request, response, next) {
     var feeds = {};
     var multi = world.redisClient.multi();
 
-    key = world.keys.feedListKey(1);
+    key = world.keys.feedListKey(request.user.id);
 
     world.redisClient.smembers(key, function (err, result) {
         result.forEach(function (feedId) {
 
             // User-specific fields
-            key = world.keys.feedKey(feedId, 1);
+            key = world.keys.feedKey(feedId, request.user.id);
             multi.hgetall(key, function (err, feed) {
                 feeds[feedId] = feed;
             });
@@ -210,8 +214,8 @@ var feedUnsubscribe = function (request, response, next) {
     }
 
     request.body.unsubscribe.forEach(function (feedId) {
-        multi.srem(world.keys.feedListKey(1), feedId);
-        multi.srem(world.keys.feedSubscribersKey(feedId), 1);
+        multi.srem(world.keys.feedListKey(request.user.id), feedId);
+        multi.srem(world.keys.feedSubscribersKey(feedId), request.user.id);
         multi.zincrby(world.keys.feedSubscriptionsKey, -1, feedId);
         multi.publish('feed:reschedule', feedId);
     });
@@ -259,18 +263,15 @@ var feedSubscribe = function (request, response, next) {
         feedId = world.hash(feed.url);
 
         // Subscribe the user to the feed
-        // (for now, fake the user id)
-        key = world.keys.feedListKey(1);
+        key = world.keys.feedListKey(request.user.id);
         multi.sadd(key, feedId);
 
         // Account for the subscription in the reverse direction
-        // (for now, fake the user id)
         key = world.keys.feedSubscribersKey(feedId);
-        multi.sadd(key, 1);
+        multi.sadd(key, request.user.id);
 
         // User-specific metadata about the feed
-        // (for now, fake the user id)
-        key = world.keys.feedKey(feedId, 1);
+        key = world.keys.feedKey(feedId, request.user.id);
         multi.hmset(key, {
             name: feed.name,
             subscribed: +new Date(),
@@ -351,11 +352,10 @@ var entryList = function (request, response, next) {
 
     var key;
 
-    // (for now, fake the user id)
     if (request.params.name === 'unread') {
-        key = world.keys.unreadKey(1);
+        key = world.keys.unreadKey(request.user.id);
     } else if (request.params.name === 'saved') {
-        key = world.keys.savedKey(1);
+        key = world.keys.savedKey(request.user.id);
     }
 
     world.redisClient.lrange(key, start, end, function (err, entryIds) {
@@ -398,11 +398,10 @@ var addToList = function (request, response, next) {
     var ids = request.body.ids;
     var key;
 
-    // for now, fake the user id
     if (request.params.name === 'saved') {
 
         // Add to the saved list
-        key = world.keys.savedKey(1);
+        key = world.keys.savedKey(request.user.id);
         ids.forEach(function (id) {
             multi.lpush(key, id);
             //multi.publish('entry:saved', id);
@@ -410,7 +409,7 @@ var addToList = function (request, response, next) {
 
         // When an entry is saved, it is no longer unread
         // Remove it from the unread list
-        key = world.keys.unreadKey(1);
+        key = world.keys.unreadKey(request.user.id);
         ids.forEach(function (id) {
             multi.lrem(key, 0, id);
         });
@@ -418,14 +417,14 @@ var addToList = function (request, response, next) {
     } else if (request.params.name === 'unread') {
 
         // Add to the unread list
-        key = world.keys.unreadKey(1);
+        key = world.keys.unreadKey(request.user.id);
         ids.forEach(function (id) {
             multi.lpush(key, id);
         });
 
         // When an entry is unread, it is no longer saved
         // Remove it from the saved list
-        key = world.keys.unreadKey(1);
+        key = world.keys.unreadKey(request.user.id);
         ids.forEach(function (id) {
             multi.lrem(key, 0, id);
             //multi.publish('entry:discarded', id);
@@ -452,16 +451,12 @@ var removeFromList = function (request, response, next) {
     var key;
     var publishDiscard = false;
 
-    // for now, fake the user id
-    console.log(request.params.name);
     if (request.params.name === 'saved') {
-        key = world.keys.savedKey(1);
+        key = world.keys.savedKey(request.user.id);
         publishDiscard = true;
     } else if (request.params.name === 'unread') {
-        key = world.keys.unreadKey(1);
+        key = world.keys.unreadKey(request.user.id);
     }
-
-    console.log(key);
 
     ids.forEach(function (id) {
         multi.lrem(key, 0, id);
@@ -522,16 +517,44 @@ var createUser = function (req, res, next) {
 };
 
 /**
+ * Route helpers
+ * --------------------------------------------------------------------
+ */
+var requireAuth = function (request, response, next) {
+
+    var token = request.headers['x-auth'];
+
+    if (!token) {
+        response.send(401);
+        return next(false);
+    }
+
+    world.redisClient.get(world.keys.userTokenKey(token), function (err, result) {
+        if (!result) {
+            response.send(401);
+            return next(false);
+        }
+
+        request.user = {
+            id: parseInt(result, 10)
+        }
+
+        next();
+    });
+};
+
+
+/**
  * Routes
  * --------------------------------------------------------------------
  */
-server.get('/list/feeds', feedList);
-server.post('/list/feeds', feedSubscribe, feedUnsubscribe, feedList);
+server.get('/list/feeds', requireAuth, feedList);
+server.post('/list/feeds', requireAuth, feedSubscribe, feedUnsubscribe, feedList);
 
-server.get('/list/:name', entryList);
+server.get('/list/:name', requireAuth, entryList);
 
-server.post('/list/:name/additions', addToList);
-server.post('/list/:name/removals', removeFromList);
+server.post('/list/:name/additions', requireAuth, addToList);
+server.post('/list/:name/removals', requireAuth, removeFromList);
 
 server.post('/signup', createUser);
 
@@ -542,14 +565,18 @@ server.post('/authenticate', function (request, response, next) {
 
     passport.authenticate('local', { session: false }, function (err, user, info) {
         if (err) {
-            return next(err);
+            response.send(500);
+            return next(false);
+        }
+
+        if (!user) {
+            response.send(401);
+            return next(false);
         }
 
         crypto.randomBytes(64, function(err, buf) {
             var token = buf.toString('hex');
             var key = world.keys.userTokenKey(token);
-            console.log(key);
-            console.log(user);
             world.redisClient.set(key, user.id, function (err, result) {
                 world.redisClient.expire(key, 86400);
                 response.send({token: token});

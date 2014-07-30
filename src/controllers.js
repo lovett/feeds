@@ -1,6 +1,6 @@
 var appControllers = angular.module('appControllers', []);
 
-appControllers.controller('LoginController', ['$scope', '$route', '$location', 'AuthService', function ($scope, $route, $location, AuthService) {
+appControllers.controller('LoginController', ['$scope', '$route', '$location', 'AuthService', 'UserService', function ($scope, $route, $location, AuthService, UserService) {
     'use strict';
 
     var token, loginSuccess, loginFailure, logoutSuccess, logoutFailure;
@@ -8,11 +8,7 @@ appControllers.controller('LoginController', ['$scope', '$route', '$location', '
     $scope.remember = true;
 
     loginSuccess = function (data) {
-        if ($scope.remember === true) {
-            localStorage.token = data.token;
-        } else {
-            sessionStorage.token = data.token;
-        }
+        UserService.setToken(data.token, $scope.remember);
         $location.path('/');
     };
 
@@ -37,8 +33,7 @@ appControllers.controller('LoginController', ['$scope', '$route', '$location', '
     };
 
     logoutSuccess = function (data) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
+        UserService.forgetToken();
     };
 
     logoutFailure = function () {
@@ -95,8 +90,13 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', function 
 
 }]);
 
-appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', 'List', function ($rootScope, $scope, $route, List) {
+appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'UserService', 'List', function ($rootScope, $scope, $route, $location, UserService, List) {
     'use strict';
+
+    if (UserService.hasToken() === false) {
+        $location.path('/login');
+    }
+
     $rootScope.listName = 'feeds';
     $rootScope.showPager = false;
 
@@ -158,11 +158,15 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
     };
 }]);
 
-appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', 'List', function ($rootScope, $scope, $routeParams, $route, List) {
+appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', '$location', 'UserService', 'List', function ($rootScope, $scope, $routeParams, $route, $location, UserService, List) {
     'use strict';
 
     if (!$routeParams.name) {
         return;
+    }
+
+    if (UserService.hasToken() === false) {
+        $location.path('/login');
     }
 
     var screenSize = $('#screen-size SPAN:visible').attr('class');
