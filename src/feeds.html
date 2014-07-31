@@ -52,16 +52,17 @@
                             <th width="175" ng-class="{'sort': sortField === 'subscribed'}"><a ng-click="sortBy('subscribed')" href="">Subscribed</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'updated'}"><a ng-click="sortBy('updated')" href="">Last Updated</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'nextCheck'}"><a ng-click="sortBy('nextCheck')" href="">Next Check</a></th>
-                            <th width="50"></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="feed in feeds">
                             <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.name }}</a></td>
-                            <td><span ng-bind="feed.subscribed | amCalendar"></span></td>
+                            <td>
+                                <span ng-bind="feed.subscribed | amCalendar"></span>
+                                <a class="unsubscribe" ng-click="remove()" href="">Unsubscribe</a>
+                            </td>
                             <td><span ng-bind="(feed.updated | amCalendar) || 'never'"></span></td>
                             <td><span ng-bind="(feed.nextCheck | amCalendar) || 'soon'"></span></td>
-                            <td><a ng-click="remove()" href=""><span class="icon-trash"></span></a></td>
                         </tr>
                     </tbody>
                 </table>
