@@ -15,8 +15,6 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
     self = this;
     parsedUrl = world.url.parse(feedUrl);
 
-    logger.info({feedId: feedId, feedUrl: feedUrl}, 'fetching feed');
-
     options = {
         json: true,
         url: world.url.format({
@@ -29,6 +27,9 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             }
         })
     };
+
+    logger.info({feedId: feedId, feedUrl: feedUrl, yqlUrl: options.url}, 'querying yql');
+
 
     world.request(options, function (err, response, body) {
         var map, processEvent;
@@ -151,6 +152,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
     var callback = function (error, dom) {
         var id;
         var self = this;
+        var algoliaUrl;
         dom.forEach(function (node) {
             if (node.type !== 'tag') {
                 return;
@@ -173,11 +175,12 @@ dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
         } else {
             id = fields.hnLink.match(/id=(\d+)/)[1];
 
-            world.request('https://hn.algolia.com/api/v1/search?tags=story_' + id, function (err, resp, body) {
+            algoliaUrl = 'https://hn.algolia.com/api/v1/search?tags=story_' + id;
+            world.request(algoliaUrl, function (err, resp, body) {
                 if (err || resp.statusCode !== 200) {
                     logger.error({err: err, status: resp.statusCode}, 'algolia request failed');
                 } else {
-                    logger.trace({id: id}, 'queried algolia successfully');
+                    logger.trace({id: id, algoliaUrl: algoliaUrl}, 'queried algolia');
                     body = JSON.parse(body);
                     try {
                         fields.hnComments = body.hits[0].num_comments;
@@ -252,9 +255,6 @@ dispatcher.on('processEntry:reddit', function (feedId, entry, subscribers) {
  */
 dispatcher.on('storeEntry', function (feedId, entry, subscribers) {
 
-    console.log(entry);
-    console.log(subscribers);
-
     var entryId = world.hash(entry.url);
 
     var entryKey = world.keys.entryKey(entryId);
@@ -302,7 +302,7 @@ dispatcher.on('storeEntry', function (feedId, entry, subscribers) {
             }
 
             if (isNew) {
-                logger.trace({feedId: feedId, entry: entryId}, 'saved new entry');
+                logger.trace({feedId: feedId, entry: entryId}, 'saved entry');
             } else {
                 logger.trace({feedId: feedId, entry: entryId}, 'updated entry');
             }
