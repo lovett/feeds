@@ -5,7 +5,7 @@ appControllers.controller('AppController', ['$scope', '$location', 'UserService'
 
     $scope.user = UserService;
 
-    if (UserService.getToken()) {
+    if (!angular.isDefined(UserService.getToken())) {
         $location.path('/login');
     }
 
