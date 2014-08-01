@@ -12,7 +12,7 @@
                 <p class="domain">From <a href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></p>
                 <p>Added {{ entry.added | amCalendar}}</p>
 
-                <p class="discussions" ng-show="entry.redditLink || entry.hnLink">
+                <p class="discussions">
                     <span ng-if="entry.redditLink">
                         <a ng-href="{{entry.redditLink}}" target="_blank">
                             <ng-pluralize count="entry.redditComments"
