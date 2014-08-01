@@ -46,9 +46,8 @@ app.config(['$routeProvider', function ($routeProvider) {
 
 
     $routeProvider.when('/logout', {
-        controller: 'LoginController',
+        controller: 'LogoutController',
         templateUrl: '/logout.html',
-        action: 'logout'
     });
 
     $routeProvider.otherwise({

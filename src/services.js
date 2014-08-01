@@ -34,26 +34,30 @@ appServices.factory('UserService', [function () {
     'use strict';
 
     return {
+        loggedIn: false,
+
+        getToken: function () {
+            if (sessionStorage.token) {
+                this.loggedIn = true;
+                return sessionStorage.token;
+            } else if (localStorage.token) {
+                this.loggedIn = true;
+                return localStorage.token;
+            }
+        },
+
         setToken: function (value, persist) {
+            this.loggedIn = true;
             if (persist === true) {
                 localStorage.token = value;
             } else {
                 sessionStorage.token = value;
             }
-        },
 
-        hasToken: function () {
-            return this.getToken() !== undefined;
-        },
-
-        getToken: function () {
-            if (sessionStorage.token) {
-                return sessionStorage.token;
-            }
-            return localStorage.token;
         },
 
         forgetToken: function () {
+            this.loggedIn = false;
             localStorage.removeItem('token');
             sessionStorage.removeItem('token');
         }

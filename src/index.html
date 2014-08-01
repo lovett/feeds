@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="App" class="no-js" lang="en" >
+<html ng-app="App" ng-controller="AppController" class="no-js" lang="en" >
     <head>
         <title>Headlines</title>
         <link href="/favicon.ico" rel="shortcut icon" />
@@ -16,7 +16,7 @@
                 </ul>
 
 
-                <section class="top-bar-section" ng-cloak>
+                <section ng-show="user.loggedIn" class="top-bar-section" ng-cloak>
                     <ul class="left" ng-show="listSize > 0">
                         <li class="has-form">
                             <form name="searchForm" ng-controller="ListController" ng-submit="search(query)" class="row collapse" novalidate>
@@ -37,6 +37,8 @@
                         <li ng-class="{active: listName == 'saved'}"><a href="/entries/saved/">Saved</a></li>
                         <li class="divider"></li>
                         <li ng-class="{active: listName == 'feeds'}"><a href="/feeds">Feeds</a></li>
+                        <li class="divider"></li>
+                        <li><a href="/logout">Log out</a></li>
                     </ul>
                     <ul class="right" ng-show="listName == 'unread' && listSize > 0">
                         <li class="has-form">

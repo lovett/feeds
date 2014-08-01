@@ -1,14 +1,46 @@
 var appControllers = angular.module('appControllers', []);
 
-appControllers.controller('LoginController', ['$scope', '$route', '$location', 'AuthService', 'UserService', function ($scope, $route, $location, AuthService, UserService) {
+appControllers.controller('AppController', ['$scope', '$location', 'UserService', function ($scope, $location, UserService) {
     'use strict';
 
-    var token, loginSuccess, loginFailure, logoutSuccess, logoutFailure;
+    $scope.user = UserService;
+
+    if (UserService.getToken()) {
+        $location.path('/login');
+    }
+
+}]);
+
+appControllers.controller('LogoutController', ['$scope', '$location', 'AuthService', function ($scope, $location, AuthService) {
+    'use strict';
+
+    $scope.visitLogin = function () {
+        $location.path('/login');
+    };
+
+    var token = $scope.user.getToken();
+
+    if (token) {
+        AuthService.logout({}, {
+            'action': 'logout',
+            'token': token
+        }, function (data) {
+            $scope.user.forgetToken();
+        });
+    }
+
+}]);
+
+
+appControllers.controller('LoginController', ['$scope', '$location', 'AuthService', function ($scope, $location, AuthService) {
+    'use strict';
+
+    var token, loginSuccess, loginFailure;
 
     $scope.remember = true;
 
     loginSuccess = function (data) {
-        UserService.setToken(data.token, $scope.remember);
+        $scope.user.setToken(data.token, $scope.remember);
         $location.path('/');
     };
 
@@ -31,25 +63,6 @@ appControllers.controller('LoginController', ['$scope', '$route', '$location', '
         }, loginSuccess, loginFailure);
 
     };
-
-    logoutSuccess = function (data) {
-        UserService.forgetToken();
-    };
-
-    logoutFailure = function () {
-    };
-
-    if ($route.current.action === 'logout') {
-        token = localStorage.token || sessionStorage.token;
-        if (!token) {
-            return;
-        }
-
-        AuthService.logout({}, {
-            'action': 'logout',
-            'token': token
-        }, logoutSuccess, logoutFailure);
-    }
 
 }]);
 
@@ -90,12 +103,8 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', function 
 
 }]);
 
-appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'UserService', 'List', function ($rootScope, $scope, $route, $location, UserService, List) {
+appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'List', function ($rootScope, $scope, $route, $location, List) {
     'use strict';
-
-    if (UserService.hasToken() === false) {
-        $location.path('/login');
-    }
 
     $rootScope.listName = 'feeds';
     $rootScope.showPager = false;
@@ -158,15 +167,11 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
     };
 }]);
 
-appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', '$location', 'UserService', 'List', function ($rootScope, $scope, $routeParams, $route, $location, UserService, List) {
+appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', '$location', 'List', function ($rootScope, $scope, $routeParams, $route, $location, List) {
     'use strict';
 
     if (!$routeParams.name) {
         return;
-    }
-
-    if (UserService.hasToken() === false) {
-        $location.path('/login');
     }
 
     var screenSize = $('#screen-size SPAN:visible').attr('class');
