@@ -57,7 +57,6 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
 
     logger.info({feedId: feedId, feedUrl: feedUrl, yqlUrl: options.url}, 'querying yql');
 
-
     world.request(options, function (err, response, body) {
         var map, processEvent;
 
@@ -90,10 +89,14 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             return true;
         });
 
-        // Presumably the feed is ordered newest to oldest
-        body.query.results.feed.entry.reverse().forEach(function (entry) {
-            self.emit(processEvent, feedId, entry, subscribers);
-        });
+        if (!body.query.results.feed.entry) {
+            logger.error({feedId: feedId, feedUrl: feedUrl}, 'yql found no entries');
+        } else {
+            // Presumably the feed is ordered newest to oldest
+            body.query.results.feed.entry.reverse().forEach(function (entry) {
+                self.emit(processEvent, feedId, entry, subscribers);
+            });
+        }
 
         // Request rescheduling
         world.redisClient.publish('feed:reschedule', feedId);
