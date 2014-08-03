@@ -9,14 +9,13 @@
 
             <div class="medium-3 columns">
                 <label ng-class="{'error': newFeedForm.name.$invalid}">
-                    <input type="text" ng-model="feed.name" id="name" name="name" value="" size="50" placeholder="Name" required="required" ng-minlength="3" ng-maxlength="50" autocomplete="off" />
+                    <input type="text" ng-model="feed.name" id="name" name="name" value="" size="50" placeholder="Name" required="required" ng-minlength="2" ng-maxlength="50" autocomplete="off" />
                 </label>
                 <div ng-show="newFeedForm.name.$invalid && newFeedForm.submitted">
                     <small class="error" ng-show="newFeedForm.name.$error.required">This field is required</small>
                     <small class="error" ng-show="newFeedForm.name.$error.minlength">That name is too short</small>
                     <small class="error" ng-show="newFeedForm.name.$error.maxlength">That name is too long</small>
                 </div>
-
             </div>
             <div class="medium-7 columns">
                 <label ng-class="{'error': newFeedForm.url.$invalid}">
@@ -31,6 +30,11 @@
                 <input type="submit" class="button postfix" value="Subscribe"/>
             </div>
         </div>
+        <div class="row" ng-show="addMessage">
+            <div class="small-12 columns error">
+                <p>{{ addMessage }}</p>
+            </div>
+        </div>
     </section>
 
     <section>
@@ -40,6 +44,9 @@
                 <h2>Active Subscriptions</h2>
             </div>
             <div class="large-12 columns">
+                <p class="error" ng-show="removeMessage">
+                    {{ removeMessage }} 
+                </p>
                 <p>
                     You are
                     <span ng-pluralize count="feeds.length" when="{'0': 'not subscribed to any feeds.', 'one': 'subscribed to 1 feed.', 'other': 'subscribed to {} feeds.'}"></span>

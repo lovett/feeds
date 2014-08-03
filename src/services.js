@@ -73,8 +73,8 @@ appServices.factory('HttpInterceptService', ['$q', '$location', 'UserService', f
         'responseError': function (response) {
             if (response.status === 401) {
                 $location.path('/login');
-                return $q.reject(response);
             }
+            return $q.reject(response);
         }
 
     }

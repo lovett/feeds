@@ -155,7 +155,10 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             }
         }, function (response) {
             populate(response);
+            $scope.addMessage = false;
             $scope.newFeedForm.submitted = false;
+        }, function (data) {
+            $scope.addMessage = data.data.message;
         });
     };
 
@@ -163,7 +166,12 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
         var feedId = this.feed.id;
         List.update({name: 'feeds'}, {
             unsubscribe: feedId
-        }, populate);
+        }, function (response) {
+            $scope.removeMessage = false;
+            populate(response);
+        }, function (data) {
+            $scope.removeMessage = data.data.message;
+        });
     };
 }]);
 

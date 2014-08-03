@@ -223,9 +223,13 @@ var feedUnsubscribe = function (request, response, next) {
     multi.exec(function (err) {
         if (err) {
             logger.error({redis: err}, 'redis error');
+            response.send(500, {
+                message: err
+            });
+            next(false);
+        } else {
+            next();
         }
-        next.ifError(err);
-        next();
     });
 };
 
@@ -294,7 +298,9 @@ var feedSubscribe = function (request, response, next) {
     multi.exec(function (err) {
         if (err) {
             logger.error({redis: err}, 'redis error');
-            response.send(500);
+            response.send(500, {
+                message: err
+            });
             next(false);
         } else {
             next();
