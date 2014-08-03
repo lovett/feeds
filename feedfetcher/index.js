@@ -2,6 +2,33 @@ var world = require('../world');
 var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
 
+
+dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
+    world.request({
+        method: 'HEAD',
+        uri: feedUrl,
+        followRedirect: false
+    }, function (err, response) {
+        if (err) {
+            logger.error({err: err}, 'feed url error from head request');
+            return;
+        }
+
+        if (!response.headers.location) {
+            dispatcher.emit('fetch', feedId, feedUrl, subscribers);
+        } else {
+            world.redisClient.hset(world.keys.feedKey(feedId), 'url', response.headers.location, function (err) {
+                if (err) {
+                    world.logger.error({err: err}, 'unable to update feed url');
+                    return;
+                }
+                dispatcher.emit('fetch', feedId, response.headers.location, subscribers);
+            });
+        }
+    });
+});
+
+
 /**
  * Fetch a feed via YQL feednormalizer
  * --------------------------------------------------------------------
@@ -376,7 +403,7 @@ var main = function () {
 
                         world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, subscribers) {
                             if (subscribers.length > 0) {
-                                dispatcher.emit('fetch', feedId, url, subscribers);
+                                dispatcher.emit('prefetch', feedId, url, subscribers);
                             }
                         });
                     }
