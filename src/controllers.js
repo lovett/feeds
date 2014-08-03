@@ -157,6 +157,8 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             populate(response);
             $scope.addMessage = false;
             $scope.newFeedForm.submitted = false;
+            $scope.feed = {};
+            $scope.newFeedForm.$setPristine();
         }, function (data) {
             $scope.addMessage = data.data.message;
         });
