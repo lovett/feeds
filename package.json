@@ -30,7 +30,7 @@
     "load-grunt-tasks": "0.6.0"
   },
   "dependencies": {
-    "bunyan": "0.23.1",
+    "bunyan": "1.0.0",
     "elasticsearch": "2.4.0",
     "grunt-contrib-cssmin": "0.10.0",
     "htmlparser": "1.7.7",
@@ -40,8 +40,8 @@
     "passport": "0.2.0",
     "passport-local": "1.0.0",
     "redis": "0.11.0",
-    "request": "2.39.0",
-    "restify": "2.8.1",
-    "string": "1.9.0"
+    "request": "2.40.0",
+    "restify": "2.8.2",
+    "string": "1.9.1"
   }
 }
