@@ -234,6 +234,49 @@ var feedUnsubscribe = function (request, response, next) {
 };
 
 /**
+ * Update an existing feed
+ * --------------------------------------------------------------------
+ *
+ */
+var feedUpdate = function (request, response, next) {
+    var multi = world.redisClient.multi();
+
+    if (!request.params.hasOwnProperty('id')) {
+        response.send(400, {
+            message: 'feed id not specified'
+        });
+        return next(false);
+    }
+
+    var key = world.keys.feedKey(request.params.id, request.user.id);
+    world.redisClient.hgetall(key, function (err, feed) {
+        if (err) {
+            response.send(500);
+            return next(false);
+        }
+
+        if (!feed) {
+            response.send(400, {
+                message: 'subscription not found'
+            });
+            return next(false);
+        }
+
+        if (request.body.hasOwnProperty('reschedule')) {
+            var when = parseInt(request.body.reschedule, 10);
+
+            world.redisClient.publish('feed:reschedule', request.params.id + '::' + when, function (err, result) {
+                response.send({
+                    id: request.params.id,
+                    nextCheck: when
+                });
+                next(false);
+            });
+        };
+    });
+};
+
+/**
  * Subscribe to a feed
  * --------------------------------------------------------------------
  *
@@ -556,6 +599,7 @@ var requireAuth = function (request, response, next) {
  */
 server.get('/list/feeds', requireAuth, feedList);
 server.post('/list/feeds', requireAuth, feedSubscribe, feedUnsubscribe, feedList);
+server.post('/feed/:id', requireAuth, feedUpdate);
 
 server.get('/list/:name', requireAuth, entryList);
 

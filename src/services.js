@@ -12,6 +12,11 @@ appServices.factory('List', ['$resource', function ($resource) {
     });
 }]);
 
+appServices.factory('Feed', ['$resource', function ($resource) {
+    'use strict';
+    return $resource('/feed/:id', {id: '@id'});
+}]);
+
 
 appServices.factory('SignupService', ['$resource', function ($resource) {
     'use strict';

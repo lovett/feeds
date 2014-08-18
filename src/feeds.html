@@ -45,7 +45,7 @@
             </div>
             <div class="large-12 columns">
                 <p class="error" ng-show="removeMessage">
-                    {{ removeMessage }} 
+                    {{ removeMessage }}
                 </p>
                 <p>
                     You are
@@ -66,7 +66,7 @@
                             <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.name }}</a></td>
                             <td>
                                 {{ feed.subscribed | reldate | date:'MMMM d' }}
-                                <a class="unsubscribe" ng-click="remove()" href="">Unsubscribe</a>
+                                <a class="subaction" ng-click="remove()" href="">Unsubscribe</a>
                             </td>
                             <td>
                                 {{ feed.updated | date:'h:mm a' }}
@@ -75,6 +75,7 @@
                             <td>
                                 {{ feed.nextCheck | date:'h:mm a' }}
                                 {{ feed.nextCheck | reldate | date:'MMMM d' }}
+                                <a class="subaction" ng-click="reschedule()" href="">Check now</a>
                             </td>
                         </tr>
                     </tbody>

@@ -387,15 +387,10 @@ var main = function () {
 
                 // Sanity check: url should exist
                 if (!url) {
-                    logger.warn({feedId: feedId}, 'url missing');
-                    return;
-                }
-
-                // Sanity check: nextCheck and prevCheck should be at
-                // least one interval apart
-                if (nextCheck - prevCheck < world.feedCheckInterval) {
-                    logger.warn({feedId: feedId, nextCheck: nextCheck, prevCheck: prevCheck}, 'refusing fetch - too soon');
-                    return;
+                    world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {
+                        logger.warn({feedId: feedId}, 'url missing');
+                        return;
+                    });
                 }
 
                 world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {

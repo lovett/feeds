@@ -11,7 +11,11 @@ var logger = world.logger.child({source: 'scheduler'});
  * The interval is the minimum amount of time that should pass between
  * requests. It is the same for all feeds.
  */
-var scheduleFeed = function (feedId) {
+var scheduleFeed = function (params) {
+    console.log(params);
+    var params = params.split('::');
+    var feedId = params.shift();
+    var checkTime = params.shift();
     var now = new Date().getTime();
     var multi = world.redisClient.multi();
     var interval = world.feedCheckInterval;
@@ -44,27 +48,31 @@ var scheduleFeed = function (feedId) {
             var details = {};
             var verdict;
 
-            if (nextCheck === 0) {
-                // The feed has never been checked
-                verdict = 'new feed';
-                details.nextCheck = now;
-                details.prevCheck = 0;
-            } else if (nextCheck > now) {
-                verdict = 'left as-is';
-                details.nextCheck = nextCheck;
+            if (checkTime) {
+                details.nextCheck = checkTime;
             } else {
-                // The feed was previously checked
-                verdict = 'rescheduled';
-                details.prevCheck = nextCheck;
-                details.nextCheck = now + interval;
+                if (nextCheck === 0) {
+                    // The feed has never been checked
+                    verdict = 'new feed';
+                    details.nextCheck = now;
+                    details.prevCheck = 0;
+                } else if (nextCheck > now) {
+                    verdict = 'left as-is';
+                    details.nextCheck = nextCheck;
+                } else {
+                    // The feed was previously checked
+                    verdict = 'rescheduled';
+                    details.prevCheck = nextCheck;
+                    details.nextCheck = now + interval;
 
-                // Add some additional time to make simultaneous fetching less likely
-                details.nextCheck += Math.floor(Math.random() * interval);
+                    // Add some additional time to make simultaneous fetching less likely
+                    details.nextCheck += Math.floor(Math.random() * interval);
+                }
+
+                // round to the nearest whole minute
+                details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
+
             }
-
-            // round to the nearest whole minute
-            details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
-
 
             multi.hmset(key, details);
             multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);

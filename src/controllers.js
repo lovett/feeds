@@ -103,7 +103,7 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', function 
 
 }]);
 
-appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'List', function ($rootScope, $scope, $route, $location, List) {
+appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'List', 'Feed', function ($rootScope, $scope, $route, $location, List, Feed) {
     'use strict';
 
     $rootScope.listName = 'feeds';
@@ -175,6 +175,21 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             $scope.removeMessage = data.data.message;
         });
     };
+
+    $scope.reschedule = function () {
+        var feed = this.feed;
+
+        Feed.save({
+            'id': feed.id
+        }, {
+            reschedule: Date.now()
+        }, function (response) {
+            feed.nextCheck = response.nextCheck;
+            console.log(response);
+        }, function (err) {
+            console.log(err);
+        });
+    }
 }]);
 
 appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', '$location', 'List', function ($rootScope, $scope, $routeParams, $route, $location, List) {
