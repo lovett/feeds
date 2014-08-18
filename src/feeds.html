@@ -65,11 +65,17 @@
                         <tr ng-repeat="feed in feeds">
                             <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.name }}</a></td>
                             <td>
-                                <span ng-bind="feed.subscribed | amCalendar"></span>
+                                {{ feed.subscribed | reldate | date:'MMMM d' }}
                                 <a class="unsubscribe" ng-click="remove()" href="">Unsubscribe</a>
                             </td>
-                            <td><span ng-bind="(feed.updated | amCalendar) || 'never'"></span></td>
-                            <td><span ng-bind="(feed.nextCheck | amCalendar) || 'soon'"></span></td>
+                            <td>
+                                {{ feed.updated | date:'h:mm a' }}
+                                {{ feed.updated | reldate | date:'MMMM d' }}
+                            </td>
+                            <td>
+                                {{ feed.nextCheck | date:'h:mm a' }}
+                                {{ feed.nextCheck | reldate | date:'MMMM d' }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
