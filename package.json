@@ -39,7 +39,7 @@
     "moment": "2.8.1",
     "passport": "0.2.0",
     "passport-local": "1.0.0",
-    "redis": "0.11.0",
+    "redis": "0.12.1",
     "request": "2.40.0",
     "restify": "2.8.2",
     "string": "1.9.1"
