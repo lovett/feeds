@@ -103,7 +103,7 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', function 
 
 }]);
 
-appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'List', 'Feed', function ($rootScope, $scope, $route, $location, List, Feed) {
+appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'List', 'Feed', 'Reader', function ($rootScope, $scope, $route, $location, List, Feed, Reader) {
     'use strict';
 
     $rootScope.listName = 'feeds';
@@ -199,6 +199,33 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             saveAs(blob, "feeds.xml");
         }, function (err) {
             console.log(err);
+        });
+    }
+
+    $scope.import = function (fileList) {
+        angular.element('FORM').reset();
+        Reader.readXML(fileList).then(function (result) {
+            var feeds = angular.element(result).find('outline');
+            var subscriptions = [];
+            angular.forEach(feeds, function (feed) {
+                feed = angular.element(feed);
+                subscriptions.push({
+                    name: feed.attr('title'),
+                    url: feed.attr('xmlUrl')
+                });
+            });
+
+            List.update({name: 'feeds'}, {
+                subscribe: subscriptions
+            }, function (response) {
+                populate(response);
+                $scope.addMessage = false;
+                $scope.newFeedForm.submitted = false;
+                $scope.feed = {};
+                $scope.newFeedForm.$setPristine();
+            }, function (data) {
+                $scope.addMessage = data.data.message;
+            });
         });
     }
 }]);

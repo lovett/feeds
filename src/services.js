@@ -97,3 +97,28 @@ appServices.factory('HttpInterceptService', ['$q', '$location', 'UserService', f
     }
     return interceptor;
 }]);
+
+appServices.factory('Reader', ['$window', '$q', function ($window, $q) {
+    return {
+        readXML: function (fileList) {
+            var deferred = $q.defer();
+
+            var reader = new $window.FileReader();
+
+            angular.forEach(fileList, function (file) {
+                if (file.type !== 'text/xml') {
+                    return;
+                }
+
+                reader.onloadend = function () {
+                    var parser = new $window.DOMParser();
+                    var dom = parser.parseFromString(reader.result, file.type);
+                    deferred.resolve(dom);
+                }
+                reader.readAsText(file);
+            });
+
+            return deferred.promise;
+        }
+    }
+}]);

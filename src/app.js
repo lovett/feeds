@@ -93,7 +93,27 @@ app.filter('reldate', function () {
     };
 });
 
+app.directive('fileUpload', function () {
+    'use strict';
+    
+    return {
+        restrict: 'A',
+        scope: { fileUpload: '&' },
+        template: '<input type="file" />',
+        replace: true,
+        link: function (scope, element, attributes) {
+            element.bind('change', function () {
+                var fileList = element[0].files;
+                if (fileList) {
+                    scope.fileUpload({files: fileList});
+                }
+            });
+        }
+    }
+});
+
 app.run(function () {
     'use strict';
     $(document).foundation();
 });
+
