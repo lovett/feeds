@@ -1,17 +1,53 @@
 var world = require('../world');
 var crypto = require('crypto');
 var restify = require('restify');
-var server = restify.createServer();
 var elasticsearch = require('elasticsearch');
 var logger = world.logger.child({source: 'webserver'});
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var util = require('util');
+var builder = require('xmlbuilder');
+
+var server = restify.createServer({
+    formatters: {
+        'text/xml; q=0.9': function formatFoo(request, response, body) {
+            if (body instanceof Error) {
+                return body.stack;
+            }
+
+            if (Buffer.isBuffer(body)) {
+                // ??
+                return body.stack;
+            }
+
+            var xml = builder.create('opml').att({ 'version': '2.0'});
+            var headNode = xml.ele('head');
+            var bodyNode= xml.ele('body');
+
+            if (body.hasOwnProperty('feeds')) {
+                headNode.ele('title', 'Subscribed Feeds');
+                headNode.ele('dateCreated', new Date());
+                Object.keys(body.feeds).forEach(function (id) {
+                    var feed = body.feeds[id];
+                    bodyNode.ele('outline', {
+                        title: feed.name,
+                        xmlUrl: feed.url
+                    });
+                });
+
+            }
+            return xml.end({ pretty: true});
+        }
+    }
+});
+
+server.acceptable.push('text/xml');
 
 /**
  * Standard middleware
  * --------------------------------------------------------------------
  */
+server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser({ mapParams: false }));
 server.use(restify.gzipResponse());
 server.use(restify.bodyParser({ mapParams: false }));
@@ -239,8 +275,6 @@ var feedUnsubscribe = function (request, response, next) {
  *
  */
 var feedUpdate = function (request, response, next) {
-    var multi = world.redisClient.multi();
-
     if (!request.params.hasOwnProperty('id')) {
         response.send(400, {
             message: 'feed id not specified'
@@ -265,14 +299,18 @@ var feedUpdate = function (request, response, next) {
         if (request.body.hasOwnProperty('reschedule')) {
             var when = parseInt(request.body.reschedule, 10);
 
-            world.redisClient.publish('feed:reschedule', request.params.id + '::' + when, function (err, result) {
+            world.redisClient.publish('feed:reschedule', request.params.id + '::' + when, function (err) {
+                if (err) {
+                    response.send(500);
+                    return next(false);
+                }
                 response.send({
                     id: request.params.id,
                     nextCheck: when
                 });
-                next(false);
+                next();
             });
-        };
+        }
     });
 };
 
@@ -543,7 +581,7 @@ var createUser = function (req, res, next) {
         world.userHash(password, salt, function (err, hash) {
             if (err) {
                 logger.error({err: err}, 'user creation error while generating hash');
-                response.send(500);
+                res.send(500);
                 next(false);
             }
 
@@ -552,7 +590,7 @@ var createUser = function (req, res, next) {
             world.redisClient.incr(world.keys.userIdCounter, function (err, id) {
                 if (err) {
                     logger.error({err: err}, 'failed to incremenet user counter');
-                    response(500);
+                    res.send(500);
                     next(false);
                 }
 
@@ -586,7 +624,7 @@ var requireAuth = function (request, response, next) {
 
         request.user = {
             id: parseInt(result, 10)
-        }
+        };
 
         next();
     });
@@ -613,7 +651,7 @@ server.post('/authenticate', function (request, response, next) {
         return next();
     }
 
-    passport.authenticate('local', { session: false }, function (err, user, info) {
+    passport.authenticate('local', { session: false }, function (err, user) {
         if (err) {
             response.send(500);
             return next(false);
@@ -627,7 +665,11 @@ server.post('/authenticate', function (request, response, next) {
         crypto.randomBytes(64, function(err, buf) {
             var token = buf.toString('hex');
             var key = world.keys.userTokenKey(token);
-            world.redisClient.set(key, user.id, function (err, result) {
+            world.redisClient.set(key, user.id, function (err) {
+                if (err) {
+                    response.send(500);
+                    return next(false);
+                }
                 world.redisClient.expire(key, 86400);
                 response.send({token: token});
                 next();
@@ -640,7 +682,7 @@ server.post('/authenticate', function (request, response, next) {
     }
 
     var key = world.keys.userTokenKey(request.body.token);
-    world.redisClient.del(key, function (err, result) {
+    world.redisClient.del(key, function (err) {
         if (err) {
             return next(err);
         }

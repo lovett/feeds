@@ -12,8 +12,7 @@ var logger = world.logger.child({source: 'scheduler'});
  * requests. It is the same for all feeds.
  */
 var scheduleFeed = function (params) {
-    console.log(params);
-    var params = params.split('::');
+    params = params.split('::');
     var feedId = params.shift();
     var checkTime = params.shift();
     var now = new Date().getTime();

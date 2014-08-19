@@ -3,6 +3,18 @@ var appServices = angular.module('appServices', ['ngResource']);
 appServices.factory('List', ['$resource', function ($resource) {
     'use strict';
     return $resource('/list/:name/:segment', {count: '@count', page: '@page', terms: '@terms'}, {
+        export: {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/xml'
+            },
+            isArray: false,
+            transformResponse: function (data, headers) {
+                return {
+                    xml: data
+                }
+            }
+        },
         get:  {
             method: 'GET'
         },

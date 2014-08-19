@@ -377,8 +377,6 @@ var main = function () {
 
             world.redisClient.hmget([world.keys.feedKey(feedId), 'url', 'nextCheck', 'prevCheck'], function (err, result) {
                 var url = result.shift();
-                var nextCheck = parseInt(result.shift(), 10) || 0;
-                var prevCheck = parseInt(result.shift(), 10) || 0;
 
                 if (err) {
                     logger.error(err);
@@ -387,7 +385,7 @@ var main = function () {
 
                 // Sanity check: url should exist
                 if (!url) {
-                    world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {
+                    world.redisClient.zrem(world.keys.feedQueueKey, feedId, function () {
                         logger.warn({feedId: feedId}, 'url missing');
                         return;
                     });

@@ -190,6 +190,17 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             console.log(err);
         });
     }
+
+    $scope.export = function () {
+        List.export({name: 'feeds'}, {}, function (response) {
+            // Safari 7 will not trigger a file download. See
+            // https://github.com/eligrey/FileSaver.js/issues/12#issuecomment-47247096
+            var blob = new Blob([response.xml], {type: "text/xml;charset=utf-8"});
+            saveAs(blob, "feeds.xml");
+        }, function (err) {
+            console.log(err);
+        });
+    }
 }]);
 
 appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', '$location', 'List', function ($rootScope, $scope, $routeParams, $route, $location, List) {

@@ -42,6 +42,7 @@
     "redis": "0.12.1",
     "request": "2.40.0",
     "restify": "2.8.2",
-    "string": "1.9.1"
+    "string": "1.9.1",
+    "xmlbuilder": "^2.4.3"
   }
 }
