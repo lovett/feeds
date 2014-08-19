@@ -10,7 +10,7 @@
             </header>
             <div class="body">
                 <p class="domain">From <a href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></p>
-                <p>Added {{ entry.added | amCalendar}}</p>
+                <p>{{ entry.added | reldate | date:'MMMM d' }} at {{ entry.added | date:'h:mm a' }}</p>
 
                 <p class="discussions">
                     <span ng-if="entry.redditLink">
