@@ -56,8 +56,12 @@ app.config(['$httpProvider', function ($httpProvider) {
 app.filter('reldate', function () {
     'use strict';
     return function (when) {
-        var d = when;
-        if (!(d instanceof Date)) {
+        var d;
+
+        if (when instanceof Date) {
+            // this avoids clobbering the original value
+            d = new Date(when.getTime());
+        } else {
             d = new Date(parseInt(d, 10));
         }
 
