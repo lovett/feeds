@@ -202,8 +202,9 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
         });
     }
 
+    $scope.importPhase = 'start';
+    
     $scope.import = function (fileList) {
-        angular.element('FORM').reset();
         Reader.readXML(fileList).then(function (result) {
             var feeds = angular.element(result).find('outline');
             var subscriptions = [];
@@ -219,10 +220,8 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
                 subscribe: subscriptions
             }, function (response) {
                 populate(response);
-                $scope.addMessage = false;
-                $scope.newFeedForm.submitted = false;
-                $scope.feed = {};
-                $scope.newFeedForm.$setPristine();
+                $scope.importMessage = 'Imported ' + response.feeds.length  + ((response.feeds.length == 1)? ' feed':' feeds') + '.';
+                $scope.importPhase = 'result';
             }, function (data) {
                 $scope.addMessage = data.data.message;
             });

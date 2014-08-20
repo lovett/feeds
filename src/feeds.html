@@ -37,14 +37,21 @@
             </div>
         </form>
 
-        <form name="importForm">
-            <div class="row">
-                <div class="small-4 columns">
-                    <label>Import a file</label>
-                    <span file-upload="import(files)"></span>
+        
+        <div class="row">
+            <div class="small-4 columns">
+                <a ng-show="importPhase == 'start'" ng-click="importPhase = 'form'" class="subaction">Import OPML</a>
+                <form name="importForm" ng-show="importPhase == 'form'">
+                    <div file-upload="import(files)"></div>
+                    <a ng-click="importPhase = 'start'" class="subaction">Cancel import</a>
+                </form>
+
+                <div ng-show="importPhase == 'result'">
+                    {{ importMessage }}
+                    <a ng-click="importPhase = 'start'" class="subaction">Dismiss</a>
                 </div>
             </div>
-        </form>
+        </div>
     </section>
 
     <section>
@@ -61,7 +68,7 @@
                     You are
                     <span ng-pluralize count="feeds.length" when="{'0': 'not subscribed to any feeds.', 'one': 'subscribed to 1 feed.', 'other': 'subscribed to {} feeds.'}"></span>
 
-                    <a class="subaction" ng-show="feeds.length > 0" ng-click="export('opml')">Export Feeds</a>
+                    <a class="subaction" ng-show="feeds.length > 0" ng-click="export('opml')">Export as OPML</a>
                 </p>
 
                 <table ng-show="feeds.length > 0">

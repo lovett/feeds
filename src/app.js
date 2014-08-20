@@ -99,6 +99,7 @@ app.directive('fileUpload', function () {
                 if (fileList) {
                     scope.fileUpload({files: fileList});
                 }
+                angular.element(element[0]).val(null);
             });
         }
     }
