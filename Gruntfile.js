@@ -250,6 +250,6 @@ module.exports = function(grunt) {
 
     // Default task(s)
     grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'cssmin', 'copy', 'concat', 'string-replace:dev', 'clean:postBuild']);
-    grunt.registerTask('default', ['watch']);
+    grunt.registerTask('default', ['githooks', 'build', 'watch']);
 
 };
