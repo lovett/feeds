@@ -73,11 +73,11 @@ app.filter('reldate', function () {
 
         var delta = (now - d) / 86400 / 1000;
 
-        if (delta == -1) {
+        if (delta === -1) {
             return 'tomorrow';
-        } else if (delta == 0) {
+        } else if (delta === 0) {
             return 'today';
-        } else if (delta == 1) {
+        } else if (delta === 1) {
             return 'yesterday';
         } else {
             return when;
@@ -93,7 +93,7 @@ app.directive('fileUpload', function () {
         scope: { fileUpload: '&' },
         template: '<input type="file" />',
         replace: true,
-        link: function (scope, element, attributes) {
+        link: function (scope, element) {
             element.bind('change', function () {
                 var fileList = element[0].files;
                 if (fileList) {
@@ -102,7 +102,7 @@ app.directive('fileUpload', function () {
                 angular.element(element[0]).val(null);
             });
         }
-    }
+    };
 });
 
 app.run(function () {

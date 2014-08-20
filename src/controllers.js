@@ -24,7 +24,7 @@ appControllers.controller('LogoutController', ['$scope', '$location', 'AuthServi
         AuthService.logout({}, {
             'action': 'logout',
             'token': token
-        }, function (data) {
+        }, function () {
             $scope.user.forgetToken();
         });
     }
@@ -35,7 +35,7 @@ appControllers.controller('LogoutController', ['$scope', '$location', 'AuthServi
 appControllers.controller('LoginController', ['$scope', '$location', 'AuthService', function ($scope, $location, AuthService) {
     'use strict';
 
-    var token, loginSuccess, loginFailure;
+    var loginSuccess, loginFailure;
 
     $scope.remember = true;
 
@@ -69,7 +69,7 @@ appControllers.controller('LoginController', ['$scope', '$location', 'AuthServic
 appControllers.controller('SignupController', ['$scope', '$location', 'SignupService', function ($scope, $location, SignupService) {
     'use strict';
 
-    var signupSuccess, signupFailure
+    var signupSuccess, signupFailure;
 
     signupSuccess = function () {
         $location.path('/');
@@ -91,7 +91,7 @@ appControllers.controller('SignupController', ['$scope', '$location', 'SignupSer
             'username': $scope.signup.username,
             'password': $scope.signup.password
         }, signupSuccess, signupFailure);
-    }
+    };
 }]);
 
 
@@ -185,22 +185,17 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             reschedule: Date.now()
         }, function (response) {
             feed.nextCheck = response.nextCheck;
-            console.log(response);
-        }, function (err) {
-            console.log(err);
         });
-    }
+    };
 
     $scope.export = function () {
         List.export({name: 'feeds'}, {}, function (response) {
             // Safari 7 will not trigger a file download. See
             // https://github.com/eligrey/FileSaver.js/issues/12#issuecomment-47247096
-            var blob = new Blob([response.xml], {type: "text/xml;charset=utf-8"});
-            saveAs(blob, "feeds.xml");
-        }, function (err) {
-            console.log(err);
+            var blob = new Blob([response.xml], {type: 'text/xml;charset=utf-8'});
+            saveAs(blob, 'feeds.xml');
         });
-    }
+    };
 
     $scope.importPhase = 'start';
     
@@ -220,13 +215,13 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
                 subscribe: subscriptions
             }, function (response) {
                 populate(response);
-                $scope.importMessage = 'Imported ' + response.feeds.length  + ((response.feeds.length == 1)? ' feed':' feeds') + '.';
+                $scope.importMessage = 'Imported ' + response.feeds.length  + ((response.feeds.length === 1)? ' feed':' feeds') + '.';
                 $scope.importPhase = 'result';
             }, function (data) {
                 $scope.addMessage = data.data.message;
             });
         });
-    }
+    };
 }]);
 
 appControllers.controller('ListController', ['$rootScope', '$scope', '$routeParams', '$route', '$location', 'List', function ($rootScope, $scope, $routeParams, $route, $location, List) {
@@ -292,7 +287,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
         } else {
             $rootScope.showPager = ($rootScope.pageCount > 1);
 
-            if ($rootScope.pageCount == 0) {
+            if ($rootScope.pageCount === 0) {
                 $rootScope.prevLink = null;
             } else {
                 $rootScope.prevLink = '/entries/' + $routeParams.name + '/' + ($rootScope.page - 1);

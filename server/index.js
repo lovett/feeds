@@ -254,7 +254,7 @@ var feedUnsubscribe = function (request, response, next) {
         multi.srem(world.keys.feedListKey(request.user.id), feedId);
 
         // Remove the user from the feed's user list
-        key = world.keys.feedSubscribersKey(feedId);
+        var key = world.keys.feedSubscribersKey(feedId);
         multi.srem(key, request.user.id);
 
         // Update the total subscriptions to this feed

@@ -1,7 +1,7 @@
 {
     "globals": {
         "angular": false,
-        "moment": false,
+        "saveAs": false,
         "$": false,
         "_": false
     },
@@ -28,8 +28,8 @@
     "trailing": true,
     "maxparams": 10,
     "maxdepth": 4,
-    "maxstatements": 15,
-    "maxcomplexity": 6,
+    "maxstatements": 30,
+    "maxcomplexity": 10,
     "asi": false,
     "boss": false,
     "debug": false,

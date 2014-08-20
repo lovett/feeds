@@ -9,10 +9,10 @@ appServices.factory('List', ['$resource', function ($resource) {
                 'Accept': 'text/xml'
             },
             isArray: false,
-            transformResponse: function (data, headers) {
+            transformResponse: function (data) {
                 return {
                     xml: data
-                }
+                };
             }
         },
         get:  {
@@ -78,10 +78,11 @@ appServices.factory('UserService', [function () {
             localStorage.removeItem('token');
             sessionStorage.removeItem('token');
         }
-    }
+    };
 }]);
 
 appServices.factory('HttpInterceptService', ['$q', '$location', 'UserService', function ($q, $location, UserService) {
+    'use strict';
     var interceptor = {
         'request': function (config) {
             config.headers['X-Auth'] = UserService.getToken();
@@ -94,11 +95,12 @@ appServices.factory('HttpInterceptService', ['$q', '$location', 'UserService', f
             return $q.reject(response);
         }
 
-    }
+    };
     return interceptor;
 }]);
 
 appServices.factory('Reader', ['$window', '$q', function ($window, $q) {
+    'use strict';
     return {
         readXML: function (fileList) {
             var deferred = $q.defer();
@@ -114,11 +116,11 @@ appServices.factory('Reader', ['$window', '$q', function ($window, $q) {
                     var parser = new $window.DOMParser();
                     var dom = parser.parseFromString(reader.result, file.type);
                     deferred.resolve(dom);
-                }
+                };
                 reader.readAsText(file);
             });
 
             return deferred.promise;
         }
-    }
+    };
 }]);

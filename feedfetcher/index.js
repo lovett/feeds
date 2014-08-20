@@ -1,3 +1,4 @@
+/*jshint camelcase:false */
 var world = require('../world');
 var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
