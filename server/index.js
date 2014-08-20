@@ -250,10 +250,18 @@ var feedUnsubscribe = function (request, response, next) {
     }
 
     request.body.unsubscribe.forEach(function (feedId) {
+        // Remove the feed from the user's subscription list
         multi.srem(world.keys.feedListKey(request.user.id), feedId);
-        multi.srem(world.keys.feedSubscribersKey(feedId), request.user.id);
-        multi.zincrby(world.keys.feedSubscriptionsKey, -1, feedId);
-        multi.publish('feed:reschedule', feedId);
+
+        // Remove the user from the feed's user list
+        key = world.keys.feedSubscribersKey(feedId);
+        multi.srem(key, request.user.id);
+
+        // Update the total subscriptions to this feed
+        multi.scard(key, function (err, count) {
+            var key = world.keys.feedSubscriptionsKey;
+            world.redisClient.zadd(key, count, feedId);
+        });
     });
 
     multi.exec(function (err) {
@@ -351,7 +359,7 @@ var feedSubscribe = function (request, response, next) {
         key = world.keys.feedListKey(request.user.id);
         multi.sadd(key, feedId);
 
-        // Account for the subscription in the reverse direction
+        // Associate the feed with the user
         key = world.keys.feedSubscribersKey(feedId);
         multi.sadd(key, request.user.id);
 
@@ -367,11 +375,13 @@ var feedSubscribe = function (request, response, next) {
         multi.hsetnx(key, 'url', feed.url);
 
         // Update the total subscriptions to this feed
-        key = world.keys.feedSubscriptionsKey;
+        key = world.keys.feedSubscribersKey(feedId);
+        multi.scard(key, function (err, count) {
+            var key = world.keys.feedSubscriptionsKey;
+            world.redisClient.zadd(key, count, feedId);
+            world.redisClient.publish('feed:reschedule', feedId);
+        });
 
-        multi.zincrby(key, 1, feedId);
-
-        multi.publish('feed:reschedule', feedId);
         request.log.trace({feed: feedId}, 'reschedule');
 
     });
