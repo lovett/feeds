@@ -25,7 +25,7 @@
     "grunt-githooks": "0.3.1",
     "grunt-http": "1.4.0",
     "grunt-nodemon": "0.3.0",
-    "grunt-shell": "0.7.0",
+    "grunt-shell": "1.0.1",
     "grunt-string-replace": "0.2.7",
     "load-grunt-tasks": "0.6.0"
   },
@@ -36,13 +36,12 @@
     "htmlparser": "1.7.7",
     "htmlparser2": "3.7.3",
     "mkdirp": "0.5.0",
-    "moment": "2.8.1",
     "passport": "0.2.0",
     "passport-local": "1.0.0",
     "redis": "0.12.1",
     "request": "2.40.0",
     "restify": "2.8.2",
     "string": "1.9.1",
-    "xmlbuilder": "^2.4.3"
+    "xmlbuilder": "2.4.3"
   }
 }
