@@ -19,7 +19,10 @@ var scheduleFeed = function (params) {
     var multi = world.redisClient.multi();
     var interval = world.feedCheckInterval;
 
-    world.redisClient.zscore(world.keys.feedSubscriptionsKey, feedId, function (err, score) {
+
+    // The number of subscribers is based on the length of the feed's subscribers key,
+    // not the score within the feed subscriptions set.
+    world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, result) {
         var key = world.keys.feedKey(feedId);
 
         if (err) {
@@ -28,9 +31,17 @@ var scheduleFeed = function (params) {
         }
 
         // The feed has no subscribers
-        if (parseInt(score, 10) === 0) {
+        if (result.length === 0) {
+
+            // Not having a nextCheck implies the feed is inactive
             multi.hdel(key, 'nextCheck');
+
+            // Take the feed out of the schedule
             multi.zrem(world.keys.feedQueueKey, feedId);
+
+            // Prevent the feed from being rescheduled
+            multi.zadd(world.keys.feedSubscriptionsKey, 0, feedId);
+
             multi.exec(function (err) {
                 if (err) {
                     logger.error(err);
@@ -48,6 +59,7 @@ var scheduleFeed = function (params) {
             var verdict;
 
             if (checkTime) {
+                verdict = 'explicitly scheduled';
                 details.nextCheck = checkTime;
             } else {
                 if (nextCheck === 0) {
@@ -84,7 +96,15 @@ var scheduleFeed = function (params) {
                 return;
             });
         });
+
     });
+
+    /*
+    world.redisClient.zscore(world.keys.feedSubscriptionsKey, feedId, function (err, score) {
+
+
+    });
+    */
 };
 
 world.redisPubsubClient.on('subscribe', function (channel, count) {
@@ -102,7 +122,7 @@ logger.info('startup');
 
 
 /**
- * Reschedule forgotten feeds
+ * Housekeeping
  * --------------------------------------------------------------------
  *
  * Ideally, this script is always running and never misses a
@@ -113,6 +133,7 @@ logger.info('startup');
  * It would be tempting to only consider feeds whose nextCheck is in
  * the past, but there is no single key for that.
  */
+
 world.redisClient.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'], function (err, result) {
     if (err) {
         logger.error(err);
