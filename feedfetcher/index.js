@@ -10,8 +10,11 @@ dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
         uri: feedUrl,
         followRedirect: false
     }, function (err, response) {
+        var recheckAt;
         if (err) {
+            recheckAt = Date.now() + (1000 * 60 * 5); // 5 minutes from now
             logger.error({err: err}, 'feed url error from head request');
+            world.redisClient.publish('feed:reschedule', feedId + '::' + recheckAt);
             return;
         }
 
