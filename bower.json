@@ -16,15 +16,12 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "1.2.22",
-    "angular-route": "1.2.22",
-    "angular-resource": "1.2.22",
-    "foundation": "5.3.3",
+    "angular": "1.2.23",
+    "angular-route": "1.2.23",
+    "angular-resource": "1.2.23",
+    "foundation": "5.4.2",
     "jquery": "2.1.1",
     "lodash": "2.4.1",
     "FileSaver": "*"
-  },
-  "resolutions": {
-    "angular": "1.2.22"
   }
 }
