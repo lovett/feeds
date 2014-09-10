@@ -59,9 +59,15 @@ module.exports = {
     userHash: function (password, salt, callback) {
         crypto.pbkdf2(password, salt, 10000, 512, callback);
     },
+    normalizeUrl: function (url) {
+        var norm = url.toLowerCase();
+        norm = norm.replace(/^https?:\/\//, '');
+        norm = norm.replace(/^www\./, '');
+        norm = norm.replace(/\?.*/, '')
+        return norm;
+    },
     hash: function (key) {
         key = key.toLowerCase();
-        key = key.replace(/^https?:\/\//, '');
         var sha = crypto.createHash('sha1');
         sha.update(key, 'utf8');
         return sha.digest('hex');

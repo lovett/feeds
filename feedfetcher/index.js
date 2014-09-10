@@ -289,7 +289,8 @@ dispatcher.on('processEntry:reddit', function (feedId, entry, subscribers) {
  */
 dispatcher.on('storeEntry', function (feedId, entry, subscribers) {
 
-    var entryId = world.hash(entry.url);
+    var normalizedUrl = world.normalizeUrl(entry.url);
+    var entryId = world.hash(normalizedUrl);
 
     var entryKey = world.keys.entryKey(entryId);
 

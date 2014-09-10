@@ -19,7 +19,8 @@ subscriber.on("message", function (channel, id) {
     var key = "entry:" + id;
 
     world.client.hgetall(key, function (err, entry) {
-        var hash = world.hash(entry.url);
+        var normalizedUrl = world.normalizeUrl(entry.url);
+        var hash = world.hash(normalizedUrl);
         var path = world.archivePath(hash);
         var html = fs.readFileSync(path, {encoding: 'utf-8'})
         var page_text = '';
