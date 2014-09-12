@@ -23,7 +23,7 @@
     "grunt-contrib-uglify": "0.5.1",
     "grunt-contrib-watch": "0.6.1",
     "grunt-githooks": "0.3.1",
-    "grunt-http": "1.4.0",
+    "grunt-http": "1.4.1",
     "grunt-nodemon": "0.3.0",
     "grunt-shell": "1.1.1",
     "grunt-string-replace": "0.2.7",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "bunyan": "1.0.1",
-    "elasticsearch": "2.4.1",
+    "elasticsearch": "2.4.2",
     "grunt-contrib-cssmin": "0.10.0",
     "htmlparser": "1.7.7",
     "htmlparser2": "3.7.3",
@@ -41,7 +41,7 @@
     "redis": "0.12.1",
     "request": "2.42.0",
     "restify": "2.8.2",
-    "string": "2.0.0",
-    "xmlbuilder": "2.4.3"
+    "string": "2.0.1",
+    "xmlbuilder": "2.4.4"
   }
 }
