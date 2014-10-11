@@ -16,10 +16,10 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "1.2.25",
-    "angular-route": "1.2.25",
-    "angular-resource": "1.2.25",
-    "foundation": "5.4.4",
+    "angular": "1.2.26",
+    "angular-route": "1.2.26",
+    "angular-resource": "1.2.26",
+    "foundation": "5.4.6",
     "jquery": "2.1.1",
     "lodash": "2.4.1",
     "FileSaver": "*"
