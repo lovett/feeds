@@ -6,15 +6,15 @@
     <li class="entry" ng-repeat="entry in entries" ng-class="entry.state">
         <div class="inner">
             <header>
-                <a class="headline"  ng-href="{{entry.url}}" target="_blank">{{ entry.title }}</a>
+                <a class="headline" ng-href="{{entry.url}}" target="_blank" rel="noreferrer">{{ entry.title }}</a>
             </header>
             <div class="body">
-                <p class="domain">From <a href="http://{{ entry.domain }}" target="_blank">{{ entry.domain }}</a></p>
+                <p class="domain">From <a href="http://{{ entry.domain }}" target="_blank" rel="noreferrer">{{ entry.domain }}</a></p>
                 <p>{{ entry.added | reldate | date:'MMMM d' }} at {{ entry.added | date:'h:mm a' }}</p>
 
                 <p class="discussions">
                     <span ng-if="entry.redditLink">
-                        <a ng-href="{{entry.redditLink}}" target="_blank">
+                        <a ng-href="{{entry.redditLink}}" target="_blank" rel="noreferrer">
                             <ng-pluralize count="entry.redditComments"
                                           when="{'0': 'No comments',
                                                 'one': '1 comment',
@@ -23,7 +23,7 @@
                             on Reddit</a>
                     </span>
                     <span ng-if="entry.hnLink">
-                        <a ng-href="{{entry.hnLink}}" target="_blank">
+                        <a ng-href="{{entry.hnLink}}" target="_blank" rel="noreferrer">
                             <ng-pluralize count="entry.hnComments"
                                           when="{'0': 'No comments',
                                                 'one': '1 comment',

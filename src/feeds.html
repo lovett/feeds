@@ -82,7 +82,7 @@
                     </thead>
                     <tbody>
                         <tr ng-repeat="feed in feeds">
-                            <td><a ng-href="{{feed.url}}" target="_blank">{{ feed.name }}</a></td>
+                            <td><a ng-href="{{feed.url}}" target="_blank" rel="noreferrer">{{ feed.name }}</a></td>
                             <td>
                                 {{ feed.subscribed | reldate | date:'MMMM d' }}
                                 <a class="subaction" ng-click="remove()" href="">Unsubscribe</a>
