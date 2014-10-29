@@ -34,6 +34,7 @@ module.exports = {
     htmlparser: require('htmlparser'),
     console: console,
     moment: require('moment'),
+    entities: require('entities'),
     logger: bunyan.createLogger({
         name: 'headlines',
         serializers: {

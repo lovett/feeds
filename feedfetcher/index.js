@@ -289,6 +289,15 @@ dispatcher.on('processEntry:reddit', function (feedId, entry, subscribers) {
  */
 dispatcher.on('storeEntry', function (feedId, entry, subscribers) {
 
+    // The url is probably not entity encoded, but decode anyway just
+    // to be sure. Entities were observed for a time in the HN feed,
+    // which made for unclickable links
+    // (https:&#x2F;&#x2F;news.ycombinator.com...)
+    entry.url = world.entities.decodeXML(entry.url);
+
+    // Encoded entities might appear in the title
+    entry.title = world.entities.decodeXML(entry.title);
+
     var normalizedUrl = world.normalizeUrl(entry.url);
     var entryId = world.hash(normalizedUrl);
 
