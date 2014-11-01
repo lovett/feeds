@@ -45,7 +45,10 @@ app.config(['$routeProvider', function ($routeProvider) {
 
 app.config(['$locationProvider', function ($locationProvider) {
     'use strict';
-    $locationProvider.html5Mode(true);
+    $locationProvider.html5Mode({
+        enabled: true,
+        requireBase: false
+    });
 }]);
 
 app.config(['$httpProvider', function ($httpProvider) {
