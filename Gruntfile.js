@@ -6,8 +6,6 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         env: grunt.file.readJSON('env.json'),
 
-        CONFIG: grunt.file.readJSON('config/default.json'),
-
         clean: {
             preBuild: {
                 src: ['static/*']

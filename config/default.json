@@ -1,8 +1,0 @@
-{
-    "http": {
-        "port": 8081
-    },
-    "logPath": "headlines.log",
-    "logLevel": "trace",
-    "feedCheckIntervalMinutes": 60
-}
