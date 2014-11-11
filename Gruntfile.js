@@ -10,10 +10,10 @@ module.exports = function(grunt) {
 
         clean: {
             preBuild: {
-                src: ['dist/*']
+                src: ['static/*']
             },
             postBuild: {
-                src: ['dist/app.min.js']
+                src: ['static/app.min.js']
             }
         },
 
@@ -21,7 +21,7 @@ module.exports = function(grunt) {
             options: {
                 separator: '\n',
             },
-            dist: {
+            app: {
                 files: [
                     {
                         src: ['bower_components/jquery/dist/jquery.min.js',
@@ -33,9 +33,9 @@ module.exports = function(grunt) {
                               'bower_components/angular-moment/angular-moment.min.js',
                               'bower_components/lodash/dist/lodash.min.js',
                               'bower_components/FileSaver/FileSaver.js',
-                              'dist/app.min.js'
+                              'static/app.min.js'
                              ],
-                        dest: 'dist/headlines.js',
+                        dest: 'static/headlines.js',
                     }
                 ]
             }
@@ -46,20 +46,20 @@ module.exports = function(grunt) {
                 expand: true,
                 flatten: true,
                 src: 'src/less/*',
-                dest: 'dist/less'
+                dest: 'static/less'
             },
             main: {
                 expand: true,
                 flatten: true,
-                src: ['bower_components/jquery/dist/jquery.min.map',
+                src: ['bower_components/jquery/static/jquery.min.map',
                       'bower_components/angular/angular.min.js.map',
                       'bower_components/angular-route/angular-route.min.js.map',
                       'bower_components/angular-resource/angular-resource.min.js.map',
-                      'static/favicon.ico',
-                      'bower_components/jquery/dist/jquery.js',
+                      'src/images/favicon.ico',
+                      'bower_components/jquery/static/jquery.js',
                       'src/*',
                       '!src/less'],
-                dest: 'dist/'
+                dest: 'static/'
             }
         },
 
@@ -67,7 +67,7 @@ module.exports = function(grunt) {
             combine: {
                 'src': ['bower_components/foundation/css/normalize.css',
                         'bower_components/foundation/css/foundation.css'],
-                'dest': 'dist/css/lib.min.css'
+                'dest': 'static/css/lib.min.css'
             }
         },
 
@@ -97,11 +97,11 @@ module.exports = function(grunt) {
                 options: {
                     compress: true,
                     sourceMap: true,
-                    sourceMapFilename: 'dist/css/app.min.css.map',
+                    sourceMapFilename: 'static/css/app.min.css.map',
                     sourceMapURL: '/css/app.min.css.map'
                 },
                 src: 'src/less/*.less',
-                dest: 'dist/css/app.min.css'
+                dest: 'static/css/app.min.css'
             }
         },
 
@@ -181,8 +181,8 @@ module.exports = function(grunt) {
         'string-replace': {
             dev: {
                 files: {
-                    'dist/index.html': 'dist/index.html',
-                    'dist/css/app.min.css.map': 'dist/css/app.min.css.map'
+                    'static/index.html': 'static/index.html',
+                    'static/css/app.min.css.map': 'static/css/app.min.css.map'
                 },
                 options: {
                     replacements: [
@@ -200,7 +200,7 @@ module.exports = function(grunt) {
 
             prod: {
                 files: {
-                    'dist/index.html': 'dist/index.html'
+                    'static/index.html': 'static/index.html'
                 },
                 options: {
                     replacements: [{
@@ -220,10 +220,10 @@ module.exports = function(grunt) {
         uglify: {
             js: {
                 options: {
-                    sourceMap: 'dist/app.min.js.map'
+                    sourceMap: 'static/app.min.js.map'
                 },
                 files: {
-                    'dist/app.min.js': ['src/app.js', 'src/controllers.js', 'src/services.js']
+                    'static/app.min.js': ['src/app.js', 'src/controllers.js', 'src/services.js']
                 }
             }
         },

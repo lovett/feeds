@@ -65,7 +65,7 @@ server.use(restify.bodyParser({ mapParams: false }));
  * Custom middleware for mapping requests to index.html
  * --------------------------------------------------------------------
  *
- * Certain URLs should return the contents of dist/index.html to
+ * Certain URLs should return the contents of static/index.html to
  * enable the single page application model. But this mapping should
  * not interfere with 404 handling.
  *
@@ -91,7 +91,7 @@ server.use(function (request, response, next) {
         return next();
     }
 
-    world.fs.readFile('./dist/index.html', function (err, data) {
+    world.fs.readFile('./static/index.html', function (err, data) {
         if (err) {
             next(err);
             return;
@@ -121,7 +121,7 @@ server.use(function (request, response, next) {
 
     var fileName = path.split('/').pop();
 
-    world.fs.readFile('./dist/less/' + fileName, function (err, data) {
+    world.fs.readFile('./static/less/' + fileName, function (err, data) {
         if (err) {
             next(err);
             return;
@@ -717,7 +717,7 @@ server.get('/search/.*', function (request, response, next) {
  * --------------------------------------------------------------------
  */
 server.get('/.*', restify.serveStatic({
-    'directory': './dist/',
+    'directory': './static/',
     'default': 'index.html'
 }));
 
