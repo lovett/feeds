@@ -45,7 +45,7 @@ module.exports = function(grunt) {
             less: {
                 expand: true,
                 flatten: true,
-                src: 'src/less/*',
+                src: 'ui/less/*',
                 dest: 'static/less'
             },
             main: {
@@ -55,10 +55,10 @@ module.exports = function(grunt) {
                       'bower_components/angular/angular.min.js.map',
                       'bower_components/angular-route/angular-route.min.js.map',
                       'bower_components/angular-resource/angular-resource.min.js.map',
-                      'src/images/favicon.ico',
+                      'ui/images/favicon.ico',
                       'bower_components/jquery/static/jquery.js',
-                      'src/*',
-                      '!src/less'],
+                      'ui/*',
+                      '!ui/less'],
                 dest: 'static/'
             }
         },
@@ -88,7 +88,7 @@ module.exports = function(grunt) {
                 options: {
                     jshintrc: '.jshintrc-browser'
                 },
-                src: ['src/**.js']
+                src: ['ui/**.js']
             }
         },
 
@@ -100,7 +100,7 @@ module.exports = function(grunt) {
                     sourceMapFilename: 'static/css/app.min.css.map',
                     sourceMapURL: '/css/app.min.css.map'
                 },
-                src: 'src/less/*.less',
+                src: 'ui/less/*.less',
                 dest: 'static/css/app.min.css'
             }
         },
@@ -191,7 +191,7 @@ module.exports = function(grunt) {
                             replacement: '<script src="//<%= env.HEADLINES_DEV_HOST %>:<%= env.HEADLINES_LIVERELOAD %>/livereload.js"></script>'
                         },
                         {
-                            pattern: 'src/less',
+                            pattern: 'ui/less',
                             replacement: '/less'
                         }
                     ]
@@ -223,7 +223,7 @@ module.exports = function(grunt) {
                     sourceMap: 'static/app.min.js.map'
                 },
                 files: {
-                    'static/app.min.js': ['src/app.js', 'src/controllers.js', 'src/services.js']
+                    'static/app.min.js': ['ui/app.js', 'ui/controllers.js', 'ui/services.js']
                 }
             }
         },
@@ -240,7 +240,7 @@ module.exports = function(grunt) {
             },
 
             app: {
-                files: ['src/less/*.less', 'src/*.js', 'src/*.html'],
+                files: ['ui/less/*.less', 'ui/*.js', 'ui/*.html'],
                 tasks: ['build']
             }
         },
