@@ -680,7 +680,7 @@ server.post('/authenticate', function (request, response, next) {
                     response.send(500);
                     return next(false);
                 }
-                world.redisClient.expire(key, 86400);
+                world.redisClient.expire(key, 86400 * 30);
                 response.send({token: token});
                 next();
             });
