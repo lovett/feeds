@@ -93,13 +93,14 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             return true;
         });
 
-        if (!body.query.results.feed.entry) {
-            logger.error({feedId: feedId, feedUrl: feedUrl}, 'yql found no entries');
-        } else {
+        if (body.query && body.query.results &&
+            body.query.results.feed && body.query.results.feed.entry) {
             // Presumably the feed is ordered newest to oldest
             body.query.results.feed.entry.reverse().forEach(function (entry) {
                 self.emit(processEvent, feedId, entry, subscribers);
             });
+        } else {        
+            logger.error({feedId: feedId, feedUrl: feedUrl}, 'yql found no entries');
         }
 
         // Request rescheduling
