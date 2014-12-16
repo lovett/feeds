@@ -119,7 +119,7 @@ module.exports = {
         feedListKey: function(userId) {
             return "user:" + userId + ':feeds';
         },
-
+        
         // A sorted set of next-check timestamps for each subscribed
         // feed. The set memeber is a feed id. The score is a unix
         // timestamp indicating when the feed should next be fetched.
@@ -138,12 +138,12 @@ module.exports = {
             return 'feed:' + feedId + ':entries';
         },
 
-        // A set of feed ids that have not yet been read by a user.
+        // A list of feed ids that have not yet been read by a user.
         unreadKey: function (userId) {
             return 'user:' + userId + ':unread';
         },
 
-        // A set of feed ids that a user has saved
+        // A list of feed ids that a user has saved
         savedKey: function (userId) {
             return 'user:' + userId + ':saved';
         },

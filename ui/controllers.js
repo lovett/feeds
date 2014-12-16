@@ -319,7 +319,11 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             listName = 'saved';
             listSegment = 'additions';
         } else if (newState === 'discarded') {
-            listName = $routeParams.name;
+            if (angular.isDefined(entry) && entry.state === 'saved') {
+                listName = 'saved';
+            } else {
+                listName = $routeParams.name;
+            }
             listSegment = 'removals';
         }
 
@@ -346,6 +350,10 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
             if (newState === 'saved') {
                 $rootScope.savedCount += ids.length;
+            }
+
+            if (!angular.isDefined(entry)) {
+                $route.reload();
             }
 
         });
