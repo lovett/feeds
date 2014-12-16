@@ -348,10 +348,6 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
                 $rootScope.savedCount += ids.length;
             }
 
-            if ($rootScope.entryCount < 1) {
-                $route.reload();
-            }
-
         });
     };
 
