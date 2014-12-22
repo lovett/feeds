@@ -104,6 +104,30 @@ server.use(function (request, response, next) {
     });
 });
 
+
+/**
+ * Custom middleware for serving crossdomain.xml as
+ * text/x-cross-domain-policy *
+ * --------------------------------------------------------------------
+ */
+server.use(function (request, response, next) {
+    if (request.path() !== '/crossdomain.xml') {
+        return next();
+    }
+
+    world.fs.readFile('./static/crossdomain.xml', function (err, data) {
+        if (err) {
+            next(err);
+            return;
+        }
+        response.setHeader('Content-Type', 'text/x-cross-domain-policy');
+        response.writeHead(200);
+        response.end(data);
+        return next(false);
+    });
+});
+
+
 /**
  * Custom middlware for serving less files
  *
