@@ -33,6 +33,7 @@
     "bunyan": "1.2.3",
     "elasticsearch": "3.0.2",
     "entities": "1.1.1",
+    "grunt-autoprefixer": "2.0.0",
     "grunt-contrib-cssmin": "0.10.0",
     "htmlparser": "1.7.7",
     "htmlparser2": "3.8.2",
