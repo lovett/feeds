@@ -6,6 +6,15 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         env: grunt.file.readJSON('env.json'),
 
+        autoprefixer: {
+            app: {
+                expand: true,
+                flatten: true,
+                src: 'static/css/app.min.css',
+                dest: 'static/css/'
+            }
+        },
+
         clean: {
             preBuild: {
                 src: ['static/*']
@@ -245,9 +254,7 @@ module.exports = function(grunt) {
 
     });
 
-
-    // Default task(s)
-    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'cssmin', 'copy', 'concat', 'string-replace:dev', 'clean:postBuild']);
+    grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'autoprefixer', 'cssmin', 'copy', 'concat', 'string-replace:dev', 'clean:postBuild']);
     grunt.registerTask('default', ['githooks', 'build', 'watch']);
 
 };
