@@ -77,6 +77,7 @@
                             <th width="200" ng-class="{'sort': sortField === 'name'}"><a ng-click="sortBy('name')" href="">Name</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'subscribed'}"><a ng-click="sortBy('subscribed')" href="">Subscribed</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'updated'}"><a ng-click="sortBy('updated')" href="">Last Updated</a></th>
+                            <th width="175" ng-class="{'sort': sortField === 'prevCheck'}"><a ng-click="sortBy('prevCheck')" href="">Previous Check</a></th>
                             <th width="175" ng-class="{'sort': sortField === 'nextCheck'}"><a ng-click="sortBy('nextCheck')" href="">Next Check</a></th>
                         </tr>
                     </thead>
@@ -84,16 +85,22 @@
                         <tr ng-repeat="feed in feeds">
                             <td><a ng-href="{{feed.url}}" target="_blank" rel="noreferrer">{{ feed.name }}</a></td>
                             <td>
-                                {{ feed.subscribed | reldate | date:'MMMM d' }}
+                                {{ feed.subscribed | reldate | date:'MMM d, yyyy' }}
                                 <a class="subaction" ng-click="remove()" href="">Unsubscribe</a>
                             </td>
                             <td>
-                                {{ feed.updated | date:'h:mm a' }}
-                                {{ feed.updated | reldate | date:'MMMM d' }}
+                                {{ feed.updated | reldate | date:'MMM d, yyyy' }}
+                                <div class="subaction">at {{ feed.updated | date:'h:mm a' }}</div>
+                                
                             </td>
                             <td>
-                                {{ feed.nextCheck | date:'h:mm a' }}
-                                {{ feed.nextCheck | reldate | date:'MMMM d' }}
+                                {{ feed.nextCheck | reldate | date:'MMM d, yyyy' }}
+                                <div class="subaction">{{ feed.prevCheck | date:'h:mm a' }}</div>
+                            </td>
+                            <td>
+                                {{ feed.nextCheck | date:'h:mm a' }}, {{ feed.nextCheck | reldate | date:'MMM d' }}
+                                
+                                
                                 <a class="subaction" ng-click="reschedule()" href="">Check now</a>
                             </td>
                         </tr>

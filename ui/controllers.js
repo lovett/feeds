@@ -118,7 +118,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
             values.id = key;
             $scope.feeds.push(values);
         });
-        $scope.sortBy('name', 'asc');
+        $scope.sortBy('nextCheck', 'asc');
     };
 
     List.get({'name': 'feeds'}, populate);
