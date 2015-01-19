@@ -15,24 +15,22 @@ var scheduleFeed, descheduleFeed, rescheduleFeed;
 scheduleFeed = function (params) {
     params = params.split('::');
     var feedId = params.shift();
-    var checkTime = params.shift();
+    var timestamp = params.shift();
+    var subscribersKey = world.keys.feedSubscribersKey(feedId);
 
     // Scheduling should only occur if the feed has subscribers.  The
     // number of subscribers is determined from the length of the
-    // feed's subscribers key, not the score within the feed
-    // subscriptions set.
-    world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, result) {
-        var key = world.keys.feedKey(feedId);
-
+    // feed's subscribers key.
+    world.redisClient.smembers(subscribersKey, function (err, result) {
         if (err) {
             logger.error(err);
             return;
         }
 
         if (result.length === 0) {
-            descheduleFeed(feedId, key);
+            descheduleFeed(feedId);
         } else {
-            rescheduleFeed(feedId, key, checkTime);
+            rescheduleFeed(feedId, timestamp);
         }
     });
 };
@@ -41,11 +39,12 @@ scheduleFeed = function (params) {
  * Make an inactive feed ineligible for further scheduling
  * --------------------------------------------------------------------
  */
-descheduleFeed = function (feedId, key) {
+descheduleFeed = function (feedId) {
     var multi = world.redisClient.multi();
+    var feedKey = world.keys.feedKey(feedId);
     
     // Remove nextCheck to indicate the feed is inactive
-    multi.hdel(key, 'nextCheck');
+    multi.hdel(feedKey, 'nextCheck');
     
     // Take the feed out of the schedule
     multi.zrem(world.keys.feedQueueKey, feedId);
@@ -66,50 +65,41 @@ descheduleFeed = function (feedId, key) {
  * Update the next check date of a feed
  * --------------------------------------------------------------------
  */
-rescheduleFeed = function (feedId, key, checkTime) {
+rescheduleFeed = function (feedId, timestamp) {
     var now = new Date().getTime();
     var interval = world.feedCheckInterval;
     var multi = world.redisClient.multi();
-    
-    
-    // The feed has at least one subscriber
-    world.redisClient.hmget([key, 'nextCheck'], function (err, result) {
+    var feedKey = world.keys.feedKey(feedId);
+
+    world.redisClient.hmget([feedKey, 'nextCheck'], function (err, result) {
         var nextCheck = parseInt(result.shift(), 10) || 0;
         var details = {};
         var verdict;
 
-        if (checkTime) {
+        if (timestamp) {
             verdict = 'explicitly scheduled';
-            details.nextCheck = checkTime;
+            details.nextCheck = timestamp;
         } else if (nextCheck === 0) {
             // The feed has never been checked. Check it now.
             verdict = 'new feed';
-            details.prevCheck = 0;
             details.nextCheck = now;
         } else if (nextCheck > now) {
             // The feed is already scheduled for a future check. Leave as-is.
             verdict = 'left as-is';
             details.nextCheck = nextCheck;
-        } else if (nextCheck < now - world.minToMs(1)) {
-            // The scheduled check was over 1 minute ago. It
-            // must not have occurred. Check the feed now.
-            verdict = 'previous check missed';
-            details.nextCheck = now;
         } else {
-            // The scheduled check was less than 1 minute ago. The
-            // feed must have just been checked successfully. Check
-            // again in the future, adding a random amount of
-            // additional time to keep the overall schedule spread
-            // out.
+            // The scheduled check was in the past. It may or may not
+            // have occurred.  Check again in the future, adding a
+            // random amount of additional time to keep the overall
+            // schedule spread out.
             verdict = 'rescheduled';
-            details.prevCheck = nextCheck;
             details.nextCheck = now + interval + Math.floor(Math.random() * interval);
         }
 
         // Round to the nearest whole minute
         details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
 
-        multi.hmset(key, details);
+        multi.hmset(feedKey, details);
         
         multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
         

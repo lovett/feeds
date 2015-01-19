@@ -103,6 +103,8 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             logger.error({feedId: feedId, feedUrl: feedUrl}, 'yql found no entries');
         }
 
+        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+
         // Request rescheduling
         world.redisClient.publish('feed:reschedule', feedId);
         logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
