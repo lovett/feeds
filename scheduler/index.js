@@ -42,16 +42,16 @@ scheduleFeed = function (params) {
 descheduleFeed = function (feedId) {
     var multi = world.redisClient.multi();
     var feedKey = world.keys.feedKey(feedId);
-    
+
     // Remove nextCheck to indicate the feed is inactive
     multi.hdel(feedKey, 'nextCheck');
-    
+
     // Take the feed out of the schedule
     multi.zrem(world.keys.feedQueueKey, feedId);
-    
+
     // Prevent the feed from being rescheduled
     multi.zadd(world.keys.feedSubscriptionsKey, 0, feedId);
-    
+
     multi.exec(function (err) {
         if (err) {
             logger.error(err);
@@ -71,7 +71,8 @@ rescheduleFeed = function (feedId, timestamp) {
     var multi = world.redisClient.multi();
     var feedKey = world.keys.feedKey(feedId);
 
-    world.redisClient.hmget([feedKey, 'nextCheck'], function (err, result) {
+    world.redisClient.hmget([feedKey, 'prevCheck', 'nextCheck', 'updated'], function (err, result) {
+        var prevCheck = parseInt(result.shift(), 10) || 0;
         var nextCheck = parseInt(result.shift(), 10) || 0;
         var details = {};
         var verdict;
@@ -79,17 +80,20 @@ rescheduleFeed = function (feedId, timestamp) {
         if (timestamp) {
             verdict = 'explicitly scheduled';
             details.nextCheck = timestamp;
-        } else if (nextCheck === 0) {
+        } else if (nextCheck === 0 && prevCheck === 0) {
             // The feed has never been checked. Check it now.
             verdict = 'new feed';
+            details.nextCheck = now;
+        } else if (prevCheck < now - (interval * 3)) {
+            // The feed was last checked more than 3 intervals ago. Check it now.
+            verdict = 'stale';
             details.nextCheck = now;
         } else if (nextCheck > now) {
             // The feed is already scheduled for a future check. Leave as-is.
             verdict = 'left as-is';
             details.nextCheck = nextCheck;
         } else {
-            // The scheduled check was in the past. It may or may not
-            // have occurred.  Check again in the future, adding a
+            // The feed was recently checked. Check again in the future, adding a
             // random amount of additional time to keep the overall
             // schedule spread out.
             verdict = 'rescheduled';
@@ -100,9 +104,9 @@ rescheduleFeed = function (feedId, timestamp) {
         details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
 
         multi.hmset(feedKey, details);
-        
+
         multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
-        
+
         multi.exec(function (err) {
             if (err) {
                 logger.error(err);
@@ -112,7 +116,7 @@ rescheduleFeed = function (feedId, timestamp) {
             return;
         });
     });
-    
+
 };
 
 
