@@ -37,7 +37,7 @@
             </div>
         </form>
 
-        
+
         <div class="row">
             <div class="small-4 columns">
                 <a ng-show="importPhase == 'start'" ng-click="importPhase = 'form'" class="subaction">Import OPML</a>
@@ -58,7 +58,7 @@
 
         <div class="row">
             <div class="large-12 columns">
-                <h2>Your Feeds</h2>
+                <h2>Subscribed Feeds</h2>
             </div>
             <div class="large-12 columns">
                 <p class="error" ng-show="removeMessage">
@@ -91,16 +91,16 @@
                             <td>
                                 {{ feed.updated | reldate | date:'MMM d, yyyy' }}
                                 <div class="subaction">at {{ feed.updated | date:'h:mm a' }}</div>
-                                
+
                             </td>
                             <td>
-                                {{ feed.nextCheck | reldate | date:'MMM d, yyyy' }}
+                                {{ feed.prevCheck | reldate | date:'MMM d, yyyy' }}
                                 <div class="subaction">{{ feed.prevCheck | date:'h:mm a' }}</div>
                             </td>
                             <td>
                                 {{ feed.nextCheck | date:'h:mm a' }}, {{ feed.nextCheck | reldate | date:'MMM d' }}
-                                
-                                
+
+
                                 <a class="subaction" ng-click="reschedule()" href="">Check now</a>
                             </td>
                         </tr>
