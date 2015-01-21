@@ -13,6 +13,14 @@
                 <p>{{ entry.added | reldate | date:'MMMM d' }} at {{ entry.added | date:'h:mm a' }}</p>
 
                 <p class="discussions">
+                    <span ng-if="entry.stackComments">
+                        <ng-pluralize count="entry.stackComments"
+                                      when="{'0': 'No answers',
+                                            'one': '1 answer',
+                                            'other': '{} answers'}">
+                        </ng-pluralize>
+                    </span>
+
                     <span ng-if="entry.redditLink">
                         <a ng-href="{{entry.redditLink}}" target="_blank" rel="noreferrer">
                             <ng-pluralize count="entry.redditComments"

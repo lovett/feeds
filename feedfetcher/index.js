@@ -81,12 +81,14 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
         map = {
             'reddit.com': 'reddit',
             'news.ycombinator.com': 'hn',
-            'slashdot.org': 'slashdot'
+            'slashdot.org': 'slashdot',
+            'stackexchange.com': 'stackexchange'
         };
 
         processEvent = 'processEntry';
         Object.keys(map).some(function (key) {
-            if (parsedUrl.host.indexOf(key) === -1) {
+            // Test for presence of key at end of parsedUrl.host
+            if (parsedUrl.host.indexOf(key, parsedUrl.host.length - key.length) === -1) {
                 return false;
             }
             processEvent += ':' + map[key];
@@ -99,7 +101,7 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             body.query.results.feed.entry.reverse().forEach(function (entry) {
                 self.emit(processEvent, feedId, entry, subscribers);
             });
-        } else {        
+        } else {
             logger.error({feedId: feedId, feedUrl: feedUrl}, 'yql found no entries');
         }
 
@@ -161,6 +163,7 @@ dispatcher.on('processEntry', function (feedId, entry, subscribers) {
 
     this.emit('storeEntry', feedId, fields, subscribers);
 });
+
 
 /**
  * Entry processor for Slashdot
@@ -239,6 +242,22 @@ dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
     parser.parseComplete(entry.summary.content);
 
 });
+
+/**
+ * Entry processor for Stack Exchange
+ * --------------------------------------------------------------------
+ */
+dispatcher.on('processEntry:stackexchange', function (feedId, entry, subscribers) {
+    var fields = {
+        stackComments: parseInt(entry.rank.content, 10) || 0,
+        url: entry.link.href,
+        title: entry.title.content,
+        date: world.moment(entry.updated).format('X') * 1000
+    };
+
+    this.emit('storeEntry', feedId, fields, subscribers);
+});
+
 
 /**
  * Entry processor for Reddit
