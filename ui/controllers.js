@@ -198,7 +198,7 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
     };
 
     $scope.importPhase = 'start';
-    
+
     $scope.import = function (fileList) {
         Reader.readXML(fileList).then(function (result) {
             var feeds = angular.element(result).find('outline');
@@ -269,6 +269,11 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
             if (temp.hostname.substring(0, 4) === 'www.') {
                 entry.domain = entry.domain.substring(4);
+            }
+
+            // include the subreddit when displaying reddit links
+            if (entry.domain === 'reddit.com') {
+                entry.domain += temp.pathname.split('/').slice(0, 3).join('/');
             }
 
             if ($routeParams.name === 'saved') {
