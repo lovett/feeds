@@ -70,12 +70,15 @@ rescheduleFeed = function (feedId, timestamp) {
     var interval = world.feedCheckInterval;
     var multi = world.redisClient.multi();
     var feedKey = world.keys.feedKey(feedId);
+    var oneDayMs = world.minToMs(60 * 24);
 
     world.redisClient.hmget([feedKey, 'prevCheck', 'nextCheck', 'updated'], function (err, result) {
         var prevCheck = parseInt(result.shift(), 10) || 0;
         var nextCheck = parseInt(result.shift(), 10) || 0;
+        var lastUpdatedMs = parseInt(result.shift(), 10) || 0;
         var details = {};
         var verdict;
+        var contentAgeMs;
 
         if (timestamp) {
             verdict = 'explicitly scheduled';
@@ -93,11 +96,23 @@ rescheduleFeed = function (feedId, timestamp) {
             verdict = 'left as-is';
             details.nextCheck = nextCheck;
         } else {
-            // The feed was recently checked. Check again in the future, adding a
-            // random amount of additional time to keep the overall
-            // schedule spread out.
-            verdict = 'rescheduled';
-            details.nextCheck = now + interval + Math.floor(Math.random() * interval);
+            // The feed was checked recently (within the past 3 intervals or
+            // less). Check again at least 1 interval from now if the
+            // content has recently updated.  Otherwise, check
+            // tomorrow.
+            //
+            // Slow moving feeds get checked once per day. Faster
+            // feeds get checked multiple times.
+
+            contentAgeMs = now - lastUpdatedMs;
+
+            if (contentAgeMs > oneDayMs) {
+                verdict = 'try tomorrow';
+                details.nextCheck = now + oneDayMs + Math.floor(Math.random() * interval);
+            } else {
+                verdict = 'rescheduled';
+                details.nextCheck = now + interval + Math.floor(Math.random() * interval);
+            }
         }
 
         // Round to the nearest whole minute
