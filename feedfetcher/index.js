@@ -246,6 +246,9 @@ dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
 /**
  * Entry processor for Stack Exchange
  * --------------------------------------------------------------------
+ * Entries with a rank of zero or less are ignored. If the rank goes
+ * up, we'll catch them at the next feed check, but otherwise they are
+ * noise-- questions that no one has answered, or bad questions.
  */
 dispatcher.on('processEntry:stackexchange', function (feedId, entry, subscribers) {
     var fields = {
@@ -255,7 +258,9 @@ dispatcher.on('processEntry:stackexchange', function (feedId, entry, subscribers
         date: world.moment(entry.updated).format('X') * 1000
     };
 
-    this.emit('storeEntry', feedId, fields, subscribers);
+    if (fields.stackComments > 0) {
+        this.emit('storeEntry', feedId, fields, subscribers);
+    }
 });
 
 
