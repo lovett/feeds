@@ -38,7 +38,7 @@ module.exports = function(grunt) {
                               'bower_components/angular-resource/angular-resource.min.js',
                               'bower_components/moment/min/moment.min.js',
                               'bower_components/angular-moment/angular-moment.min.js',
-                              'bower_components/lodash/dist/lodash.min.js',
+                              'bower_components/lodash/lodash.min.js',
                               'bower_components/FileSaver/FileSaver.js',
                               'static/app.min.js'
                              ],
