@@ -1,5 +1,6 @@
 /*jshint camelcase:false */
 var world = require('../world');
+var needle = require('needle');
 var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
 
@@ -34,58 +35,65 @@ dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
 
 
 /**
- * Fetch a feed via YQL feednormalizer
+ * Fetch a feed via Google Feed API
  * --------------------------------------------------------------------
  * This is an EventEmitter callback.
  *
- * http://www.yqlblog.net/blog/2013/03/07/yql-feednormalizer-table/
+ * https://developers.google.com/feed/v1/jsondevguide
  */
 dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
-    var self, parsedUrl, options;
+    var self, parsedUrl, endpoint, headers;
 
     self = this;
     parsedUrl = world.url.parse(feedUrl);
 
-    options = {
-        json: true,
-        url: world.url.format({
-            'protocol': 'http:',
-            'host': 'query.yahooapis.com',
-            'pathname': '/v1/public/yql',
-            'query': {
-                'q': world.util.format('SELECT * FROM feednormalizer WHERE output="atom_1.0" AND url="%s"', feedUrl),
-                'format': 'json'
-            }
-        })
+    endpoint = world.url.format({
+        'protocol': 'https:',
+        'host': 'ajax.googleapis.com',
+        'pathname': '/ajax/services/feed/load',
+        'query': {
+            'v': '1.0',
+            'q': feedUrl,
+            'userip': process.env.HEADLINES_IP,
+            'num': -1,
+            'output': 'json'
+        }
+    });
+
+    headers = {
+        'Referer': process.env.HEADLINES_URL
     };
 
-    logger.info({feedId: feedId, feedUrl: feedUrl, yqlUrl: options.url}, 'querying yql');
+    logger.info({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint}, 'querying google feed api');
 
-    world.request(options, function (err, response, body) {
+    needle.get(endpoint, headers, function (err, response) {
         var map, processEvent;
 
         if (err) {
-            world.logger.error({err: err}, 'yql request failed, will try later');
+            world.logger.error({err: err}, 'google feed api request failed, will try later');
             world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
 
-        if (response.statusCode !== 200) {
-            logger.error({feedId: feedId, feedUrl: feedUrl, statusCode: response.statusCode}, 'yql error, will try later');
+        if (response.body.responseStatus !== 200) {
+            logger.error({feedId: feedId, feedUrl: feedUrl, statusCode: response.body.statusCode}, 'google feed api error, will try later');
             world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
-
-        logger.trace({feedId: feedId, feedUrl: feedUrl}, 'queried yql successfully');
+        
+        logger.trace({feedId: feedId, feedUrl: feedUrl}, 'google feed api queried successfully');
+        
+        //var data = response.body.responseData;
+        //console.log(data.error)
 
         map = {
             'reddit.com': 'reddit',
             'news.ycombinator.com': 'hn',
-            'slashdot.org': 'slashdot',
-            'stackexchange.com': 'stackexchange'
+            'slashdot.org': 'slashdot'
         };
-
+        
         processEvent = 'processEntry';
+
         Object.keys(map).some(function (key) {
             // Test for presence of key at end of parsedUrl.host
             if (parsedUrl.host.indexOf(key, parsedUrl.host.length - key.length) === -1) {
@@ -95,18 +103,17 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             return true;
         });
 
-        if (body.query && body.query.results &&
-            body.query.results.feed && body.query.results.feed.entry) {
-            // Presumably the feed is ordered newest to oldest
-            body.query.results.feed.entry.reverse().forEach(function (entry) {
-                self.emit(processEvent, feedId, entry, subscribers);
-            });
-        } else {
-            logger.error({feedId: feedId, feedUrl: feedUrl}, 'yql found no entries');
-        }
+        var feed = response.body.responseData.feed;
+
+        feed.entries.reverse().forEach(function (entry) {
+            self.emit(processEvent, feedId, entry, subscribers);
+            return true;
+        });
+
+        //logger.error({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint, error: e}, 'no entries found');
 
         world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-
+        
         // Request rescheduling
         world.redisClient.publish('feed:reschedule', feedId);
         logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
@@ -239,7 +246,7 @@ dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
 
     var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
     var parser = new world.htmlparser.Parser(handler);
-    parser.parseComplete(entry.summary.content);
+    parser.parseComplete(entry.content);
 
 });
 
@@ -307,7 +314,7 @@ dispatcher.on('processEntry:reddit', function (feedId, entry, subscribers) {
 
     var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
     var parser = new world.htmlparser.Parser(handler);
-    parser.parseComplete(entry.summary.content);
+    parser.parseComplete(entry.content);
 });
 
 /**
