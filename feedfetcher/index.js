@@ -1,6 +1,7 @@
 /*jshint camelcase:false */
 var world = require('../world');
 var needle = require('needle');
+var path = require('path');
 var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
 
@@ -35,13 +36,72 @@ dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
 
 
 /**
+ * Fetch a feed
+ * --------------------------------------------------------------------
+ *
+ */
+
+dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
+
+    var parsedFeedUrl = world.url.parse(feedUrl);
+
+    if (parsedFeedUrl.host === 'www.reddit.com') {
+        // Fetch directly from Reddit
+        dispatcher.emit('fetch:reddit', feedId, feedUrl, subscribers);
+    } else {
+        dispatcher.emit('fetch:google', feedId, feedUrl, subscribers);
+    }
+});
+
+
+/**
+ * Fetch a Reddit feed
+ * --------------------------------------------------------------------
+ */
+dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
+    var parsedUrl, jsonPath, jsonUrl;
+    parsedUrl = world.url.parse(feedUrl);
+    jsonPath = path.dirname(parsedUrl.path) + '/.json';
+
+    jsonUrl = feedUrl.replace(parsedUrl.path, jsonPath);
+
+    needle.get(jsonUrl, function (err, response) {
+        if (err || response.statusCode !== 200) {
+            world.logger.error({err: err, status: response.responseStatus}, 'reddit api request failed, will try later');
+            world.redisClient.publish('feed:reschedule', feedId);
+            return;
+        }
+
+        response.body.data.children.forEach(function (child) {
+            var entry, fields;
+            entry = child.data;
+            fields = {
+                redditComments: entry.num_comments,
+                redditLink: 'https://' + parsedUrl.hostname + entry.permalink,
+                title: entry.title,
+                date: entry.created_utc,
+                url: entry.url
+            };
+
+            dispatcher.emit('storeEntry', feedId, fields, subscribers);
+
+        });
+
+        // Request rescheduling
+        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+        world.redisClient.publish('feed:reschedule', feedId);
+        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+    });
+});
+
+/**
  * Fetch a feed via Google Feed API
  * --------------------------------------------------------------------
  * This is an EventEmitter callback.
  *
  * https://developers.google.com/feed/v1/jsondevguide
  */
-dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
+dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
     var self, parsedUrl, endpoint, headers;
 
     self = this;
@@ -80,18 +140,17 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
             world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
-        
+
         logger.trace({feedId: feedId, feedUrl: feedUrl}, 'google feed api queried successfully');
-        
+
         //var data = response.body.responseData;
         //console.log(data.error)
 
         map = {
-            'reddit.com': 'reddit',
             'news.ycombinator.com': 'hn',
             'slashdot.org': 'slashdot'
         };
-        
+
         processEvent = 'processEntry';
 
         Object.keys(map).some(function (key) {
@@ -113,7 +172,7 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
         //logger.error({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint, error: e}, 'no entries found');
 
         world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-        
+
         // Request rescheduling
         world.redisClient.publish('feed:reschedule', feedId);
         logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
@@ -192,7 +251,7 @@ dispatcher.on('processEntry:slashdot', function (feedId, entry, subscribers) {
  */
 dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
     var fields = {
-        url: entry.link.href,
+        url: entry.link,
         title: entry.title
     };
 
@@ -270,52 +329,6 @@ dispatcher.on('processEntry:stackexchange', function (feedId, entry, subscribers
     }
 });
 
-
-/**
- * Entry processor for Reddit
- * --------------------------------------------------------------------
- */
-dispatcher.on('processEntry:reddit', function (feedId, entry, subscribers) {
-    var fields = {
-        redditComments: 0,
-        redditLink: entry.link.href,
-        title: entry.title,
-        date: world.moment(entry.date).format('X') * 1000
-    };
-
-    var callback = function (error, dom) {
-        dom.forEach(function (node) {
-            if (node.type !== 'tag') {
-                return;
-            }
-
-            if (node.name !== 'a') {
-                return;
-            }
-
-            node.children.forEach(function (child) {
-                if (child.data === '[link]') {
-                    fields.url = node.attribs.href;
-                    return;
-                }
-
-                if (child.data.indexOf('comment') > -1) {
-                    fields.redditComments = child.data.replace(/[^0-9]/g, '');
-                    if (fields.redditComments === '') {
-                        fields.redditComments = 0;
-                    }
-                    return;
-                }
-            });
-        });
-
-        this.emit('storeEntry', feedId, fields, subscribers);
-    };
-
-    var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
-    var parser = new world.htmlparser.Parser(handler);
-    parser.parseComplete(entry.content);
-});
 
 /**
  * Store an entry after it has been processed
