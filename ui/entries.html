@@ -24,20 +24,20 @@
                     <span ng-if="entry.redditLink">
                         <a ng-href="{{entry.redditLink}}" target="_blank" rel="noreferrer">
                             <ng-pluralize count="entry.redditComments"
-                                          when="{'0': 'No comments',
-                                                'one': '1 comment',
-                                                'other': '{} comments'}">
+                                          when="{'0': 'No Reddit comments',
+                                                'one': '1 Reddit comment',
+                                                'other': '{} Reddit comments'}">
                             </ng-pluralize>
-                            on Reddit</a>
+                        </a>
                     </span>
                     <span ng-if="entry.hnLink">
                         <a ng-href="{{entry.hnLink}}" target="_blank" rel="noreferrer">
                             <ng-pluralize count="entry.hnComments"
-                                          when="{'0': 'No comments',
-                                                'one': '1 comment',
-                                                'other': '{} comments'}">
+                                          when="{'0': 'No HN comments',
+                                                'one': '1 HN comment',
+                                                'other': '{} HN comments'}">
                             </ng-pluralize>
-                            on Hacker News</a>
+                        </a>
                     </span>
                 </p>
 
