@@ -42,15 +42,68 @@ dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
  */
 
 dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
-
-    var parsedFeedUrl = world.url.parse(feedUrl);
+    var parsedFeedUrl, event;
+    parsedFeedUrl = world.url.parse(feedUrl);
 
     if (parsedFeedUrl.host === 'www.reddit.com') {
-        // Fetch directly from Reddit
-        dispatcher.emit('fetch:reddit', feedId, feedUrl, subscribers);
+        event = 'fetch:reddit';
+    } else if (parsedFeedUrl.host.indexOf('stackexchange.com') > -1) {
+        event = 'fetch:stackexchange';
     } else {
-        dispatcher.emit('fetch:google', feedId, feedUrl, subscribers);
+        event = 'fetch:google';
     }
+    dispatcher.emit(event, feedId, feedUrl, subscribers);
+});
+
+
+/**
+ * Fetch a StackExchange feed
+ * --------------------------------------------------------------------
+ */
+dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
+    var parsedUrl, endpoint;
+
+    parsedUrl = world.url.parse(feedUrl);
+
+    endpoint = world.url.format({
+        protocol: 'https',
+        host: 'api.stackexchange.com',
+        pathname: '/2.2/questions',
+        query: {
+            'site': parsedUrl.host.split('.').shift(),
+            'order': 'desc',
+            'sort': 'week',
+            'filter': '!)R7_Ydm)7LrqRF9BkudkXj*v' // answer_count, score, creation_date, link, title
+        }
+    });
+
+    needle.get(endpoint, function (err, response) {
+        if (err || response.statusCode !== 200) {
+            world.logger.error({err: err, status: response.responseStatus}, 'stackexchange api request failed, will try later');
+            world.redisClient.publish('feed:reschedule', feedId);
+            return;
+        }
+
+        response.body.items.forEach(function (item) {
+            var fields;
+
+            fields = {
+                stackComments: item.answer_count,
+                url: item.link,
+                title: item.title,
+                date: item.creation_date
+            };
+
+            dispatcher.emit('storeEntry', feedId, fields, subscribers);
+
+        });
+
+        // Request rescheduling
+        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+        world.redisClient.publish('feed:reschedule', feedId);
+        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+
+    });
 });
 
 
@@ -187,7 +240,7 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
  * processors.
  */
 dispatcher.on('processEntry', function (feedId, entry, subscribers) {
-    var fields, date;
+    var fields;
 
     fields = {};
 
@@ -199,33 +252,10 @@ dispatcher.on('processEntry', function (feedId, entry, subscribers) {
     }
 
     // url
-    fields.url = entry.link.href;
-
-    if (entry.link instanceof Array) {
-        entry.link.forEach(function (element) {
-            if (element.hasOwnProperty('rel') && element.rel === 'alternate') {
-                fields.url = element.href;
-                return element.href;
-            }
-        });
-    }
-
-    if (entry.origLink) {
-        fields.url = entry.origLink.content;
-    }
+    fields.url = entry.link;
 
     // date
-    if (entry.updated) {
-        date = entry.updated;
-    } else if (entry.published) {
-        date = entry.published;
-    } else if (entry.date) {
-        date = entry.date;
-    }
-
-    if (date) {
-        fields.date = world.moment(date).format('X') * 1000;
-    }
+    fields.date = world.moment(new Date(entry.publishedDate)).format('X') * 1000;
 
     this.emit('storeEntry', feedId, fields, subscribers);
 });
@@ -237,9 +267,9 @@ dispatcher.on('processEntry', function (feedId, entry, subscribers) {
  */
 dispatcher.on('processEntry:slashdot', function (feedId, entry, subscribers) {
     var fields = {
-        url: entry.link.href,
+        url: entry.link,
         title: entry.title.replace(/<\/?.*?>/g, ''),
-        date: world.moment(entry.updated).format('X') * 1000
+        date: world.moment(new Date(entry.publishedDate)).format('X') * 1000
     };
 
     this.emit('storeEntry', feedId, fields, subscribers);
@@ -310,27 +340,6 @@ dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
 });
 
 /**
- * Entry processor for Stack Exchange
- * --------------------------------------------------------------------
- * Entries with a rank of zero or less are ignored. If the rank goes
- * up, we'll catch them at the next feed check, but otherwise they are
- * noise-- questions that no one has answered, or bad questions.
- */
-dispatcher.on('processEntry:stackexchange', function (feedId, entry, subscribers) {
-    var fields = {
-        stackComments: parseInt(entry.rank.content, 10) || 0,
-        url: entry.link.href,
-        title: entry.title.content,
-        date: world.moment(entry.updated).format('X') * 1000
-    };
-
-    if (fields.stackComments > 0) {
-        this.emit('storeEntry', feedId, fields, subscribers);
-    }
-});
-
-
-/**
  * Store an entry after it has been processed
  * --------------------------------------------------------------------
  */
@@ -346,6 +355,7 @@ dispatcher.on('storeEntry', function (feedId, entry, subscribers) {
     entry.title = world.entities.decodeXML(entry.title);
 
     var normalizedUrl = world.normalizeUrl(entry.url);
+
     var entryId = world.hash(normalizedUrl);
 
     var entryKey = world.keys.entryKey(entryId);
