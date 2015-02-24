@@ -4,7 +4,9 @@ var needle = require('needle');
 var path = require('path');
 var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
+var Firebase = require('firebase');
 
+var hnFirebase;
 
 dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
     world.request({
@@ -40,7 +42,6 @@ dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
  * --------------------------------------------------------------------
  *
  */
-
 dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
     var parsedFeedUrl, event;
     parsedFeedUrl = world.url.parse(feedUrl);
@@ -49,12 +50,73 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
         event = 'fetch:reddit';
     } else if (parsedFeedUrl.host.indexOf('stackexchange.com') > -1) {
         event = 'fetch:stackexchange';
+    } else if (parsedFeedUrl.host === 'news.ycombinator.com') {
+        event = 'fetch:hn';            
     } else {
         event = 'fetch:google';
     }
     dispatcher.emit(event, feedId, feedUrl, subscribers);
 });
 
+/**
+ * Fetch Hacker News stories via Firebase API
+ * --------------------------------------------------------------------
+ */
+dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
+    if (hnFirebase) {
+        // the Firebase client is already connected; request rescheduling
+        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+        world.redisClient.publish('feed:reschedule', feedId);
+        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+        return;
+    }
+
+    hnFirebase = new Firebase('https://hacker-news.firebaseio.com/v0');
+    var topStories = hnFirebase.child('/topstories').limitToFirst(20);
+
+    topStories.on('value', function (snapshot) {
+        var storyIds, redisKeys, keyMaker;
+        
+        keyMaker = function (id) {
+            return 'hnid:' + id;
+        };
+        
+        // convert snapshot to an array of story ids
+        storyIds = snapshot.val();
+        
+        // map story ids to redis keys
+        redisKeys = storyIds.map(function (id) {
+            return keyMaker(id);
+        });
+        
+        world.redisClient.mget(redisKeys, function (err, res) {
+            res.forEach(function (storyId, index) {
+                var redisKey;
+                if (storyId !== null) {  // the story has recently been fetched; ignore it
+                    return;
+                }
+                
+                storyId = storyIds[index];
+                redisKey = keyMaker(storyId);
+                
+                world.redisClient.set(redisKey, storyId, 'EX',  600, function (err, res) {
+                    if (res === 'OK') {
+                        dispatcher.emit('processEntry:hn', feedId, storyIds[index], subscribers);
+                    }
+                    
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+            });
+        });
+    });
+
+    world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+    world.redisClient.publish('feed:reschedule', feedId);
+    logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+    
+});
 
 /**
  * Fetch a StackExchange feed
@@ -112,11 +174,19 @@ dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
  * --------------------------------------------------------------------
  */
 dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
-    var parsedUrl, jsonPath, jsonUrl;
-    parsedUrl = world.url.parse(feedUrl);
-    jsonPath = path.dirname(parsedUrl.path) + '/.json';
+    var parsedUrl, jsonPath, jsonUrl, subreddit;
 
-    jsonUrl = feedUrl.replace(parsedUrl.path, jsonPath);
+    parsedUrl = world.url.parse(feedUrl);
+    subreddit = parsedUrl.path.split('/')[2];
+
+    jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
+
+    if (feedUrl.indexOf('.rss') > -1) {
+        jsonPath = path.dirname(parsedUrl.path) + '/.json';
+        jsonUrl = feedUrl.replace(parsedUrl.path, jsonPath);
+    } else {
+        jsonUrl = feedUrl + '/.json';
+    }
 
     needle.get(jsonUrl, function (err, response) {
         if (err || response.statusCode !== 200) {
@@ -279,64 +349,27 @@ dispatcher.on('processEntry:slashdot', function (feedId, entry, subscribers) {
  * Entry processor for Hacker News
  * --------------------------------------------------------------------
  */
-dispatcher.on('processEntry:hn', function (feedId, entry, subscribers) {
-    var fields = {
-        url: entry.link,
-        title: entry.title
-    };
+dispatcher.on('processEntry:hn', function (feedId, storyId, subscribers) {
+    var self = this;
+    hnFirebase.child('/item/' + storyId).once('value', function (snapshot) {
+        var story = snapshot.val();
+        
+        story.kids = story.kids || [];
 
-    var callback = function (error, dom) {
-        var id;
-        var self = this;
-        var algoliaUrl;
-        dom.forEach(function (node) {
-            if (node.type !== 'tag') {
-                return;
-            }
-
-            if (node.name !== 'a') {
-                return;
-            }
-
-            node.children.forEach(function (child) {
-                if (child.data === 'Comments') {
-                    fields.hnLink = node.attribs.href;
-                    return;
-                }
-            });
-        });
-
-        if (!fields.hnLink) {
-            self.emit('storeEntry', feedId, fields, subscribers);
-        } else {
-            id = fields.hnLink.match(/id=(\d+)/)[1];
-
-            algoliaUrl = 'https://hn.algolia.com/api/v1/search?tags=story_' + id;
-            world.request(algoliaUrl, function (err, resp, body) {
-                if (err || resp.statusCode !== 200) {
-                    logger.error({err: err, status: resp.statusCode}, 'algolia request failed');
-                } else {
-                    logger.trace({id: id, algoliaUrl: algoliaUrl}, 'queried algolia');
-                    body = JSON.parse(body);
-                    try {
-                        fields.hnComments = body.hits[0].num_comments;
-                    } catch(e) {
-                        fields.hnComments = 0;
-                    }
-                }
-
-                self.emit('storeEntry', feedId, fields, subscribers);
-            });
-        }
-
-        logger.trace(fields, 'processed hn entry');
-
-    };
-
-    var handler = new world.htmlparser.DefaultHandler(callback.bind(this));
-    var parser = new world.htmlparser.Parser(handler);
-    parser.parseComplete(entry.content);
-
+        var entry = {
+            title: story.title,
+            date: story.time,
+            url: story.url,
+            hnLink: 'https://news.ycombinator.com/item?id=' + storyId,
+            hnComments: story.kids.length,
+            score: story.score,
+            dead: story.dead || false,
+            type: story.type
+        };
+        
+        self.emit('storeEntry', feedId, entry, subscribers);
+        logger.trace(entry, 'processed hn entry');
+    });
 });
 
 /**

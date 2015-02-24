@@ -263,6 +263,11 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
 
         $scope.entries.map(function (entry) {
             var temp;
+
+            if (entry.hnLink && !entry.url) {
+                entry.url = entry.hnLink;
+            }
+            
             temp = document.createElement('a');
             temp.href = entry.url;
             entry.domain = temp.hostname;
@@ -270,6 +275,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             if (temp.hostname.substring(0, 4) === 'www.') {
                 entry.domain = entry.domain.substring(4);
             }
+
 
             // include the subreddit when displaying reddit links
             if (entry.domain === 'reddit.com') {
