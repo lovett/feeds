@@ -34,16 +34,20 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
     dispatcher.emit(event, feedId, feedUrl, subscribers);
 });
 
+dispatcher.on('postfetch', function (feedId) {
+    world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+    world.redisClient.publish('feed:reschedule', feedId);
+    logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+});
+
 /**
  * Fetch Hacker News stories via Firebase API
  * --------------------------------------------------------------------
  */
 dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
     if (hnFirebase) {
-        // the Firebase client is already connected; request rescheduling
-        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-        world.redisClient.publish('feed:reschedule', feedId);
-        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+        // the Firebase client is already connected; skip to postfetch
+        dispatcher.emit('postfetch', feedId);
         return;
     }
 
@@ -88,10 +92,7 @@ dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
         });
     });
 
-    world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-    world.redisClient.publish('feed:reschedule', feedId);
-    logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
-
+    dispatcher.emit('postfetch', feedId);
 });
 
 /**
@@ -137,11 +138,7 @@ dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
 
         });
 
-        // Request rescheduling
-        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-        world.redisClient.publish('feed:reschedule', feedId);
-        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
-
+        dispatcher.emit('postfetch', feedId);
     });
 });
 
@@ -188,10 +185,7 @@ dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
 
         });
 
-        // Request rescheduling
-        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-        world.redisClient.publish('feed:reschedule', feedId);
-        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+        dispatcher.emit('postfetch', feedId);
     });
 });
 
@@ -244,9 +238,6 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
 
         logger.trace({feedId: feedId, feedUrl: feedUrl}, 'google feed api queried successfully');
 
-        //var data = response.body.responseData;
-        //console.log(data.error)
-
         map = {
             'news.ycombinator.com': 'hn',
             'slashdot.org': 'slashdot'
@@ -285,12 +276,7 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
             });
         }
 
-        // Advance the feed's last-checked-on date
-        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
-
-        // Request rescheduling
-        world.redisClient.publish('feed:reschedule', feedId);
-        logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+        dispatcher.emit('postfetch', feedId);
     });
 });
 
