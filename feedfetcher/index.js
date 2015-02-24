@@ -5,55 +5,32 @@ var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
 var Firebase = require('firebase');
 
+// Number of feeds to process per run
+var batchSize = 1;
+
 var hnFirebase;
 
-dispatcher.on('prefetch', function (feedId, feedUrl, subscribers) {
-    world.request({
-        method: 'HEAD',
-        uri: feedUrl,
-        followRedirect: false
-    }, function (err, response) {
-        var recheckAt;
-        if (err) {
-            recheckAt = Date.now() + (1000 * 60 * 5); // 5 minutes from now
-            logger.error({err: err}, 'feed url error from head request');
-            world.redisClient.publish('feed:reschedule', feedId + '::' + recheckAt);
-            return;
-        }
-
-        if (!response.headers.location) {
-            dispatcher.emit('fetch', feedId, feedUrl, subscribers);
-        } else {
-            world.redisClient.hset(world.keys.feedKey(feedId), 'url', response.headers.location, function (err) {
-                if (err) {
-                    world.logger.error({err: err}, 'unable to update feed url');
-                    return;
-                }
-                dispatcher.emit('fetch', feedId, response.headers.location, subscribers);
-            });
-        }
-    });
-});
-
-
 /**
- * Fetch a feed
+ * Find the best strategy for requesting a feed
  * --------------------------------------------------------------------
- *
+ * Feeds from Reddit, StackExchange, and Hacker News are requested via
+ * their respective APIs. All other feeds are requested via the Google
+ * Feed API.
  */
 dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
-    var parsedFeedUrl, event;
-    parsedFeedUrl = world.url.parse(feedUrl);
+    var host, event;
+    host = world.url.parse(feedUrl).host;
 
-    if (parsedFeedUrl.host === 'www.reddit.com') {
+    if (host.indexOf('reddit.com') > -1) {
         event = 'fetch:reddit';
-    } else if (parsedFeedUrl.host.indexOf('stackexchange.com') > -1) {
+    } else if (host.indexOf('stackexchange.com') > -1) {
         event = 'fetch:stackexchange';
-    } else if (parsedFeedUrl.host === 'news.ycombinator.com') {
-        event = 'fetch:hn';            
+    } else if (host === 'news.ycombinator.com') {
+        event = 'fetch:hn';
     } else {
         event = 'fetch:google';
     }
+
     dispatcher.emit(event, feedId, feedUrl, subscribers);
 });
 
@@ -75,34 +52,34 @@ dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
 
     topStories.on('value', function (snapshot) {
         var storyIds, redisKeys, keyMaker;
-        
+
         keyMaker = function (id) {
             return 'hnid:' + id;
         };
-        
+
         // convert snapshot to an array of story ids
         storyIds = snapshot.val();
-        
+
         // map story ids to redis keys
         redisKeys = storyIds.map(function (id) {
             return keyMaker(id);
         });
-        
+
         world.redisClient.mget(redisKeys, function (err, res) {
             res.forEach(function (storyId, index) {
                 var redisKey;
                 if (storyId !== null) {  // the story has recently been fetched; ignore it
                     return;
                 }
-                
+
                 storyId = storyIds[index];
                 redisKey = keyMaker(storyId);
-                
+
                 world.redisClient.set(redisKey, storyId, 'EX',  600, function (err, res) {
                     if (res === 'OK') {
                         dispatcher.emit('processEntry:hn', feedId, storyIds[index], subscribers);
                     }
-                    
+
                     if (err) {
                         console.log(err);
                     }
@@ -114,7 +91,7 @@ dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
     world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
     world.redisClient.publish('feed:reschedule', feedId);
     logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
-    
+
 });
 
 /**
@@ -293,8 +270,22 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
             return true;
         });
 
-        //logger.error({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint, error: e}, 'no entries found');
+        // Warn if there are no entries in the feed
+        if (feed.entries.length === 0) {
+            logger.warn({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint}, 'no entries found');
+        }
 
+        // Update the feed URL if Google indicates a different one
+        if (feedUrl !== feed.feedUrl) {
+            logger.info({'feedId': feedId, 'oldUrl': feedUrl, 'newUrl': feed.feedUrl}, 'updating feed url');
+            world.redisClient.hset(world.keys.feedKey(feedId), 'url', feed.feedUrl, function (err) {
+                if (err) {
+                    world.logger.error({err: err}, 'unable to update feed url');
+                }
+            });
+        }
+
+        // Advance the feed's last-checked-on date
         world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
 
         // Request rescheduling
@@ -378,7 +369,7 @@ dispatcher.on('processEntry:hn', function (feedId, storyId, subscribers) {
             dead: story.dead || false,
             type: story.type
         };
-        
+
         self.emit('storeEntry', feedId, entry, subscribers);
         logger.trace(entry, 'processed hn entry');
     });
@@ -474,9 +465,6 @@ var main = function () {
 
     var now = new Date().getTime();
 
-    // Number of feeds to process per run
-    var batchSize = 1;
-
     world.redisClient.zrangebyscore([world.keys.feedQueueKey, '-inf', now, 'LIMIT', 0, batchSize], function (err, feedIds) {
         if (err) {
             logger.error(err);
@@ -515,7 +503,9 @@ var main = function () {
 
                         world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, subscribers) {
                             if (subscribers.length > 0) {
-                                dispatcher.emit('prefetch', feedId, url, subscribers);
+                                dispatcher.emit('fetch', feedId, url, subscribers);
+                            } else {
+                                logger.trace({feedId: feedId}, 'no subscribers');
                             }
                         });
                     }
