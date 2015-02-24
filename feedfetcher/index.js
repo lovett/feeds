@@ -1,4 +1,3 @@
-/*jshint camelcase:false */
 var world = require('../world');
 var needle = require('needle');
 var path = require('path');
@@ -72,7 +71,7 @@ dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
     }
 
     hnFirebase = new Firebase('https://hacker-news.firebaseio.com/v0');
-    var topStories = hnFirebase.child('/topstories').limitToFirst(20);
+    var topStories = hnFirebase.child('/topstories').limitToFirst(30);
 
     topStories.on('value', function (snapshot) {
         var storyIds, redisKeys, keyMaker;
@@ -146,6 +145,7 @@ dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
             return;
         }
 
+        /*jshint camelcase:false */
         response.body.items.forEach(function (item) {
             var fields;
 
@@ -195,6 +195,7 @@ dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
             return;
         }
 
+        /*jshint camelcase:false */
         response.body.data.children.forEach(function (child) {
             var entry, fields;
             entry = child.data;
@@ -353,8 +354,19 @@ dispatcher.on('processEntry:hn', function (feedId, storyId, subscribers) {
     var self = this;
     hnFirebase.child('/item/' + storyId).once('value', function (snapshot) {
         var story = snapshot.val();
-        
-        story.kids = story.kids || [];
+
+        // val() could have returned a null, indicating the snapshot was empty
+        if (!(story instanceof Object)) {
+            return;
+        }
+
+        if (!(story.kids instanceof Array)) {
+            story.kids = [];
+        }
+
+        if (!('dead' in story)) {
+            story.dead = false;
+        }
 
         var entry = {
             title: story.title,
