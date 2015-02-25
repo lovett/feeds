@@ -10,6 +10,7 @@ var batchSize = 1;
 
 var hnFirebase;
 
+
 /**
  * Find the best strategy for requesting a feed
  * --------------------------------------------------------------------
@@ -117,8 +118,8 @@ dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
     });
 
     needle.get(endpoint, function (err, response) {
-        if (err || response.statusCode !== 200) {
-            world.logger.error({err: err, status: response.responseStatus}, 'stackexchange api request failed, will try later');
+        if (err) {
+            world.logger.error({message: err.message}, 'rescheduling after failure');
             world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
@@ -163,8 +164,8 @@ dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
     }
 
     needle.get(jsonUrl, function (err, response) {
-        if (err || response.statusCode !== 200) {
-            world.logger.error({err: err, status: response.responseStatus}, 'reddit api request failed, will try later');
+        if (err) {
+            world.logger.error({message: err.message}, 'rescheduling after failure');
             world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
@@ -225,12 +226,12 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
         var map, processEvent;
 
         if (err) {
-            world.logger.error({err: err}, 'google feed api request failed, will try later');
+            world.logger.error({message: err.message}, 'rescheduling after failure');
             world.redisClient.publish('feed:reschedule', feedId);
             return;
         }
 
-        if (response.body.responseStatus !== 200) {
+        if (response.statusCode !== 200) {
             logger.error({feedId: feedId, feedUrl: feedUrl, statusCode: response.body.statusCode}, 'google feed api error, will try later');
             world.redisClient.publish('feed:reschedule', feedId);
             return;
@@ -481,20 +482,18 @@ var main = function () {
                     });
                 }
 
-                world.redisClient.zrem(world.keys.feedQueueKey, feedId, function (err) {
+                world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, subscribers) {
                     if (err) {
                         logger.error({redis: err}, 'redis error');
-                    } else {
-                        logger.trace({feedId: feedId}, 'dequeued');
-
-                        world.redisClient.smembers(world.keys.feedSubscribersKey(feedId), function (err, subscribers) {
-                            if (subscribers.length > 0) {
-                                dispatcher.emit('fetch', feedId, url, subscribers);
-                            } else {
-                                logger.trace({feedId: feedId}, 'no subscribers');
-                            }
-                        });
                     }
+
+                    if (subscribers.length < 1) {
+                        world.redisClient.zrem(world.keys.feedQueueKey, feedId);
+                        logger.trace({feedId: feedId, url: url}, 'dequeued - no subscribers');
+                    } else {
+                        dispatcher.emit('fetch', feedId, url, subscribers);
+                    }
+
                 });
             });
         });
