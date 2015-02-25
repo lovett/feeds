@@ -87,14 +87,14 @@ rescheduleFeed = function (feedId, timestamp) {
             // The feed has never been checked. Check it now.
             verdict = 'new feed';
             details.nextCheck = now;
-        } else if (prevCheck < now - (interval * 3)) {
-            // The feed was last checked more than 3 intervals ago. Check it now.
-            verdict = 'stale';
-            details.nextCheck = now;
         } else if (nextCheck > now) {
             // The feed is already scheduled for a future check. Leave as-is.
             verdict = 'left as-is';
             details.nextCheck = nextCheck;
+        } else if (prevCheck < now - (interval * 3)) {
+            // The feed was last checked more than 3 intervals ago. Check it now.
+            verdict = 'stale';
+            details.nextCheck = now;
         } else {
             // The feed was checked recently (within the past 3 intervals or
             // less). Check again at least 1 interval from now if the
