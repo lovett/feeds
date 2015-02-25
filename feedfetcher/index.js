@@ -10,9 +10,8 @@ var batchSize = 1;
 
 var hnFirebase;
 
-
 /**
- * Find the best strategy for requesting a feed
+ * Figure out how to fetch a feed
  * --------------------------------------------------------------------
  * Feeds from Reddit, StackExchange, and Hacker News are requested via
  * their respective APIs. All other feeds are requested via the Google
@@ -35,10 +34,25 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
     dispatcher.emit(event, feedId, feedUrl, subscribers);
 });
 
-dispatcher.on('postfetch', function (feedId) {
-    world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+/**
+ * Tell the scheduler to reschedule a feed
+ * --------------------------------------------------------------------
+ * Handles both failure and success according to the value of the err
+ * argument, which can either be an object or a numeric HTTP response code
+ */
+dispatcher.on('reschedule', function (feedId, err) {
+
+    if (typeof errOrStatus === 'number') {
+        world.logger.error({feedId: feedId, status: err}, 'rescheduling after failure');
+    } else if (err) {
+        world.logger.error({feedId: feedId, err: err}, 'rescheduling after failure');
+    } else {
+        world.logger.trace({feedId: feedId}, 'rescheduling after success');
+        world.redisClient.hset(world.keys.feedKey(feedId), 'prevCheck', new Date().getTime());
+    }
+
     world.redisClient.publish('feed:reschedule', feedId);
-    logger.trace({feedId: feedId}, 'fetch complete, reschedule requested');
+
 });
 
 /**
@@ -48,7 +62,7 @@ dispatcher.on('postfetch', function (feedId) {
 dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
     if (hnFirebase) {
         // the Firebase client is already connected; skip to postfetch
-        dispatcher.emit('postfetch', feedId);
+        dispatcher.emit('reschedule', feedId);
         return;
     }
 
@@ -93,7 +107,7 @@ dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
         });
     });
 
-    dispatcher.emit('postfetch', feedId);
+    dispatcher.emit('reschedule', feedId);
 });
 
 /**
@@ -119,8 +133,12 @@ dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
 
     needle.get(endpoint, function (err, response) {
         if (err) {
-            world.logger.error({message: err.message}, 'rescheduling after failure');
-            world.redisClient.publish('feed:reschedule', feedId);
+            dispatcher.emit('reschedule', feedId, err);
+            return;
+        }
+
+        if (response.statusCode !== 200) {
+            dispatcher.emit('reschedule', feedId, response.statusCode);
             return;
         }
 
@@ -139,7 +157,7 @@ dispatcher.on('fetch:stackexchange', function (feedId, feedUrl, subscribers) {
 
         });
 
-        dispatcher.emit('postfetch', feedId);
+        dispatcher.emit('reschedule', feedId);
     });
 });
 
@@ -165,8 +183,12 @@ dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
 
     needle.get(jsonUrl, function (err, response) {
         if (err) {
-            world.logger.error({message: err.message}, 'rescheduling after failure');
-            world.redisClient.publish('feed:reschedule', feedId);
+            dispatcher.emit('reschedule', feedId, err);
+            return;
+        }
+
+        if (response.statusCode !== 200) {
+            dispatcher.emit('reschedule', feedId, response.statusCode);
             return;
         }
 
@@ -186,15 +208,13 @@ dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
 
         });
 
-        dispatcher.emit('postfetch', feedId);
+        dispatcher.emit('reschedule', feedId);
     });
 });
 
 /**
  * Fetch a feed via Google Feed API
  * --------------------------------------------------------------------
- * This is an EventEmitter callback.
- *
  * https://developers.google.com/feed/v1/jsondevguide
  */
 dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
@@ -226,14 +246,12 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
         var map, processEvent;
 
         if (err) {
-            world.logger.error({message: err.message}, 'rescheduling after failure');
-            world.redisClient.publish('feed:reschedule', feedId);
+            dispatcher.emit('reschedule', feedId, err);
             return;
         }
 
         if (response.statusCode !== 200) {
-            logger.error({feedId: feedId, feedUrl: feedUrl, statusCode: response.body.statusCode}, 'google feed api error, will try later');
-            world.redisClient.publish('feed:reschedule', feedId);
+            dispatcher.emit('reschedule', feedId, response.statusCode);
             return;
         }
 
@@ -277,14 +295,13 @@ dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
             });
         }
 
-        dispatcher.emit('postfetch', feedId);
+        dispatcher.emit('reschedule', feedId);
     });
 });
 
 /**
  * Process a feed entry
  * --------------------------------------------------------------------
- *
  * This is the general-purpose processor. Certain feeds have custom
  * processors.
  */
