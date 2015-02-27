@@ -89,7 +89,7 @@ module.exports = function(grunt) {
                 options: {
                     jshintrc: '.jshintrc-node'
                 },
-                src: ['Gruntfile.js', 'server/index.js', 'scheduler/index.js', 'feedfetcher/index.js']
+                src: ['Gruntfile.js', 'dispatcher']
             },
             browser: {
                 options: {
@@ -111,6 +111,27 @@ module.exports = function(grunt) {
                 dest: 'static/css/app.min.css'
             }
         },
+
+        mochaTest: {
+            dispatcher: {
+                options: {
+                    reporter: 'spec',
+                    bail: true,
+                },
+                src: ['test/dispatcher/*-spec.js']
+            }
+        },
+
+        'mocha_istanbul': {
+            dispatcher: {
+                src: 'test/dispatcher',
+                options: {
+                    mask: '*-spec.js',
+                    coverageFolder: 'coverage/dispatcher'
+                }
+            }
+        },
+        
 
         nodemon: {
             server: {

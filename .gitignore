@@ -11,3 +11,4 @@ static
 archive
 *.log
 env.json
+coverage
