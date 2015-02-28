@@ -1,11 +1,15 @@
 var assert = require('assert');
 var events = require('events');
+var path = require('path');
 var dispatcher = require('../../dispatcher');
 var sinon = require('sinon');
 
-
 describe('index.js', function() {
-    it('should export a object that inherits from EventEmitter', function () {
+    beforeEach(function () {
+        this.fixturePath = path.join(process.cwd(), 'test', 'dispatcher', 'fixtures');        
+    });
+    
+    it('should export an object that inherits from EventEmitter', function () {
         assert(dispatcher instanceof events.EventEmitter);
     });
     
@@ -71,9 +75,53 @@ describe('index.js', function() {
     });
 
     describe('autoload()', function () {
+        beforeEach(function () {
+            this.autoloadFixture = path.join(this.fixturePath, 'autoload');
+            sinon.stub(dispatcher, 'load');
+        });
+
+        afterEach(function () {
+            dispatcher.load.restore();
+        });
+
+        it('calls load for every js file found', function (done) {
+            dispatcher.autoload(this.autoloadFixture);
+
+            var interval = setInterval(function () {
+                if (dispatcher.load.callCount === 4) {
+                    clearInterval(interval);
+                    done();
+                }
+            });
+        });
     });
 
     describe('load()', function () {
+        beforeEach(function () {
+            sinon.stub(dispatcher, 'on');
+        });
+
+        afterEach(function () {
+            dispatcher.on.restore();
+        });
+
+        it('registers a listener when a module exports a function', function () {
+            var loadPath = path.join(this.fixturePath, 'autoload', 'subdir', 'subdir2', 'deep.js');
+            dispatcher.load(loadPath, this.fixturePath);
+            sinon.assert.calledWith(dispatcher.on, 'autoload:subdir:subdir2:deep');
+        });
+
+        it('rolls up index files when determining the event name', function () {
+            var loadPath = path.join(this.fixturePath, 'autoload', 'index.js');
+            dispatcher.load(loadPath, this.fixturePath);
+            sinon.assert.calledWith(dispatcher.on, 'autoload');
+        });
+        
+        it('ignores a module if it does not export a function', function () {
+            var loadPath = path.join(this.fixturePath, 'autoload', 'object.js');
+            dispatcher.load(loadPath, this.fixturePath);
+            sinon.assert.notCalled(dispatcher.on);
+        });
     });
     
 })

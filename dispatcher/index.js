@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var events = require('events');
-
 var emitter = new events.EventEmitter();
 
 // How long to wait between retries
@@ -47,24 +46,10 @@ emitter.insist = function (event, args, retries) {
  * Load event listeners
  */
 emitter.autoload = function (dir) {
-    var callbacks = {};
     dir = dir || __dirname;
 
-    callbacks.readdir = function (err, items) {
-        if (err) {
-            console.log(err);
-            process.exit(1);
-        }
-        items.forEach(callbacks.item.bind(this));
-    };
-
-    callbacks.item = function (item) {
-        var itemPath = path.join(dir, item);
-        fs.stat(itemPath, callbacks.stat.bind(this, itemPath));
-    };
-
-    callbacks.stat = function (itemPath, err, stats) {
-        var parsedPath = path.parse(itemPath);
+    function statPath(itemPath, err, stats) {
+        var parsedPath;
 
         if (err) {
             if (err.code === 'ENOENT') {
@@ -72,35 +57,60 @@ emitter.autoload = function (dir) {
             }
             console.log(err);
             process.exit(1);
-        } else if (stats.isDirectory()) {
+        }
+
+        if (stats.isDirectory()) {
             this.autoload(itemPath);
-        } else if (stats.isFile()) {
-            // only consider js files
-            if (parsedPath.ext !== '.js') {
-                return;
-            }
-            
-            // ignore this file
-            if (itemPath === __filename) {
-                return;
-            }
-            
-            // ignore dot files
-            if (parsedPath.base.indexOf('.') === 0) {
-                return;
-            }
-            
+            return;
+        }
+
+        // exclude dot files and non-js files
+        parsedPath = path.parse(itemPath);
+
+        if (parsedPath.name.indexOf('.') === 0) {
+            return;
+        }
+
+        if (parsedPath.ext !== '.js') {
+            return;
+        }
+
+        // only consider files
+        if (stats.isFile()) {
             this.load(itemPath);
         }
-    };
+    }
 
-    fs.readdir(dir, callbacks.readdir.bind(this));
+    fs.readdir(dir, function (err, items) {
+        if (err) {
+            console.log(err);
+            process.exit();
+        }
+
+        // prepend directory
+        items = items.map(function (item) {
+            return path.join(dir, item);
+        });
+
+        // prevent self-loading
+        items = items.filter(function (item) {
+            return item !== __filename;
+        });
+
+        items.forEach(function (item) {
+            fs.stat(item, statPath.bind(this, item));
+        }.bind(this));
+
+    }.bind(this));
+
+    return this;
 };
 
-emitter.load = function (filePath) {
+emitter.load = function (filePath, root) {
     var parsedPath, relPath, event, module;
     parsedPath = path.parse(filePath);
-    relPath = filePath.replace(__dirname + path.sep, '');
+    root = root || __dirname;
+    relPath = filePath.replace(root, '').replace(path.sep, '');
 
     // the event name is derived from the file path
     event = relPath.replace(parsedPath.ext, '');
