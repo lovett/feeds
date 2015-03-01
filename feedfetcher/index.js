@@ -374,6 +374,10 @@ dispatcher.on('processEntry:hn', function (feedId, storyId, subscribers) {
             type: story.type
         };
 
+        if (!entry.url) {
+            entry.url = entry.hnLink;
+        }
+
         self.emit('storeEntry', feedId, entry, subscribers);
         logger.trace(entry, 'processed hn entry');
     });
