@@ -152,12 +152,6 @@ module.exports = function(grunt) {
                     watch: 'scheduler'
                 }
             },
-            indexer: {
-                script: 'indexer/index.js',
-                options: {
-                    watch: 'indexer'
-                }
-            },
             downloader: {
                 script: 'downloader/index.js',
                 options: {

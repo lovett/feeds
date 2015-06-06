@@ -17,19 +17,6 @@
 
 
                 <section ng-show="user.loggedIn" class="top-bar-section" ng-cloak>
-                    <ul class="left" ng-show="listSize > 0">
-                        <li class="has-form">
-                            <form name="searchForm" ng-controller="ListController" ng-submit="search(query)" class="row collapse" novalidate>
-                                <div class="large-8 small-9 columns">
-                                    <input type="text" ng-model="query.terms" />
-                                </div>
-                                <div class="large-4 small-3 columns">
-                                    <a href="#" ng-click="search(query)" class="success button expand">Search</a>
-                                </div>
-                            </form>
-                        </li>
-                    </ul>
-
                     <ul class="right">
                         <li class="divider"></li>
                         <li ng-class="{active: listName == 'unread'}"><a href="/entries/unread/">Unread</a></li>
