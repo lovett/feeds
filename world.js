@@ -71,9 +71,6 @@ module.exports = {
         // remove the www subdomain
         norm = norm.replace(/^www\./, '');
 
-        // remove the querystring
-        norm = norm.replace(/\?.*/, '')
-
         // remove the trailing slash
         norm = norm.replace(/\/$/, '')
 
@@ -118,7 +115,7 @@ module.exports = {
         feedListKey: function(userId) {
             return "user:" + userId + ':feeds';
         },
-        
+
         // A sorted set of next-check timestamps for each subscribed
         // feed. The set memeber is a feed id. The score is a unix
         // timestamp indicating when the feed should next be fetched.
