@@ -1,7 +1,6 @@
 var world = require('../world');
 var crypto = require('crypto');
 var restify = require('restify');
-var elasticsearch = require('elasticsearch');
 var logger = world.logger.child({source: 'webserver'});
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
