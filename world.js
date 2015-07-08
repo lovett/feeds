@@ -105,6 +105,9 @@ module.exports = {
             }
             return value;
         },
+        feedKeyCLI: function (feedId, userId) {
+            return 'hgetall ' + this.feedKey(feedId, userId);
+        },
 
         // A set of user ids that are subscribed to a feed
         feedSubscribersKey: function (feedId) {

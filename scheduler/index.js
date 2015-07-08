@@ -1,26 +1,28 @@
 var world = require('../world');
 var logger = world.logger.child({source: 'scheduler'});
 
-var scheduleFeed, descheduleFeed, rescheduleFeed;
-
 /**
- * Figure out when to update a feed
- * --------------------------------------------------------------------
+ * Decide whether to fetch a feed in the future
+ *
  * This is a pubsub callback on the Redis feed:reschedule channel, which
  * receives messages when someone subscribes to a feed, unsubscribes, or
- * after an update has occurred.
+ * after a fetch has occurred.
  *
- * The minimum interval between updates is the same for all feeds.
+ * A feed should only be scheduled for fetching if it has
+ * subscribers. If it doesn't, it should be made inactive.
+ *
+ * The message argument is either a string containing a feed ID or a
+ * double colon delimited string containing a feed ID and a unix
+ * timestamp of when the next fetch should occur.
  */
-scheduleFeed = function (params) {
-    params = params.split('::');
-    var feedId = params.shift();
-    var timestamp = params.shift();
-    var subscribersKey = world.keys.feedSubscribersKey(feedId);
+function scheduleFeed(message) {
+    var messageFields, feedId, timestamp, subscribersKey;
+    
+    messageFields = message.split('::');
+    feedId = messageFields[0];
+    timestamp = messageFields[1];
+    subscribersKey = world.keys.feedSubscribersKey(feedId);
 
-    // Scheduling should only occur if the feed has subscribers.  The
-    // number of subscribers is determined from the length of the
-    // feed's subscribers key.
     world.redisClient.smembers(subscribersKey, function (err, result) {
         if (err) {
             logger.error(err);
@@ -33,17 +35,19 @@ scheduleFeed = function (params) {
             rescheduleFeed(feedId, timestamp);
         }
     });
-};
+}
+
 
 /**
- * Make an inactive feed ineligible for further scheduling
- * --------------------------------------------------------------------
+ * Mark a feed with no subscribers ineligible for rescheduling
+ *
+ * A feed with without a nextCheck is considered inactive.
  */
-descheduleFeed = function (feedId) {
-    var multi = world.redisClient.multi();
-    var feedKey = world.keys.feedKey(feedId);
+function descheduleFeed(feedId) {
+    var multi, feedKey;
+    multi = world.redisClient.multi();
+    feedKey = world.keys.feedKey(feedId);
 
-    // Remove nextCheck to indicate the feed is inactive
     multi.hdel(feedKey, 'nextCheck');
 
     // Take the feed out of the schedule
@@ -55,113 +59,112 @@ descheduleFeed = function (feedId) {
     multi.exec(function (err) {
         if (err) {
             logger.error(err);
-        } else {
-            logger.trace({feed: feedId}, 'dequeued, no subscribers');
+            return;
         }
+
+        logger.trace({feed: feedId}, 'dequeued, no subscribers');
     });
-};
+}
+
 
 /**
- * Update the next check date of a feed
- * --------------------------------------------------------------------
+ * Schedule a feed for fetching
+ *
+ * Slow-moving feeds get checked once per day. Fast-moving feeds are
+ * checked multiple times per day.
  */
-rescheduleFeed = function (feedId, timestamp) {
-    var now = new Date().getTime();
-    var interval = world.feedCheckInterval;
-    var multi = world.redisClient.multi();
-    var feedKey = world.keys.feedKey(feedId);
-    var oneDayMs = world.minToMs(60 * 24);
+function rescheduleFeed(feedId, timestamp) {
+    var now, multi, feedKey, oneDayMs;
+    
+    multi = world.redisClient.multi();
+    now = new Date().getTime();
+    oneDayMs = world.minToMs(60 * 24);
+    feedKey = world.keys.feedKey(feedId);
 
-    world.redisClient.hmget([feedKey, 'prevCheck', 'nextCheck', 'updated'], function (err, result) {
-        var prevCheck = parseInt(result.shift(), 10) || 0;
-        var nextCheck = parseInt(result.shift(), 10) || 0;
-        var lastUpdatedMs = parseInt(result.shift(), 10) || 0;
-        var details = {};
-        var verdict;
+    world.redisClient.hgetall(feedKey, function (err, feed) {
         var contentAgeMs;
+        
+        Object.keys(feed).map(function (key) {
+            if (key === 'prevCheck' || key === 'nextCheck' || key === 'updated') {
+                feed[key] = parseInt(feed[key], 10);
+                return true;
+            }
+        });
 
         if (timestamp) {
-            verdict = 'explicitly scheduled';
-            details.nextCheck = timestamp;
-        } else if (nextCheck === 0 && prevCheck === 0) {
-            // The feed has never been checked. Check it now.
-            verdict = 'new feed';
-            details.nextCheck = now;
-        } else if (nextCheck > now) {
-            // The feed is already scheduled for a future check. Leave as-is.
-            verdict = 'left as-is';
-            details.nextCheck = nextCheck;
-        } else if (prevCheck < now - (interval * 3)) {
-            // The feed was last checked more than 3 intervals ago. Check it now.
-            verdict = 'stale';
-            details.nextCheck = now;
+            feed.verdict = 'explicitly scheduled';
+            feed.nextCheck = timestamp;
+        } else if (!feed.nextCheck && !feed.prevCheck) {
+            feed.verdict = 'new feed';
+            feed.nextCheck = now;
+        } else if (feed.nextCheck > now) {
+            feed.verdict = 'left as-is';
+        } else if (feed.prevCheck < now - (world.feedCheckInterval * 3)) {
+            feed.verdict = 'stale';
+            feed.nextCheck = now;
         } else {
-            // The feed was checked recently (within the past 3 intervals or
-            // less). Check again at least 1 interval from now if the
-            // content has recently updated.  Otherwise, check
-            // tomorrow.
-            //
-            // Slow moving feeds get checked once per day. Faster
-            // feeds get checked multiple times.
-
-            contentAgeMs = now - lastUpdatedMs;
+            // The feed was checked within the past 3 intervals. Check
+            // again at least 1 interval from now if the content has
+            // recently updated. If not, check tomorrow.
+            contentAgeMs = now - feed.updated;
 
             if (contentAgeMs > oneDayMs) {
-                verdict = 'try tomorrow';
-                details.nextCheck = now + oneDayMs + Math.floor(Math.random() * interval);
+                feed.verdict = 'try tomorrow';
+                feed.nextCheck = now + oneDayMs + Math.floor(Math.random() * world.feedCheckInterval);
             } else {
-                verdict = 'rescheduled';
-                details.nextCheck = now + interval + Math.floor(Math.random() * interval);
+                feed.verdict = 'rescheduled';
+                feed.nextCheck = now + world.feedCheckInterval + Math.floor(Math.random() * world.feedCheckInterval);
             }
         }
 
         // Round to the nearest whole minute
-        details.nextCheck = Math.round(details.nextCheck / world.minToMs(1)) * world.minToMs(1);
+        feed.nextCheck = Math.round(feed.nextCheck / world.minToMs(1)) * world.minToMs(1);
 
-        multi.hmset(feedKey, details);
+        multi.hmset(feedKey, feed);
 
-        multi.zadd([world.keys.feedQueueKey, details.nextCheck, feedId]);
+        multi.zadd([world.keys.feedQueueKey, feed.nextCheck, feedId]);
 
         multi.exec(function (err) {
             if (err) {
                 logger.error(err);
             } else {
-                logger.trace({feed: feedId, details: details}, verdict);
+                logger.trace({
+                    url: feed.url,
+                    redisCLI: world.keys.feedKeyCLI(feedId),
+                    previousCheck: new Date(feed.prevCheck),
+                    nextCheck: new Date(feed.nextCheck)
+                }, feed.verdict);
             }
             return;
         });
     });
-
-};
+}
 
 
 world.redisPubsubClient.on('subscribe', function (channel, count) {
     logger.trace({channel: channel, count: count}, 'listening');
 });
 
+
 world.redisPubsubClient.on('message', function (channel, feedId) {
-    logger.trace({channel: channel, feed: feedId}, 'scheduling');
+    logger.trace({feed: feedId}, 'scheduling');
     scheduleFeed(feedId);
 });
 
+
 world.redisPubsubClient.subscribe('feed:reschedule');
+
 
 logger.info('startup');
 
 
 /**
- * Housekeeping
- * --------------------------------------------------------------------
+ * Attempt to reschedule all active feeds
  *
- * Ideally, this script is always running and never misses a
- * reschedule message. But if there is downtime, a missed recheduling
- * will cause a feed to never get back into the fetch queue. To
- * prevent that, attempt to reschedule all active feeds.
- *
- * It would be tempting to only consider feeds whose nextCheck is in
- * the past, but there is no single key for that.
+ * Ideally, this script is always running and answers all rescheudling
+ * events promptly. If not, a feed might never make it back into the
+ * fetch queue. By rescheduling everything, nothing gets left behind.
  */
-
 world.redisClient.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'], function (err, result) {
     if (err) {
         logger.error(err);
@@ -174,10 +177,11 @@ world.redisClient.zrangebyscore([world.keys.feedSubscriptionsKey, 1, '+inf'], fu
 
 });
 
+
 /**
- * Clean up on shutdown
- * --------------------------------------------------------------------
- * nodemon sends the SIGUSR2 signal during restart
+ * Shutdown cleanup
+ * 
+ * Triggered by nodemon during server restart
  */
 process.once('SIGUSR2', function () {
     world.redisPubsubClient.unsubscribe('feed:reschedule');
