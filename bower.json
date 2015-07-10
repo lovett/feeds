@@ -16,9 +16,9 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "1.4.1",
-    "angular-route": "1.4.1",
-    "angular-resource": "1.4.1",
+    "angular": "1.4.2",
+    "angular-route": "1.4.2",
+    "angular-resource": "1.4.2",
     "foundation": "5.5.2",
     "jquery": "2.1.4",
     "lodash": "3.10.0",
