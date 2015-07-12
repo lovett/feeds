@@ -132,34 +132,6 @@ module.exports = function(grunt) {
             }
         },
         
-
-        nodemon: {
-            server: {
-                script: 'server/index.js',
-                options: {
-                    watch: 'server'
-                }
-            },
-            feedfetcher: {
-                script: 'feedfetcher/index.js',
-                options: {
-                    watch: 'feedfetcher'
-                }
-            },
-            scheduler: {
-                script: 'scheduler/index.js',
-                options: {
-                    watch: 'scheduler'
-                }
-            },
-            downloader: {
-                script: 'downloader/index.js',
-                options: {
-                    watch: 'downloader'
-                }
-            }
-        },
-
         http: {
             onefeed: {
                 options: {
