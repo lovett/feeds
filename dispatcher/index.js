@@ -13,6 +13,7 @@ emitter.maxRetries = 100;
  * Emit an event repeatedly until a listener is available
  */
 emitter.insist = function (event, args, retries) {
+
     if (!event) {
         return false;
     }
@@ -25,6 +26,11 @@ emitter.insist = function (event, args, retries) {
         retries = emitter.maxRetries;
     }
 
+    if (!Array.isArray(args)) {
+        this.insist('log:error', [{event: event, args: args}, 'Event arguments not provided as an array']);
+        return false;
+    }
+
     // if a listener exists, call it
     if (this.listeners(event).length > 0) {
         args.unshift(event);
@@ -34,12 +40,13 @@ emitter.insist = function (event, args, retries) {
 
     // give up if no more retries
     if (retries < 1) {
-        this.emit('log:fatal', {event: event, args: args}, 'Timed out while waiting for listener');
+        this.insist('log:fatal', [{event: event, args: args}, 'Timed out while waiting for listener']);
         return false;
     }
 
     // if no listener, retry
     setTimeout(this.insist.bind(this, event, args, retries - 1), this.retryMs);
+    return true;
 };
 
 /**

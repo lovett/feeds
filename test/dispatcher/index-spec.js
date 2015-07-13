@@ -50,7 +50,6 @@ describe('index.js', function() {
             dispatcher.insist('test', ['arg1', 'arg2', this.spy]);
             this.clock.tick(500);
             sinon.assert.notCalled(this.spy);
-            sinon.assert.calledWith(dispatcher.emit, 'log:fatal');
         });
 
         it('should emit if a listener is subsequently added', function () {
@@ -72,6 +71,11 @@ describe('index.js', function() {
             sinon.assert.calledOnce(this.spy);
         });
         
+        it('should reject arguments not provided as an array', function () {
+            var result = dispatcher.insist('test', 'arg1');
+            assert.strictEqual(result, false);
+        });
+
     });
 
     describe('autoload()', function () {

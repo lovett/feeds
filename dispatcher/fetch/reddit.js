@@ -16,7 +16,6 @@ module.exports = function (feedId, feedUrl, subscribers) {
     subreddit = parsedUrl.path.split('/')[2];
 
     jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
-    console.log(jsonUrl);
 
     callbacks.needleGet = function (err, response) {
         if (err) {
@@ -45,7 +44,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
             url: entry.url
         };
 
-        this.insist('entry:store', feedId, fields, subscribers);
+        this.insist('entry:store', [feedId, fields, subscribers]);
     };
 
     needle.get(jsonUrl, callbacks.needleGet.bind(this));
