@@ -24,7 +24,7 @@ describe('poll handler', function() {
         self = this;
         testUrl = 'http://example.com/feed.rss';
 
-        self.emitter.on('fetch', function (db, feedId, feedUrl) {
+        self.emitter.on('fetch', function (feedId, feedUrl) {
             assert.strictEqual(feedId, 1);
             assert.strictEqual(feedUrl, testUrl);
             done();
@@ -40,7 +40,7 @@ describe('poll handler', function() {
         self = this;
         testUrl = 'http://example.com/feed.rss';
 
-        self.emitter.on('fetch', function (db, feedId, feedUrl) {
+        self.emitter.on('fetch', function (feedId, feedUrl) {
 
             self.db.get('SELECT count(*) as count FROM feeds WHERE id=? AND nextFetchUtc IS NOT NULL', [feedId], function (err, row) {
                 assert.strictEqual(row.count, 1);

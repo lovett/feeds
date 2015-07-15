@@ -22,5 +22,5 @@ module.exports = function (db, feedId, feedUrl, subscribers) {
         fetchEvent = 'fetch:google';
     }
 
-    this.emit(fetchEvent, db, feedId, feedUrl, subscribers);
+    this.emit(fetchEvent, feedId, feedUrl, subscribers);
 };

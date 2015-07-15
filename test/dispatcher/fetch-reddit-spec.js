@@ -19,10 +19,9 @@ describe('reddit fetch handler', function() {
     });
 
     it('normalizes the feed URL to JSON over HTTPS', function (done) {
-        var self, db, feedId, subscribers;
+        var self, feedId, subscribers;
 
         self = this;
-        db = 'foo';
         feedId = 1;
         subscribers = 'bar';
 
@@ -34,14 +33,13 @@ describe('reddit fetch handler', function() {
             done();
         });
         
-        self.emitter.emit('fetch:reddit', db, feedId, this.feedUrl, subscribers);
+        self.emitter.emit('fetch:reddit', feedId, this.feedUrl, subscribers);
     });
 
     it('logs failure', function (done) {
-        var self, db, feedId, subscribers;
+        var self, feedId, subscribers;
 
         self = this;
-        db = 'foo';
         feedId = 1;
         subscribers = 'bar';
 
@@ -52,14 +50,13 @@ describe('reddit fetch handler', function() {
             done();
         });
         
-        self.emitter.emit('fetch:reddit', db, feedId, this.feedUrl, subscribers);
+        self.emitter.emit('fetch:reddit', feedId, this.feedUrl, subscribers);
     });
 
     it('handles absence of children in response', function (done) {
-        var self, db, feedId, subscribers;
+        var self, feedId, subscribers;
 
         self = this;
-        db = 'foo';
         feedId = 1;
         subscribers = 'bar';
 
@@ -70,14 +67,13 @@ describe('reddit fetch handler', function() {
             done();
         });
         
-        self.emitter.emit('fetch:reddit', db, feedId, this.feedUrl, subscribers);
+        self.emitter.emit('fetch:reddit', feedId, this.feedUrl, subscribers);
     });
 
     it('triggers entry storage', function (done) {
-        var self, db, feedId, subscribers;
+        var self, feedId, subscribers;
 
         self = this;
-        db = 'foo';
         feedId = 1;
         subscribers = 'bar';
 
@@ -89,14 +85,13 @@ describe('reddit fetch handler', function() {
             }
         });
 
-        self.emitter.on('entry:store', function (storeDb, storeFeedId, storeFields, storeSubscribers) {
-            assert.strictEqual(db, storeDb);
-            assert.strictEqual(feedId, storeFeedId);
-            assert.strictEqual(subscribers, storeSubscribers);
+        self.emitter.on('entry', function (entryFeedId, entryFields, entryFeedSubscribers) {
+            assert.strictEqual(feedId, entryFeedId);
+            assert.strictEqual(subscribers, entryFeedSubscribers);
             done();
         });
         
-        self.emitter.emit('fetch:reddit', db, feedId, this.feedUrl, subscribers);
+        self.emitter.emit('fetch:reddit', feedId, this.feedUrl, subscribers);
         
     });
     

@@ -5,7 +5,7 @@ var needle = require('needle');
  * Fetch a Reddit feed
  * --------------------------------------------------------------------
  */
-module.exports = function (db, feedId, feedUrl, subscribers) {
+module.exports = function (feedId, feedUrl, subscribers) {
     var self, parsedUrl, subreddit, jsonUrl;
 
     self = this;
@@ -44,7 +44,7 @@ module.exports = function (db, feedId, feedUrl, subscribers) {
             }
         };
 
-        self.emit('entry:store', db, feedId, fields, subscribers);
+        self.emit('entry', feedId, fields, subscribers);
     }
 
     needle.get(jsonUrl, get);

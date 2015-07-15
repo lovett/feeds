@@ -15,7 +15,7 @@ module.exports = function (db) {
             return;
         }
 
-        self.emit('fetch', db, row.id, row.url);
+        self.emit('fetch', row.id, row.url);
         
         db.run('UPDATE feeds SET nextFetchUtc=datetime(nextFetchUtc, "+1 hour") WHERE id=?', [row.id], function () {
             self.emit('poll:done', row.id, row.url);
