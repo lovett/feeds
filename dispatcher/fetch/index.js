@@ -8,7 +8,7 @@ var url = require('url');
  * Feed API.
  */
 
-module.exports = function (feedId, feedUrl, subscribers) {
+module.exports = function (db, feedId, feedUrl, subscribers) {
     var host, fetchEvent;
     host = url.parse(feedUrl).host;
 
@@ -22,5 +22,5 @@ module.exports = function (feedId, feedUrl, subscribers) {
         fetchEvent = 'fetch:google';
     }
 
-    this.insist(fetchEvent, [feedId, feedUrl, subscribers]);
+    this.emit(fetchEvent, db, feedId, feedUrl, subscribers);
 };
