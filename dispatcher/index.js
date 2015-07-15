@@ -4,16 +4,15 @@ var events = require('events');
 var emitter = new events.EventEmitter();
 
 // How long to wait between retries
-emitter.retryMs = 5;
+emitter.retryMs = 10;
 
 // How many retries to make
-emitter.maxRetries = 100;
+emitter.maxRetries = 10;
 
 /**
  * Emit an event repeatedly until a listener is available
  */
 emitter.insist = function (event, args, retries) {
-
     if (!event) {
         return false;
     }
@@ -58,14 +57,6 @@ emitter.autoload = function (dir) {
     function statPath(itemPath, err, stats) {
         var parsedPath;
 
-        if (err) {
-            if (err.code === 'ENOENT') {
-                return;
-            }
-            console.log(err);
-            process.exit(1);
-        }
-
         if (stats.isDirectory()) {
             this.autoload(itemPath);
             return;
@@ -83,15 +74,16 @@ emitter.autoload = function (dir) {
         }
 
         // only consider files
-        if (stats.isFile()) {
-            this.load(itemPath);
+        if (!stats.isFile()) {
+            return;
         }
+
+        this.load(itemPath);
     }
 
     fs.readdir(dir, function (err, items) {
         if (err) {
-            console.log(err);
-            process.exit();
+            throw err;
         }
 
         // prepend directory
@@ -105,7 +97,7 @@ emitter.autoload = function (dir) {
         });
 
         items.forEach(function (item) {
-            fs.stat(item, statPath.bind(this, item));
+            fs.lstat(item, statPath.bind(this, item));
         }.bind(this));
 
     }.bind(this));
@@ -128,7 +120,7 @@ emitter.load = function (filePath, root) {
     }
     
     event = event.join(':');
-
+    
     module = require(filePath);
 
     if (typeof module === 'function') {

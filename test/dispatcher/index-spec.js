@@ -3,6 +3,8 @@ var events = require('events');
 var path = require('path');
 var dispatcher = require('../../dispatcher');
 var sinon = require('sinon');
+var fs = require('fs');
+var os = require('os');
 
 describe('index.js', function() {
     beforeEach(function () {
@@ -98,6 +100,23 @@ describe('index.js', function() {
                 }
             });
         });
+        
+        it('loads from script directory by default', function (done) {
+            dispatcher.autoload();
+
+            var interval = setInterval(function () {
+                if (dispatcher.load.callCount > 0) {
+                    clearInterval(interval);
+                    done();
+                }
+            });
+        });
+
+        it('handles unreadable directories', function (done) {
+            var nonexistantDir = path.join(os.tmpdir(), 'nonexistant-dir');
+            dispatcher.autoload(nonexistantDir);
+            done();
+        });
     });
 
     describe('load()', function () {
@@ -126,6 +145,12 @@ describe('index.js', function() {
             dispatcher.load(loadPath, this.fixturePath);
             sinon.assert.notCalled(dispatcher.on);
         });
+
+        it('defaults to script directory', function () {
+            var loadPath = path.join(__dirname, '..', '..', 'dispatcher', 'poll.js');
+            dispatcher.load(loadPath);
+            sinon.assert.called(dispatcher.on);
+        });
+        
     });
-    
-})
+});
