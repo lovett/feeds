@@ -5,47 +5,47 @@ var needle = require('needle');
  * Fetch a Reddit feed
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, feedUrl, subscribers) {
-    var callbacks, parsedUrl, jsonUrl, subreddit;
+module.exports = function (db, feedId, feedUrl, subscribers) {
+    var self, parsedUrl, subreddit, jsonUrl;
 
-    parsedUrl = url.parse(feedUrl);
-
-    callbacks = {};
-
+    self = this;
     parsedUrl = url.parse(feedUrl);
     subreddit = parsedUrl.path.split('/')[2];
-
     jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
 
-    callbacks.needleGet = function (err, response) {
-        if (err) {
-            this.insist('schedule', feedId, err);
-            return;
-        }
-
+    function get (err, response) {
+        var itemCount = 0;
         if (response.statusCode !== 200) {
-            this.insist('schedule', feedId, response.statusCode);
-            return;
+            self.emit('log:warn', {url: jsonUrl, response: response.statusCode});
         }
 
-        response.body.data.children.forEach(callbacks.eachItem.bind(this));
-        this.insist('schedule', feedId);
-    };
+        if (response.body.data && response.body.data.children) {
+            itemCount = response.body.data.children.length;
+            response.body.data.children.forEach(eachItem);
+        }
 
-    /*jshint camelcase:false */
-    callbacks.eachItem = function (child) {
+        self.emit('fetch:reddit:done', jsonUrl, response.statusCode, itemCount);
+    }
+
+    
+    function eachItem (child) {
         var entry, fields;
         entry = child.data;
+
+        /*jshint camelcase:false */
         fields = {
-            redditComments: entry.num_comments,
-            redditLink: 'https://' + parsedUrl.hostname + entry.permalink,
             title: entry.title,
-            date: entry.created_utc,
-            url: entry.url
+            createdUtc: entry.created_utc,
+            url: entry.url,
+            discussions: {
+                tally: entry.num_comments,
+                name: parsedUrl.hostname,
+                url: 'https://' + parsedUrl.hostname + entry.permalink,
+            }
         };
 
-        this.insist('entry:store', [feedId, fields, subscribers]);
-    };
+        self.emit('entry:store', db, feedId, fields, subscribers);
+    }
 
-    needle.get(jsonUrl, callbacks.needleGet.bind(this));
+    needle.get(jsonUrl, get);
 };
