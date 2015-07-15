@@ -14,6 +14,6 @@ module.exports = function (db) {
 
         db.run('CREATE TABLE IF NOT EXISTS discussions (id INTEGER PRIMARY KEY, entryId INTEGER, tally INTEGER DEFAULT 0, name TEXT, url TEXT, FOREIGN KEY (entryId) REFERENCES entries(id))');
 
-        self.emit('setup:done', db);
+        self.emit('setup:done');
     });
 };
