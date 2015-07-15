@@ -9,9 +9,9 @@
   },
   "main": "server/index.js",
   "scripts": {
-     "server": "nodemon --watch server server/index.js",
-     "scheduler": "nodemon --watch scheduler scheduler/index.js",
-     "feedfetcher": "nodemon --watch feedfetcher feedfetcher/index.js"
+    "server": "nodemon --watch server server/index.js",
+    "scheduler": "nodemon --watch scheduler scheduler/index.js",
+    "feedfetcher": "nodemon --watch feedfetcher feedfetcher/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -50,6 +50,7 @@
     "redis": "0.12.1",
     "request": "2.58.0",
     "restify": "3.0.3",
+    "sqlite3": "3.0.8",
     "string": "3.3.0",
     "xmlbuilder": "2.6.4"
   }
