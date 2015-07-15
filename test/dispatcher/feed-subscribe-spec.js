@@ -21,7 +21,7 @@ describe('feed:subscribe handler', function() {
 
     it('adds a row to the feeds table', function (done) {
         var self = this;
-        
+
         self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
             assert.strictEqual(changes, 1);
             assert.strictEqual(lastID, 1);
@@ -33,8 +33,33 @@ describe('feed:subscribe handler', function() {
                 done();
             });
         });
-        
+
         self.emitter.emit('feed:subscribe', this.db, 'http://example.com/feed.rss');
+    });
+
+    it('prevents duplicates', function (done) {
+        var self, feedUrl;
+
+        self = this;
+        feedUrl = 'http://example.com/feed.rss';
+
+        self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
+            assert.strictEqual(changes, 0);
+            assert.strictEqual(lastID, 1);
+            assert.strictEqual(err, null);
+
+            self.db.get('SELECT COUNT(*) as count FROM feeds', function (err, row) {
+                assert.strictEqual(err, null);
+                assert.strictEqual(row.count, 1);
+                done();
+            });
+        });
+
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [feedUrl], function () {
+            self.emitter.emit('feed:subscribe', self.db, 'http://example.com/feed.rss');
+        });
+
+
     });
 
     it('logs failure', function (done) {
@@ -47,8 +72,7 @@ describe('feed:subscribe handler', function() {
         });
 
         self.db.run('DROP TABLE IF EXISTS feeds', [], function () {
-            self.emitter.emit('feed:subscribe', self.db);    
+            self.emitter.emit('feed:subscribe', self.db);
         });
     });
 });
-    
