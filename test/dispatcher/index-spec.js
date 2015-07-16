@@ -6,7 +6,7 @@ var sinon = require('sinon');
 var fs = require('fs');
 var os = require('os');
 
-describe('index.js', function() {
+describe('dispatcher', function() {
     beforeEach(function () {
         this.fixturePath = path.join(process.cwd(), 'test', 'dispatcher', 'fixtures');        
     });
