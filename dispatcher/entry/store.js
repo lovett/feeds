@@ -7,7 +7,9 @@ var normalize = require('../../util/normalize');
  */
 
 module.exports = function (db, feedId, entry) {
-    var self = this;
+    var self, entryId;
+
+    self = this;
 
     if (!entry.url) {
         self.emit('log:warn', 'rejecting entry with no url', {
@@ -22,13 +24,29 @@ module.exports = function (db, feedId, entry) {
     // Probably not necessary, but just in case
     entry.url = entities.decodeXML(entry.url);
 
-    var normalizedUrl = normalize.url(entry.url);
+    entry.url = normalize.url(entry.url);
 
-    var callback = function () {
-        self.emit('entry:store:done', this.changes, this.lastID);
-    };
-        
-    db.run('INSERT OR IGNORE INTO entries (feedId, url, title, createdUtc) VALUES (?, ?, ?, datetime(?, "unixepoch"))',
-           [feedId, normalizedUrl, entry.title, entry.createdUtc], callback);
+    function entrySaved() {
+        if (this.lastID) {
+            entryId = this.lastID;
+        }
+
+        if (entry.hasOwnProperty('discussion')) {
+            self.emit('discussion', entryId, entry.discussion);
+        }
+
+        self.emit('entry:store:done', this.changes, entryId);
+    }
+
+    db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
+        if (row) {
+            entryId = row.id;
+            db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
+        } else {
+            db.run('INSERT INTO entries (feedId, url, title, createdUtc) VALUES (?, ?, ?, datetime(?, "unixepoch"))',
+                   [feedId, entry.url, entry.title, entry.createdUtc], entrySaved);
+        }
+    });
+
 
 };

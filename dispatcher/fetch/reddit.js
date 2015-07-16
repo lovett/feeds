@@ -37,9 +37,9 @@ module.exports = function (feedId, feedUrl, subscribers) {
             title: entry.title,
             createdUtc: entry.created_utc,
             url: entry.url,
-            discussions: {
+            discussion: {
                 tally: entry.num_comments,
-                name: parsedUrl.hostname,
+                label: parsedUrl.hostname,
                 url: 'https://' + parsedUrl.hostname + entry.permalink,
             }
         };
