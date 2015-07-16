@@ -1,3 +1,3 @@
-module.exports = function (fields, message) {
-    this.insist('log', 'warn', fields, message);
+module.exports = function (message, fields) {
+    this.emit('log', 'warn', message, fields);
 };

@@ -1,3 +1,3 @@
 module.exports = function (message, fields) {
-    this.emit('log', 'error', message, fields);
+    this.emit('log', 'fatal', message, fields);
 };
