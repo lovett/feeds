@@ -12,3 +12,4 @@ archive
 *.log
 env.json
 coverage
+*.sqlite
