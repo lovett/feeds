@@ -10,9 +10,9 @@ module.exports = {
         
         // remove the www subdomain
         norm = norm.replace(/^www\./, '');
-        
-        // remove the querystring
-        norm = norm.replace(/\?.*/, '')
+
+        // remove the anchor
+        norm = norm.replace(/#.*/, '');
         
         // remove the trailing slash
         norm = norm.replace(/\/$/, '')
