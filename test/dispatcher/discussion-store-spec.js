@@ -69,7 +69,6 @@ describe('discussion:store handler', function() {
             assert.strictEqual(firstDiscussionID, 1);
 
             self.emitter.once('discussion:store:done', function (secondChanges, secondDiscussionID) {
-                console.log('secondChanges is', secondChanges);
                 assert.strictEqual(secondChanges, 1);
                 assert.strictEqual(secondDiscussionID, 1);
 
