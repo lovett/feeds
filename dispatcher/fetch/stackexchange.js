@@ -6,37 +6,10 @@ var needle = require('needle');
  * --------------------------------------------------------------------
  */
 module.exports = function (feedId, feedUrl, subscribers) {
-    var callbacks, parsedUrl, endpoint;
+    var self, parsedUrl, endpoint;
 
-    callbacks.needleGet = function (err, response) {
-        if (err) {
-            this.insist('schedule', feedId, err);
-            return;
-        }
-
-        if (response.statusCode !== 200) {
-            this.insist('schedule', feedId, response.statusCode);
-            return;
-        }
-
-        response.body.items.forEach(callbacks.eachItem.bind(this));
-        this.insist('reschedule', feedId);
-    };
-
-    /*jshint camelcase:false */
-    callbacks.eachItem = function (item) {
-        var fields = {
-            stackComments: item.answer_count,
-            url: item.link,
-            title: item.title,
-            date: item.creation_date
-        };
-        
-        this.insist('entry:store', feedId, fields, subscribers);
-    };
-
+    self = this;
     parsedUrl = url.parse(feedUrl);
-
     endpoint = url.format({
         protocol: 'https',
         host: 'api.stackexchange.com',
@@ -48,6 +21,36 @@ module.exports = function (feedId, feedUrl, subscribers) {
             'filter': '!)R7_Ydm)7LrqRF9BkudkXj*v' // answer_count, score, creation_date, link, title
         }
     });
-    
-    needle.get(endpoint, callbacks.needleGet.bind(this));
+
+    function get (err, response) {
+        var itemCount = 0;
+        if (response.statusCode !== 200) {
+            self.emit('log:warn', 'Failed to fetch ' + endpoint, {response: response.statusCode});
+        }
+
+        if (response.body && response.body.items) {
+            itemCount = response.body.items.length;
+            response.body.items.forEach(eachItem);
+        }
+
+        self.emit('fetch:stackexchange:done', endpoint, response.statusCode, itemCount);
+    }
+
+    function eachItem (item) {
+        /*jshint camelcase:false */
+        var fields = {
+            title: item.title,
+            createdUtc: item.creation_date,
+            url: item.link,
+            discussion: {
+                tally: item.answer_count,
+                label: parsedUrl.hostname,
+                url: item.link
+            }
+        };
+
+        self.emit('entry', feedId, fields, subscribers);
+    }
+
+    needle.get(endpoint, get);    
 };
