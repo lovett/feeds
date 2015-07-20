@@ -8,8 +8,12 @@ var url = require('url');
  * Feed API.
  */
 
-module.exports = function (db, feedId, feedUrl, subscribers) {
+module.exports = function (feedId, feedUrl, subscribers) {
     var host, fetchEvent;
+
+    console.log(feedId);
+    console.log(feedUrl);
+
     host = url.parse(feedUrl).host;
 
     if (host.indexOf('reddit.com') > -1) {
@@ -19,7 +23,7 @@ module.exports = function (db, feedId, feedUrl, subscribers) {
     } else if (host === 'news.ycombinator.com') {
         fetchEvent = 'fetch:hn';
     } else {
-        fetchEvent = 'fetch:google';
+        fetchEvent = 'fetch:default';
     }
 
     this.emit(fetchEvent, feedId, feedUrl, subscribers);
