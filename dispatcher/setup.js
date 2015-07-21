@@ -1,10 +1,12 @@
 module.exports = function (db) {
+    'use strict';
+
     var self = this;
 
     db.on('trace', function (query) {
-        self.emit('log:trace', [{'query':query}, 'sql query']);
+        self.emit('log:trace', [{'query': query}, 'sql query']);
     });
-    
+
     db.serialize(function () {
         db.run('PRAGMA foreign_keys=1');
         db.run('CREATE TABLE IF NOT EXISTS feeds (id INTEGER PRIMARY KEY, url TEXT NOT NULL, siteUrl TEXT, nextFetchUtc DEFAULT CURRENT_TIMESTAMP)');

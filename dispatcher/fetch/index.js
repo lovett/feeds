@@ -9,7 +9,9 @@ var url = require('url');
  */
 
 module.exports = function (feedId, feedUrl, subscribers) {
-    var host, fetchEvent;
+    'use strict';
+
+    var fetchEvent, host;
 
     host = url.parse(feedUrl).host;
 

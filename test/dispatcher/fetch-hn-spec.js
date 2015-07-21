@@ -1,12 +1,13 @@
-var url = require('url');
-var MockFirebase = require('mockfirebase').MockFirebase;
-var assert = require('assert');
-var events = require('events');
-var fetchHn = require('../../dispatcher/fetch/hn');
-var needle = require('needle');
-var moment = require('moment');
+var MockFirebase, assert, events, fetchHn;
+
+MockFirebase = require('mockfirebase').MockFirebase;
+assert = require('assert');
+events = require('events');
+fetchHn = require('../../dispatcher/fetch/hn');
 
 describe('Hacker News fetch handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         this.feedUrl = 'http://example.com/feed';
         this.feedId = 1;
@@ -28,7 +29,7 @@ describe('Hacker News fetch handler', function() {
 
     it('triggers entry storage', function (done) {
         var self, story;
-        
+
         self = this;
 
         story = {
@@ -37,7 +38,7 @@ describe('Hacker News fetch handler', function() {
             title: 'test',
             time: new Date().getTime(),
             url: 'http://example.com'
-        }
+        };
 
         self.hnTopStories.set([1]);
         self.hnFirebase.child('/item/1').set(story);
@@ -57,7 +58,7 @@ describe('Hacker News fetch handler', function() {
 
         self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl, self.subscribers);
         self.hnFirebase.flush();
-        
+
     });
 
     it('handles empty snapshot for item', function (done) {
@@ -87,11 +88,12 @@ describe('Hacker News fetch handler', function() {
 
         self.emitter.once('entry', function (entryFeedId, entryFields, entryFeedSubscribers) {
             assert.strictEqual(entryFields.discussion.tally, 0);
+            assert.strictEqual(entryFeedSubscribers, self.subscribers);
             done();
         });
 
         self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl, self.subscribers);
         self.hnFirebase.flush();
     });
-                                                            
+
 });

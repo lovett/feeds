@@ -1,4 +1,5 @@
 module.exports = function(grunt) {
+    'use strict';
 
     require('load-grunt-tasks')(grunt);
 
@@ -26,7 +27,7 @@ module.exports = function(grunt) {
 
         concat: {
             options: {
-                separator: '\n',
+                separator: '\n'
             },
             app: {
                 files: [
@@ -42,7 +43,7 @@ module.exports = function(grunt) {
                               'bower_components/FileSaver/FileSaver.js',
                               'static/app.min.js'
                              ],
-                        dest: 'static/headlines.js',
+                        dest: 'static/headlines.js'
                     }
                 ]
             }
@@ -78,24 +79,15 @@ module.exports = function(grunt) {
             }
         },
 
-        githooks: {
-            all: {
-                'pre-commit': 'jshint'
-            }
+        eslint: {
+            dispatcher: ['dispatcher/**/*.js'],
+            test: ['test/dispatcher/**/*.js'],
+            gruntfile: ['Gruntfile.js']
         },
 
-        jshint: {
-            node: {
-                options: {
-                    jshintrc: '.jshintrc-node'
-                },
-                src: ['Gruntfile.js', 'dispatcher']
-            },
-            browser: {
-                options: {
-                    jshintrc: '.jshintrc-browser'
-                },
-                src: ['ui/**.js']
+        githooks: {
+            all: {
+                'pre-commit': 'eslint'
             }
         },
 
@@ -116,7 +108,7 @@ module.exports = function(grunt) {
             dispatcher: {
                 options: {
                     reporter: 'spec',
-                    bail: true,
+                    bail: true
                 },
                 src: ['test/dispatcher/*-spec.js']
             }
@@ -131,7 +123,7 @@ module.exports = function(grunt) {
                 }
             }
         },
-        
+
         http: {
             onefeed: {
                 options: {
@@ -139,7 +131,7 @@ module.exports = function(grunt) {
                     method: 'POST',
                     json: {
                         subscribe: [
-                            {name: 'Reddit Programming', url: 'http://www.reddit.com/r/programming/.rss'},
+                            {name: 'Reddit Programming', url: 'http://www.reddit.com/r/programming/.rss'}
                         ]
                     }
                 }
@@ -169,7 +161,7 @@ module.exports = function(grunt) {
                         ]
                     }
                 }
-            },
+            }
         },
 
         'string-replace': {
@@ -237,8 +229,7 @@ module.exports = function(grunt) {
                 files: ['ui/less/*.less', 'ui/*.js', 'ui/*.html'],
                 tasks: ['build']
             }
-        },
-
+        }
     });
 
     grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'autoprefixer', 'cssmin', 'copy', 'concat', 'string-replace:dev', 'clean:postBuild']);

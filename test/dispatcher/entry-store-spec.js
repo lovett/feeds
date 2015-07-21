@@ -1,10 +1,14 @@
-var sqlite3 = require('sqlite3').verbose();
-var setup = require('../../dispatcher/setup');
-var entryStore = require('../../dispatcher/entry/store');
-var assert = require('assert');
-var events = require('events');
+var assert, entryStore, events, setup, sqlite3;
+
+sqlite3 = require('sqlite3').verbose();
+setup = require('../../dispatcher/setup');
+entryStore = require('../../dispatcher/entry/store');
+assert = require('assert');
+events = require('events');
 
 describe('entry:store handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         var self = this;
         this.db = new sqlite3.Database(':memory:');
@@ -14,6 +18,9 @@ describe('entry:store handler', function() {
 
         this.emitter.on('setup:done', function () {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
+                if (err) {
+                    throw err;
+                }
                 done();
             });
         });
@@ -28,7 +35,7 @@ describe('entry:store handler', function() {
     });
 
     it('adds a row to the entries table', function (done) {
-        var self, entry;
+        var entry, self;
 
         self = this;
         entry = {
@@ -52,7 +59,7 @@ describe('entry:store handler', function() {
     });
 
     it('blocks duplicate urls', function (done) {
-        var self, entry;
+        var entry, self;
 
         self = this;
         entry = {
@@ -66,9 +73,9 @@ describe('entry:store handler', function() {
         self.emitter.once('entry:store:done', function (changes, entryId) {
             assert.strictEqual(changes, 1);
             assert.strictEqual(entryId, 1);
-            self.emitter.once('entry:store:done', function (changes, entryId) {
-                assert.strictEqual(changes, 0);
-                assert.strictEqual(entryId, 1);
+            self.emitter.once('entry:store:done', function (secondChanges, secondEntryId) {
+                assert.strictEqual(secondChanges, 0);
+                assert.strictEqual(secondEntryId, 1);
 
                 self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                     assert.strictEqual(err, null);
@@ -81,16 +88,19 @@ describe('entry:store handler', function() {
     });
 
     it('requires entry url', function (done) {
-        var self, entry;
+        var entry, self;
 
         self = this;
-        entry = {}
+        entry = {};
 
         self.emitter.on('log:warn', function (message, fields) {
             assert(message);
             assert(fields);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
+                if (err) {
+                    throw err;
+                }
                 assert.strictEqual(row.count, 0);
                 done();
             });
@@ -100,17 +110,20 @@ describe('entry:store handler', function() {
     });
 
     it('requires valid feed ID', function (done) {
-        var self, entry;
+        var entry, self;
 
         self = this;
         entry = {
             url: 'http://example.com'
-        }
+        };
 
-        self.emitter.on('entry:store:done', function (changes, lastID) {
+        self.emitter.on('entry:store:done', function (changes) {
             assert.strictEqual(changes, undefined);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
+                if (err) {
+                    throw err;
+                }
                 assert.strictEqual(row.count, 0);
                 done();
             });
@@ -120,13 +133,15 @@ describe('entry:store handler', function() {
     });
 
     it('emits discussion event', function (done) {
+        var entry, self;
+
         self = this;
         entry = {
             url: 'http://example.com',
             discussion: {
                 'foo': 'bar'
             }
-        }
+        };
 
         self.emitter.on('discussion', function (entryId, discussionFields) {
             assert.strictEqual(entryId, 1);

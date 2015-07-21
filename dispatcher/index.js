@@ -1,7 +1,9 @@
-var fs = require('fs');
-var path = require('path');
-var events = require('events');
-var emitter = new events.EventEmitter();
+var emitter, events, fs, path;
+
+events = require('events');
+emitter = new events.EventEmitter();
+fs = require('fs');
+path = require('path');
 
 // How long to wait between retries
 emitter.retryMs = 10;
@@ -13,9 +15,12 @@ emitter.maxRetries = 10;
  * Emit an event repeatedly until a listener is available
  */
 emitter.insist = function (event, args, retries) {
+    'use strict';
+
     if (!event) {
         return false;
     }
+
 
     if (args === undefined) {
         args = [];
@@ -52,6 +57,8 @@ emitter.insist = function (event, args, retries) {
  * Load event listeners
  */
 emitter.autoload = function (dir) {
+    'use strict';
+
     dir = dir || __dirname;
 
     function statPath(itemPath, err, stats) {
@@ -106,7 +113,9 @@ emitter.autoload = function (dir) {
 };
 
 emitter.load = function (filePath, root) {
-    var parsedPath, relPath, event, module;
+    'use strict';
+
+    var event, module, parsedPath, relPath;
     parsedPath = path.parse(filePath);
     root = root || __dirname;
     relPath = filePath.replace(root, '').replace(path.sep, '');
@@ -118,9 +127,9 @@ emitter.load = function (filePath, root) {
     if (event[event.length - 1] === 'index') {
         event.pop();
     }
-    
+
     event = event.join(':');
-    
+
     module = require(filePath);
 
     if (typeof module === 'function') {

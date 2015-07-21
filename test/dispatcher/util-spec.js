@@ -1,7 +1,11 @@
-var normalize = require('../../util/normalize');
-var assert = require('assert');
+var assert, normalize;
+
+assert = require('assert');
+normalize = require('../../util/normalize');
 
 describe('util/normalize.js', function () {
+    'use strict';
+
     describe('url()', function () {
         it('lowercases input ', function () {
             var input, result;

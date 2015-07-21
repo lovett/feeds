@@ -1,29 +1,13 @@
 module.exports = function (hnFirebase, feedId, feedurl, subscribers) {
+    'use strict';
+
     var self = this;
 
-    function onValue (snapshot) {
-        var ids;
-
-        // convert snapshot to an array of story ids
-        ids = snapshot.val();
-
-        // mockfirebase doesn't automatically convert numerically keyed objects to arrays
-        if (!(ids instanceof Array)) {
-            ids = Object.keys(ids).map(function (key) {
-                return ids[key];
-            });
-        }
-
-        ids.forEach(function (storyId) {
-            hnFirebase.child('/item/' + storyId).once('value', onItem);
-        });
-    }
-
     function onItem (snapshot) {
-        var item, entry;
+        var entry, item;
 
         item = snapshot.val();
-        
+
         // val() could have returned a null, indicating the snapshot was empty
         if (!item) {
             self.emit('log:trace', 'Empty snapshot for item');
@@ -50,6 +34,25 @@ module.exports = function (hnFirebase, feedId, feedurl, subscribers) {
 
         self.emit('entry', feedId, entry, subscribers);
     }
+
+    function onValue (snapshot) {
+        var ids;
+
+        // convert snapshot to an array of story ids
+        ids = snapshot.val();
+
+        // mockfirebase doesn't automatically convert numerically keyed objects to arrays
+        if (!(ids instanceof Array)) {
+            ids = Object.keys(ids).map(function (key) {
+                return ids[key];
+            });
+        }
+
+        ids.forEach(function (storyId) {
+            hnFirebase.child('/item/' + storyId).once('value', onItem);
+        });
+    }
+
 
     hnFirebase.child('/topstories').limitToFirst(30).on('value', onValue);
 };

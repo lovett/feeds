@@ -1,11 +1,14 @@
-var url = require('url');
-var nock = require('nock');
-var assert = require('assert');
-var events = require('events');
-var fetchStackExchange = require('../../dispatcher/fetch/stackexchange');
-var needle = require('needle');
+var assert, events, fetchStackExchange, nock, url;
+
+url = require('url');
+nock = require('nock');
+assert = require('assert');
+events = require('events');
+fetchStackExchange = require('../../dispatcher/fetch/stackexchange');
 
 describe('stackexchange fetch handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         this.feedUrl = 'http://emacs.stackexchange.com/feeds';
         this.mockUrlPath = '/2.2/questions?site=emacs&order=desc&sort=week&filter=!)R7_Ydm)7LrqRF9BkudkXj*v';
@@ -21,7 +24,7 @@ describe('stackexchange fetch handler', function() {
     });
 
     it('normalizes the feed URL to JSON over HTTPS', function (done) {
-        var self, feedId, subscribers;
+        var feedId, self, subscribers;
 
         self = this;
         feedId = 1;
@@ -35,12 +38,12 @@ describe('stackexchange fetch handler', function() {
             assert.strictEqual(statusCode, 200);
             done();
         });
-        
+
         self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl, subscribers);
     });
 
     it('logs failure', function (done) {
-        var self, feedId, subscribers;
+        var feedId, self, subscribers;
 
         self = this;
         feedId = 1;
@@ -52,12 +55,12 @@ describe('stackexchange fetch handler', function() {
             assert.strictEqual(params.response, 400);
             done();
         });
-        
+
         self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl, subscribers);
     });
 
     it('handles absence of children in response', function (done) {
-        var self, feedId, subscribers;
+        var feedId, self, subscribers;
 
         self = this;
         feedId = 1;
@@ -69,12 +72,12 @@ describe('stackexchange fetch handler', function() {
             assert.strictEqual(itemCount, 0);
             done();
         });
-        
+
         self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl, subscribers);
     });
 
     it('triggers entry storage', function (done) {
-        var self, feedId, subscribers;
+        var feedId, self, subscribers;
 
         self = this;
         feedId = 1;
@@ -82,7 +85,7 @@ describe('stackexchange fetch handler', function() {
 
         this.requestMock.reply(200, {
             items: [
-                {"answer_count":3,"score":12,"creation_date":1436868796,"link":"the url","title":"the title"}
+                {'answer_count': 3, 'score': 12, 'creation_date': 1436868796, 'link': 'the url', 'title': 'the title'}
             ]
         });
 
@@ -91,9 +94,9 @@ describe('stackexchange fetch handler', function() {
             assert.strictEqual(subscribers, entryFeedSubscribers);
             done();
         });
-        
+
         self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl, subscribers);
-        
+
     });
-    
+
 });

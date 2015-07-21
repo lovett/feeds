@@ -1,33 +1,22 @@
-var url = require('url');
-var needle = require('needle');
+var needle, url;
+
+needle = require('needle');
+url = require('url');
 
 /**
  * Fetch a Reddit feed
  * --------------------------------------------------------------------
  */
 module.exports = function (feedId, feedUrl, subscribers) {
-    var self, parsedUrl, subreddit, jsonUrl;
+    'use strict';
+
+    var jsonUrl, parsedUrl, self, subreddit;
 
     self = this;
     parsedUrl = url.parse(feedUrl);
     subreddit = parsedUrl.path.split('/')[2];
     jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
 
-    function get (err, response) {
-        var itemCount = 0;
-        if (response.statusCode !== 200) {
-            self.emit('log:warn', {url: jsonUrl, response: response.statusCode});
-        }
-
-        if (response.body.data && response.body.data.children) {
-            itemCount = response.body.data.children.length;
-            response.body.data.children.forEach(eachItem);
-        }
-
-        self.emit('fetch:reddit:done', jsonUrl, response.statusCode, itemCount);
-    }
-
-    
     function eachItem (child) {
         var entry, fields;
         entry = child.data;
@@ -40,12 +29,29 @@ module.exports = function (feedId, feedUrl, subscribers) {
             discussion: {
                 tally: entry.num_comments,
                 label: parsedUrl.hostname,
-                url: 'https://' + parsedUrl.hostname + entry.permalink,
+                url: 'https://' + parsedUrl.hostname + entry.permalink
             }
         };
 
         self.emit('entry', feedId, fields, subscribers);
     }
+
+    function get (err, response) {
+        var itemCount = 0;
+
+        if (err || response.statusCode !== 200) {
+            self.emit('log:warn', 'Failed to fetch feed', {status: response.statusCode, url: jsonUrl, err: err});
+        }
+
+        if (response.body.data && response.body.data.children) {
+            itemCount = response.body.data.children.length;
+            response.body.data.children.forEach(eachItem);
+        }
+
+        self.emit('fetch:reddit:done', jsonUrl, response.statusCode, itemCount);
+    }
+
+
 
     needle.get(jsonUrl, get);
 };

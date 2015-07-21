@@ -1,17 +1,21 @@
-var sqlite3 = require('sqlite3').verbose();
-var setup = require('../../dispatcher/setup');
-var discussionStore = require('../../dispatcher/discussion/store');
-var assert = require('assert');
-var events = require('events');
+var assert, discussionStore, events, setup, sqlite3;
+
+sqlite3 = require('sqlite3').verbose();
+setup = require('../../dispatcher/setup');
+discussionStore = require('../../dispatcher/discussion/store');
+assert = require('assert');
+events = require('events');
 
 describe('discussion:store handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         var self = this;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('discussion:store', discussionStore);
         this.emitter.on('setup', setup);
-        
+
         this.emitter.on('setup:done', function () {
             self.db.serialize(function () {
                 self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss']);
@@ -19,9 +23,9 @@ describe('discussion:store handler', function() {
                 done();
             });
         });
-        
+
         this.emitter.emit('setup', self.db);
-        
+
     });
 
     afterEach(function () {
@@ -30,7 +34,7 @@ describe('discussion:store handler', function() {
     });
 
     it('adds a row to the discussions table', function (done) {
-        var self, discussion;
+        var discussion, self;
 
         self = this;
         discussion = {
@@ -38,7 +42,7 @@ describe('discussion:store handler', function() {
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
-        
+
         self.emitter.on('discussion:store:done', function (changes, lastID) {
             assert.strictEqual(changes, 1);
             assert.strictEqual(lastID, 1);
@@ -54,7 +58,7 @@ describe('discussion:store handler', function() {
     });
 
     it('updates an existing row', function (done) {
-        var self, discussion;
+        var discussion, self;
 
         self = this;
         discussion = {
@@ -62,7 +66,7 @@ describe('discussion:store handler', function() {
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
-        
+
 
         self.emitter.once('discussion:store:done', function (firstChanges, firstDiscussionID) {
             assert.strictEqual(firstChanges, 1);
@@ -81,11 +85,11 @@ describe('discussion:store handler', function() {
 
             discussion.tally = 100;
             self.emitter.emit('discussion:store', self.db, 1, discussion);
-                
+
         });
 
         self.emitter.emit('discussion:store', self.db, 1, discussion);
-        
+
     });
-    
+
 });

@@ -1,13 +1,16 @@
-var entities = require('entities');
-var normalize = require('../../util/normalize');
+var entities, normalize;
+
+entities = require('entities');
+normalize = require('../../util/normalize');
 
 /**
  * Store an entry after it has been processed
  * --------------------------------------------------------------------
  */
-
 module.exports = function (db, feedId, entry) {
-    var self, entryId;
+    'use strict';
+
+    var entryId, self;
 
     self = this;
 
@@ -39,6 +42,10 @@ module.exports = function (db, feedId, entry) {
     }
 
     db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
+        if (err) {
+            self.emit('log:error', 'Failed to select from entries table', {err: err, url: entry.url});
+        }
+
         if (row) {
             entryId = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);

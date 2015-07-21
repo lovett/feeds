@@ -1,10 +1,14 @@
-var sqlite3 = require('sqlite3').verbose();
-var setup = require('../../dispatcher/setup');
-var subscribe = require('../../dispatcher/feed/subscribe');
-var assert = require('assert');
-var events = require('events');
+var assert, events, setup, sqlite3, subscribe;
+
+sqlite3 = require('sqlite3').verbose();
+setup = require('../../dispatcher/setup');
+subscribe = require('../../dispatcher/feed/subscribe');
+assert = require('assert');
+events = require('events');
 
 describe('feed:subscribe handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
@@ -27,7 +31,10 @@ describe('feed:subscribe handler', function() {
             assert.strictEqual(lastID, 1);
             assert.strictEqual(err, null);
 
-            self.db.get('SELECT COUNT(*) as count FROM feeds', function (err, row) {
+            self.db.get('SELECT COUNT(*) as count FROM feeds', function (dbErr, row) {
+                if (dbErr) {
+                    throw dbErr;
+                }
                 assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
                 done();
@@ -38,7 +45,7 @@ describe('feed:subscribe handler', function() {
     });
 
     it('prevents duplicates', function (done) {
-        var self, feedUrl;
+        var feedUrl, self;
 
         self = this;
         feedUrl = 'http://example.com/feed.rss';
@@ -48,7 +55,10 @@ describe('feed:subscribe handler', function() {
             assert.strictEqual(lastID, 1);
             assert.strictEqual(err, null);
 
-            self.db.get('SELECT COUNT(*) as count FROM feeds', function (err, row) {
+            self.db.get('SELECT COUNT(*) as count FROM feeds', function (dbErr, row) {
+                if (dbErr) {
+                    throw dbErr;
+                }
                 assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
                 done();

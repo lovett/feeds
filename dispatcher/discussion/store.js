@@ -1,5 +1,7 @@
 module.exports = function (db, entryId, discussion) {
-    var self, discussionID;
+    'use strict';
+
+    var discussionID, self;
 
     self = this;
 
@@ -12,6 +14,10 @@ module.exports = function (db, entryId, discussion) {
     }
 
     db.get('SELECT id FROM discussions WHERE url=?', [discussion.url], function (err, row) {
+        if (err) {
+            self.emit('log:error', 'Failed to select from discussions table', {err: err, url: discussion.url});
+        }
+
         if (row) {
             discussionID = row.id;
             db.run('UPDATE discussions SET tally=? WHERE id=?', [discussion.tally, discussionID], discussionSaved);

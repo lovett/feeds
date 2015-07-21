@@ -1,12 +1,14 @@
-var url = require('url');
-var nock = require('nock');
-var assert = require('assert');
-var events = require('events');
-var fetchDefault = require('../../dispatcher/fetch/default');
-var needle = require('needle');
-var moment = require('moment');
+var assert, events, fetchDefault, moment, nock;
+
+nock = require('nock');
+assert = require('assert');
+events = require('events');
+fetchDefault = require('../../dispatcher/fetch/default');
+moment = require('moment');
 
 describe('default fetch handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         this.feedUrl = 'http://example.com/feed';
         this.feedId = 1;
@@ -30,7 +32,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(params.response, 400);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, this.feedUrl, this.subscribers);
     });
 
@@ -43,7 +45,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(itemCount, 0);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
     });
 
@@ -58,7 +60,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(itemCount, 5);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
     });
 
@@ -77,7 +79,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(itemCount, 5);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
     });
 
@@ -92,7 +94,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(itemCount, 5);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
     });
 
@@ -111,12 +113,13 @@ describe('default fetch handler', function() {
             assert.strictEqual(fields.url, self.feedUrl);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
     });
 
     it('triggers entry storage for atom feeds', function (done) {
-        var self = this, reply;
+        var reply, self;
+        self = this;
 
         reply = {
             feed: {
@@ -124,13 +127,13 @@ describe('default fetch handler', function() {
                     title: { _: 'the title', '$': {type: 'text'} },
                     published: new Date(),
                     link: [
-                        { '$': 
+                        { '$':
                           { rel: 'replies',
                             type: 'application/atom+xml',
                             href: 'http://example.com/replies',
                             title: 'Post Comments' }
                         },
-                        { '$': 
+                        { '$':
                           { rel: 'whatever',
                             type: 'text/html',
                             href: 'http://example.com/whatever'
@@ -147,7 +150,7 @@ describe('default fetch handler', function() {
                 }]
             }
         };
-        
+
         this.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (feedId, fields, subscribers) {
@@ -158,22 +161,23 @@ describe('default fetch handler', function() {
             assert.strictEqual(fields.createdUtc, moment(reply.feed.entry[0].published).format('X') * 1000);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
-        
+
     });
 
     it('picks up original link from feedburner feeds', function (done) {
-        var self = this, reply;
+        var reply, self;
+        self = this;
 
         reply = {
             feed: {
                 entry: [{
-                    'feedburner:origLink': 'http://example.com/entry',
+                    'feedburner:origLink': 'http://example.com/entry'
                 }]
             }
         };
-        
+
         this.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (feedId, fields, subscribers) {
@@ -182,13 +186,14 @@ describe('default fetch handler', function() {
             assert.strictEqual(fields.url, reply.feed.entry[0]['feedburner:origLink']);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
-        
+
     });
-    
+
     it('triggers entry storage for rss feeds', function (done) {
-        var self = this, reply;
+        var reply, self;
+        self = this;
 
         reply = {
             rss: {
@@ -204,7 +209,7 @@ describe('default fetch handler', function() {
                 }
             }
         };
-        
+
         this.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (feedId, fields, subscribers) {
@@ -218,13 +223,14 @@ describe('default fetch handler', function() {
             assert.strictEqual(fields.discussion.label, 'example.com');
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
-        
+
     });
 
     it('triggers entry storage for rdf feeds', function (done) {
-        var self = this, reply;
+        var reply, self;
+        self = this;
 
         reply = {
             item: [
@@ -235,7 +241,7 @@ describe('default fetch handler', function() {
                 }
             ]
         };
-        
+
         this.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (feedId, fields, subscribers) {
@@ -246,8 +252,8 @@ describe('default fetch handler', function() {
             assert.strictEqual(fields.createdUtc, moment(reply.item[0].pubDate).format('X') * 1000);
             done();
         });
-        
+
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl, this.subscribers);
-        
+
     });
 });

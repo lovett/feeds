@@ -1,20 +1,23 @@
-var assert = require('assert');
-var events = require('events');
-var path = require('path');
-var dispatcher = require('../../dispatcher');
-var sinon = require('sinon');
-var fs = require('fs');
-var os = require('os');
+var assert, dispatcher, events, os, path, sinon;
+
+assert = require('assert');
+events = require('events');
+path = require('path');
+dispatcher = require('../../dispatcher');
+sinon = require('sinon');
+os = require('os');
 
 describe('dispatcher', function() {
+    'use strict';
+
     beforeEach(function () {
-        this.fixturePath = path.join(process.cwd(), 'test', 'dispatcher', 'fixtures');        
+        this.fixturePath = path.join(process.cwd(), 'test', 'dispatcher', 'fixtures');
     });
-    
+
     it('should export an object that inherits from EventEmitter', function () {
         assert(dispatcher instanceof events.EventEmitter);
     });
-    
+
     it('should expose an insist method', function () {
         assert.strictEqual(typeof dispatcher.insist, 'function');
     });
@@ -72,7 +75,7 @@ describe('dispatcher', function() {
             dispatcher.insist('test');
             sinon.assert.calledOnce(this.spy);
         });
-        
+
         it('should reject arguments not provided as an array', function () {
             var result = dispatcher.insist('test', 'arg1');
             assert.strictEqual(result, false);
@@ -91,20 +94,24 @@ describe('dispatcher', function() {
         });
 
         it('calls load for every js file found', function (done) {
+            var interval;
+
             dispatcher.autoload(this.autoloadFixture);
 
-            var interval = setInterval(function () {
+            interval = setInterval(function () {
                 if (dispatcher.load.callCount === 4) {
                     clearInterval(interval);
                     done();
                 }
             });
         });
-        
+
         it('loads from script directory by default', function (done) {
+            var interval;
+
             dispatcher.autoload();
 
-            var interval = setInterval(function () {
+            interval = setInterval(function () {
                 if (dispatcher.load.callCount > 0) {
                     clearInterval(interval);
                     done();
@@ -139,7 +146,7 @@ describe('dispatcher', function() {
             dispatcher.load(loadPath, this.fixturePath);
             sinon.assert.calledWith(dispatcher.on, 'autoload');
         });
-        
+
         it('ignores a module if it does not export a function', function () {
             var loadPath = path.join(this.fixturePath, 'autoload', 'object.js');
             dispatcher.load(loadPath, this.fixturePath);
@@ -151,6 +158,6 @@ describe('dispatcher', function() {
             dispatcher.load(loadPath);
             sinon.assert.called(dispatcher.on);
         });
-        
+
     });
 });

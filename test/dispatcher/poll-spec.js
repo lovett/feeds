@@ -1,10 +1,14 @@
-var sqlite3 = require('sqlite3').verbose();
-var setup = require('../../dispatcher/setup');
-var poll = require('../../dispatcher/poll');
-var assert = require('assert');
-var events = require('events');
+var assert, events, poll, setup, sqlite3;
+
+sqlite3 = require('sqlite3').verbose();
+setup = require('../../dispatcher/setup');
+poll = require('../../dispatcher/poll');
+assert = require('assert');
+events = require('events');
 
 describe('poll handler', function() {
+    'use strict';
+
     beforeEach(function (done) {
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
@@ -30,7 +34,7 @@ describe('poll handler', function() {
             done();
         });
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function (err) {
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function () {
             self.emitter.emit('poll', self.db);
         });
     });
@@ -40,15 +44,21 @@ describe('poll handler', function() {
         self = this;
         testUrl = 'http://example.com/feed.rss';
 
-        self.emitter.on('fetch', function (feedId, feedUrl) {
+        self.emitter.on('fetch', function (feedId) {
 
             self.db.get('SELECT count(*) as count FROM feeds WHERE id=? AND nextFetchUtc IS NOT NULL', [feedId], function (err, row) {
+                if (err) {
+                    throw err;
+                }
                 assert.strictEqual(row.count, 1);
                 done();
             });
         });
 
         self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function (err) {
+            if (err) {
+                throw err;
+            }
             self.emitter.emit('poll', self.db);
         });
     });
@@ -65,17 +75,20 @@ describe('poll handler', function() {
         });
 
         self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function (err) {
+            if (err) {
+                throw err;
+            }
             self.emitter.emit('poll', self.db);
         });
     });
 
     it('logs failure to query for feed', function (done) {
         var self = this;
-        
+
         self.emitter.on('log:error', function () {
             done();
         });
-        
+
         self.emitter.on('poll:done', function (feedId, feedUrl) {
             assert(!feedId);
             assert(!feedUrl);
@@ -87,18 +100,17 @@ describe('poll handler', function() {
 
     it('logs when no feeds are fetchable', function (done) {
         var self = this;
-        
+
         self.emitter.on('log:trace', function () {
             done();
         });
-        
+
         self.emitter.on('poll:done', function (feedId, feedUrl) {
             assert(!feedId);
             assert(!feedUrl);
         });
-        
+
         self.emitter.emit('poll', self.db);
     });
-    
+
 });
-    
