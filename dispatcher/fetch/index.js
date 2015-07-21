@@ -11,9 +11,6 @@ var url = require('url');
 module.exports = function (feedId, feedUrl, subscribers) {
     var host, fetchEvent;
 
-    console.log(feedId);
-    console.log(feedUrl);
-
     host = url.parse(feedUrl).host;
 
     if (host.indexOf('reddit.com') > -1) {

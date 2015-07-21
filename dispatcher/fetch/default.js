@@ -75,7 +75,6 @@ module.exports = function (feedId, feedUrl, subscribers) {
             };
         }
 
-        console.log(fields);
         self.emit('entry', feedId, fields, subscribers);
     }
 
