@@ -16,6 +16,7 @@ module.exports = function (db, entryId, discussion) {
     db.get('SELECT id FROM discussions WHERE url=?', [discussion.url], function (err, row) {
         if (err) {
             self.emit('log:error', 'Failed to select from discussions table', {error: err, url: discussion.url});
+            return;
         }
 
         if (row) {

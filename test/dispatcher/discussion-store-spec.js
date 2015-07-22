@@ -92,4 +92,28 @@ describe('discussion:store handler', function() {
 
     });
 
+    it('logs insertion failure', function (done) {
+        var discussion, self;
+
+        self = this;
+
+        discussion = {
+            tally: 1,
+            label: 'test',
+            url: 'http://example.com/discussion.html'
+        };
+
+        self.emitter.once('log:error', function (message) {
+            assert(message);
+            done();
+        });
+
+        self.db.run('DROP TABLE discussions', function (err) {
+            if (err) {
+                throw err;
+            }
+            self.emitter.emit('discussion:store', self.db, 1, discussion);
+        });
+    });
+
 });
