@@ -124,16 +124,13 @@ describe('poll handler', function() {
         });
     });
 
-    it('logs when no feeds are fetchable', function (done) {
+    it('does not trigger fetch when no feeds are fetchable', function (done) {
         var self = this;
-
-        self.emitter.on('log:trace', function () {
-            done();
-        });
 
         self.emitter.on('poll:done', function (feedId, feedUrl) {
             assert(!feedId);
             assert(!feedUrl);
+            done();
         });
 
         self.emitter.emit('poll', self.db);
