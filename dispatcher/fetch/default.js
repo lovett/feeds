@@ -7,7 +7,7 @@ needle = require('needle');
 url = require('url');
 moment = require('moment');
 
-module.exports = function (feedId, feedUrl, subscribers) {
+module.exports = function (feedId, feedUrl) {
     'use strict';
 
     var self;
@@ -56,7 +56,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
             };
         }
 
-        self.emit('entry', feedId, fields, subscribers);
+        self.emit('entry', feedId, fields);
     }
 
     function get (err, response) {

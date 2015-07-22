@@ -4,11 +4,9 @@ var url = require('url');
  * Figure out how to fetch a feed
  * --------------------------------------------------------------------
  * Feeds from Reddit, StackExchange, and Hacker News are requested via
- * their respective APIs. All other feeds are requested via the Google
- * Feed API.
+ * their respective APIs. All other feeds are requested directly.
  */
-
-module.exports = function (feedId, feedUrl, subscribers) {
+module.exports = function (feedId, feedUrl) {
     'use strict';
 
     var fetchEvent, host;
@@ -25,5 +23,5 @@ module.exports = function (feedId, feedUrl, subscribers) {
         fetchEvent = 'fetch:default';
     }
 
-    this.emit(fetchEvent, feedId, feedUrl, subscribers);
+    this.emit(fetchEvent, feedId, feedUrl);
 };

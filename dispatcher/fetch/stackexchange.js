@@ -10,7 +10,7 @@ url = require('url');
  * creation_date, link, title
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, feedUrl, subscribers) {
+module.exports = function (feedId, feedUrl) {
     'use strict';
 
     var endpoint, parsedUrl, self;
@@ -42,7 +42,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
             }
         };
 
-        self.emit('entry', feedId, fields, subscribers);
+        self.emit('entry', feedId, fields);
     }
 
     function get (err, response) {

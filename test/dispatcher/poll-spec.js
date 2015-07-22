@@ -139,7 +139,7 @@ describe('poll handler', function() {
         self.emitter.emit('poll', self.db);
     });
 
-    it('ignores fetchable feed if no subscribers', function (done) {
+    it('ignores fetchable feed if no users are subscribed to it', function (done) {
         var self = this;
 
         self.emitter.on('poll:done', function (feedId, feedUrl) {

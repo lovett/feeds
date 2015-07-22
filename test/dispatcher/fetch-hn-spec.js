@@ -11,7 +11,6 @@ describe('Hacker News fetch handler', function() {
     beforeEach(function (done) {
         this.feedUrl = 'http://example.com/feed';
         this.feedId = 1;
-        this.subscribers = 'bar';
         this.hnFirebase = new MockFirebase('https://hacker-news.firebaseio.com/v0/');
         this.hnTopStories = this.hnFirebase.child('/topstories');
         this.hnTopStories.limitToFirst = function () {
@@ -43,9 +42,8 @@ describe('Hacker News fetch handler', function() {
         self.hnTopStories.set([1]);
         self.hnFirebase.child('/item/1').set(story);
 
-        self.emitter.once('entry', function (entryFeedId, entryFields, entryFeedSubscribers) {
+        self.emitter.once('entry', function (entryFeedId, entryFields) {
             assert.strictEqual(entryFeedId, self.feedId);
-            assert.strictEqual(entryFeedSubscribers, self.subscribers);
             assert.strictEqual(entryFields.title, story.title);
             assert.strictEqual(entryFields.date, story.time);
             assert.strictEqual(entryFields.url, story.url);
@@ -56,7 +54,7 @@ describe('Hacker News fetch handler', function() {
         });
 
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl, self.subscribers);
+        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl);
         self.hnFirebase.flush();
 
     });
@@ -73,7 +71,7 @@ describe('Hacker News fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl, self.subscribers);
+        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl);
         self.hnFirebase.flush();
     });
 
@@ -86,13 +84,12 @@ describe('Hacker News fetch handler', function() {
             title: 'test'
         });
 
-        self.emitter.once('entry', function (entryFeedId, entryFields, entryFeedSubscribers) {
+        self.emitter.once('entry', function (entryFeedId, entryFields) {
             assert.strictEqual(entryFields.discussion.tally, 0);
-            assert.strictEqual(entryFeedSubscribers, self.subscribers);
             done();
         });
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl, self.subscribers);
+        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl);
         self.hnFirebase.flush();
     });
 

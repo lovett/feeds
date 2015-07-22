@@ -7,7 +7,7 @@ url = require('url');
  * Fetch a Reddit feed
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, feedUrl, subscribers) {
+module.exports = function (feedId, feedUrl) {
     'use strict';
 
     var jsonUrl, parsedUrl, self, subreddit;
@@ -33,7 +33,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
             }
         };
 
-        self.emit('entry', feedId, fields, subscribers);
+        self.emit('entry', feedId, fields);
     }
 
     function get (err, response) {

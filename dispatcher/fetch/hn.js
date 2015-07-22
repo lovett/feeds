@@ -1,4 +1,4 @@
-module.exports = function (hnFirebase, feedId, feedurl, subscribers) {
+module.exports = function (hnFirebase, feedId) {
     'use strict';
 
     var self = this;
@@ -32,7 +32,7 @@ module.exports = function (hnFirebase, feedId, feedurl, subscribers) {
             type: item.type
         };
 
-        self.emit('entry', feedId, entry, subscribers);
+        self.emit('entry', feedId, entry);
     }
 
     function onValue (snapshot) {

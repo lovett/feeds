@@ -11,7 +11,6 @@ describe('reddit fetch handler', function() {
     beforeEach(function (done) {
         this.feedId = 1;
         this.feedUrl = 'http://reddit.com/r/javascript';
-        this.subscribers = 'bar';
         this.requestMock = nock('https://www.reddit.com').get('/r/javascript/.json');
         this.emitter = new events.EventEmitter();
         this.emitter.on('fetch:reddit', fetchReddit);
@@ -36,7 +35,7 @@ describe('reddit fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl, this.subscribers);
+        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
     });
 
     it('logs failure', function (done) {
@@ -51,7 +50,7 @@ describe('reddit fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl, this.subscribers);
+        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
     });
 
     it('handles absence of children in response', function (done) {
@@ -66,7 +65,7 @@ describe('reddit fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl, this.subscribers);
+        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
     });
 
     it('triggers entry storage', function (done) {
@@ -82,13 +81,12 @@ describe('reddit fetch handler', function() {
             }
         });
 
-        self.emitter.on('entry', function (entryFeedId, entryFields, entryFeedSubscribers) {
+        self.emitter.on('entry', function (entryFeedId) {
             assert.strictEqual(entryFeedId, self.feedId);
-            assert.strictEqual(entryFeedSubscribers, self.subscribers);
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl, this.subscribers);
+        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
 
     });
 

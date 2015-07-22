@@ -24,11 +24,10 @@ describe('stackexchange fetch handler', function() {
     });
 
     it('normalizes the feed URL to JSON over HTTPS', function (done) {
-        var feedId, self, subscribers;
+        var feedId, self;
 
         self = this;
         feedId = 1;
-        subscribers = 'bar';
 
         this.requestMock.reply(200, {'items': []});
 
@@ -39,15 +38,14 @@ describe('stackexchange fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl, subscribers);
+        self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl);
     });
 
     it('logs failure', function (done) {
-        var feedId, self, subscribers;
+        var feedId, self;
 
         self = this;
         feedId = 1;
-        subscribers = 'bar';
 
         this.requestMock.reply(400, {});
 
@@ -56,15 +54,14 @@ describe('stackexchange fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl, subscribers);
+        self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl);
     });
 
     it('handles absence of children in response', function (done) {
-        var feedId, self, subscribers;
+        var feedId, self;
 
         self = this;
         feedId = 1;
-        subscribers = 'bar';
 
         this.requestMock.reply(200, { data: {} });
 
@@ -73,15 +70,14 @@ describe('stackexchange fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl, subscribers);
+        self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl);
     });
 
     it('triggers entry storage', function (done) {
-        var feedId, self, subscribers;
+        var feedId, self;
 
         self = this;
         feedId = 1;
-        subscribers = 'bar';
 
         this.requestMock.reply(200, {
             items: [
@@ -89,13 +85,12 @@ describe('stackexchange fetch handler', function() {
             ]
         });
 
-        self.emitter.on('entry', function (entryFeedId, entryFields, entryFeedSubscribers) {
+        self.emitter.on('entry', function (entryFeedId) {
             assert.strictEqual(feedId, entryFeedId);
-            assert.strictEqual(subscribers, entryFeedSubscribers);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl, subscribers);
+        self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl);
 
     });
 
