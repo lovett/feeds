@@ -18,6 +18,11 @@ module.exports = function (db) {
         db.run('CREATE TABLE IF NOT EXISTS discussions (id INTEGER PRIMARY KEY, entryId INTEGER NOT NULL, tally INTEGER DEFAULT 0, label TEXT NOT NULL, url TEXT NOT NULL, FOREIGN KEY (entryId) REFERENCES entries(id))');
         db.run('CREATE UNIQUE INDEX IF NOT EXISTS discussion_url ON discussions (url)');
 
+        db.run('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT NOT NULL, passwordHash TEXT NOT NULL)');
+        db.run('CREATE UNIQUE INDEX IF NOT EXISTS username_unique ON users (username)');
+
+        db.run('CREATE TABLE IF NOT EXISTS userFeeds (userId INTEGER NOT NULL, feedId INTEGER NOT NULL, FOREIGN KEY(userId) REFERENCES users(id), FOREIGN KEY(feedId) REFERENCES feeds(id), PRIMARY KEY (userId, feedId))');
+
         self.emit('setup:done');
     });
 };

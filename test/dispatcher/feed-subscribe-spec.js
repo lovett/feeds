@@ -10,11 +10,18 @@ describe('feed:subscribe handler', function() {
     'use strict';
 
     beforeEach(function (done) {
+        var self = this;
         this.db = new sqlite3.Database(':memory:');
+        this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
         this.emitter.on('setup', setup);
         this.emitter.on('feed:subscribe', subscribe);
-        this.emitter.on('setup:done', done);
+        this.emitter.on('setup:done', function () {
+            self.db.run('INSERT INTO users (username, passwordHash) VALUES ("test", "test")', function () {
+                self.userId = this.lastID;
+                done();
+            });
+        });
         this.emitter.emit('setup', this.db);
     });
 
@@ -23,7 +30,7 @@ describe('feed:subscribe handler', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('adds a row to the feeds table', function (done) {
+    it('adds a row to the feeds table when a user id is not provided', function (done) {
         var self = this;
 
         self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
@@ -40,14 +47,32 @@ describe('feed:subscribe handler', function() {
             });
         });
 
-        self.emitter.emit('feed:subscribe', self.db, 'http://example.com/feed.rss');
+        self.emitter.emit('feed:subscribe', self.db, self.feedUrl);
+    });
+
+    it('adds rows to the feed and userFeeds tables', function (done) {
+        var self = this;
+
+        self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
+            assert.strictEqual(changes, 1);
+            assert.strictEqual(lastID, 1);
+            assert.strictEqual(err, null);
+
+            self.db.get('SELECT COUNT(*) as count FROM feeds, userFeeds WHERE feeds.id=userFeeds.feedId', function (dbErr, row) {
+                if (dbErr) {
+                    throw dbErr;
+                }
+                assert.strictEqual(row.count, 1);
+                done();
+            });
+
+        });
+
+        self.emitter.emit('feed:subscribe', self.db, self.feedUrl, self.userId);
     });
 
     it('prevents duplicates', function (done) {
-        var feedUrl, self;
-
-        self = this;
-        feedUrl = 'http://example.com/feed.rss';
+        var self = this;
 
         self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
             assert.strictEqual(changes, 0);
@@ -63,14 +88,14 @@ describe('feed:subscribe handler', function() {
             });
         });
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [feedUrl], function () {
-            self.emitter.emit('feed:subscribe', self.db, 'http://example.com/feed.rss');
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function () {
+            self.emitter.emit('feed:subscribe', self.db, self.feedUrl);
         });
 
 
     });
 
-    it('logs failure', function (done) {
+    it('logs feed insert failure', function (done) {
         var self = this;
 
         self.emitter.on('log:error', function (message, fields) {
@@ -83,4 +108,19 @@ describe('feed:subscribe handler', function() {
             self.emitter.emit('feed:subscribe', self.db);
         });
     });
+
+    it('logs userFeeds insert failure', function (done) {
+        var invalidUserId, self;
+        invalidUserId = 2;
+        self = this;
+
+        self.emitter.on('log:error', function (message, fields) {
+            assert(message);
+            assert.strictEqual(fields.user, invalidUserId);
+            done();
+        });
+
+        self.emitter.emit('feed:subscribe', self.db, self.feedUrl, invalidUserId);
+    });
+
 });

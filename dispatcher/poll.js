@@ -3,7 +3,7 @@ module.exports = function (db) {
 
     var self = this;
 
-    db.get('SELECT id, url, nextFetchUtc FROM feeds WHERE strftime("%s", "now") - strftime("%s", nextFetchUtc) >= 0 ORDER BY nextFetchUtc ASC LIMIT 1', [], function (err, row) {
+    db.get('SELECT id, url, nextFetchUtc FROM feeds, userFeeds WHERE feeds.id=userFeeds.feedId AND strftime("%s", "now") - strftime("%s", nextFetchUtc) >= 0 ORDER BY nextFetchUtc ASC LIMIT 1', [], function (err, row) {
 
         if (err) {
             self.emit('log:error', 'Feed select query failed', {error: err});

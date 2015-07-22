@@ -10,11 +10,18 @@ describe('poll handler', function() {
     'use strict';
 
     beforeEach(function (done) {
+        var self = this;
         this.db = new sqlite3.Database(':memory:');
+        this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
         this.emitter.on('setup', setup);
         this.emitter.on('poll', poll);
-        this.emitter.on('setup:done', done);
+        this.emitter.on('setup:done', function () {
+            self.db.run('INSERT INTO users (username, passwordHash) VALUES ("test", "test")', function () {
+                self.userId = this.lastID;
+                done();
+            });
+        });
         this.emitter.emit('setup', this.db);
     });
 
@@ -24,25 +31,32 @@ describe('poll handler', function() {
     });
 
     it('triggers fetch of a newly added feed', function (done) {
-        var self, testUrl;
+        var self;
         self = this;
-        testUrl = 'http://example.com/feed.rss';
 
         self.emitter.on('fetch', function (feedId, feedUrl) {
             assert.strictEqual(feedId, 1);
-            assert.strictEqual(feedUrl, testUrl);
+            assert.strictEqual(feedUrl, self.feedUrl);
             done();
         });
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function () {
-            self.emitter.emit('poll', self.db);
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function (err) {
+            if (err) {
+                throw err;
+            }
+
+            self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, this.lastID], function (userFeedErr) {
+                if (userFeedErr) {
+                    throw userFeedErr;
+                }
+
+                self.emitter.emit('poll', self.db);
+            });
         });
     });
 
     it('updates nextFetchUtc field', function (done) {
-        var self, testUrl;
-        self = this;
-        testUrl = 'http://example.com/feed.rss';
+        var self = this;
 
         self.emitter.on('fetch', function (feedId) {
 
@@ -55,30 +69,42 @@ describe('poll handler', function() {
             });
         });
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function (err) {
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function (err) {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('poll', self.db);
+
+            self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, this.lastID], function (userFeedErr) {
+                if (userFeedErr) {
+                    throw userFeedErr;
+                }
+
+                self.emitter.emit('poll', self.db);
+            });
         });
     });
 
     it('emits done event', function (done) {
-        var self, testUrl;
-        self = this;
-        testUrl = 'http://example.com/feed.rss';
+        var self = this;
 
         self.emitter.on('poll:done', function (feedId, feedUrl) {
             assert.strictEqual(feedId, 1);
-            assert.strictEqual(feedUrl, testUrl);
+            assert.strictEqual(feedUrl, self.feedUrl);
             done();
         });
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [testUrl], function (err) {
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function (err) {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('poll', self.db);
+
+            self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, this.lastID], function (userFeedErr) {
+                if (userFeedErr) {
+                    throw userFeedErr;
+                }
+
+                self.emitter.emit('poll', self.db);
+            });
         });
     });
 
@@ -113,4 +139,20 @@ describe('poll handler', function() {
         self.emitter.emit('poll', self.db);
     });
 
+    it('ignores fetchable feed if no subscribers', function (done) {
+        var self = this;
+
+        self.emitter.on('poll:done', function (feedId, feedUrl) {
+            assert(!feedId);
+            assert(!feedUrl);
+            done();
+        });
+
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function (err) {
+            if (err) {
+                throw err;
+            }
+            self.emitter.emit('poll', self.db);
+        });
+    });
 });
