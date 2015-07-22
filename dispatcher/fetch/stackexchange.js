@@ -48,7 +48,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
     function get (err, response) {
         var itemCount = 0;
         if (err || response.statusCode !== 200) {
-            self.emit('log:warn', 'Failed to fetch feed', {response: response.statusCode, url: endpoint, err: err});
+            self.emit('log:warn', 'Failed to fetch StackExchange feed', {response: response.statusCode, url: endpoint, error: err});
         }
 
         if (response.body && response.body.items) {

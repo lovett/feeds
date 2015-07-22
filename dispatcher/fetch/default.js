@@ -65,7 +65,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
         itemCount = 0;
 
         if (err || response.statusCode !== 200) {
-            self.emit('log:warn', 'Failed to fetch feed', {response: response.statusCode, url: feedUrl, err: err});
+            self.emit('log:warn', 'Failed to fetch feed', {response: response.statusCode, url: feedUrl, error: err});
         }
 
         if (response.body.feed) {
@@ -75,7 +75,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
         } else if (response.body.item) {
             itemContainer = response.body.item;
         } else {
-            self.emit('log:warn', 'unable to identify item container', { url: feedUrl });
+            self.emit('log:warn', 'Unable to identify item container', { url: feedUrl });
         }
 
         if (itemContainer) {

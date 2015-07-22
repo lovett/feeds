@@ -35,13 +35,12 @@ describe('feed:subscribe handler', function() {
                 if (dbErr) {
                     throw dbErr;
                 }
-                assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
                 done();
             });
         });
 
-        self.emitter.emit('feed:subscribe', this.db, 'http://example.com/feed.rss');
+        self.emitter.emit('feed:subscribe', self.db, 'http://example.com/feed.rss');
     });
 
     it('prevents duplicates', function (done) {
@@ -59,7 +58,6 @@ describe('feed:subscribe handler', function() {
                 if (dbErr) {
                     throw dbErr;
                 }
-                assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
                 done();
             });
@@ -75,9 +73,9 @@ describe('feed:subscribe handler', function() {
     it('logs failure', function (done) {
         var self = this;
 
-        self.emitter.on('log:error', function (message, origin) {
+        self.emitter.on('log:error', function (message, fields) {
             assert(message);
-            assert(origin);
+            assert(fields);
             done();
         });
 

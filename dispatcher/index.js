@@ -31,7 +31,7 @@ emitter.insist = function (event, args, retries) {
     }
 
     if (!Array.isArray(args)) {
-        this.insist('log:error', [{event: event, args: args}, 'Event arguments not provided as an array']);
+        this.emit('log:error', 'Event arguments not provided as an array', {eventName: event, eventArgs: args});
         return false;
     }
 
@@ -44,7 +44,7 @@ emitter.insist = function (event, args, retries) {
 
     // give up if no more retries
     if (retries < 1) {
-        this.insist('log:fatal', [{event: event, args: args}, 'Timed out while waiting for listener']);
+        this.emit('log:fatal', 'Timed out while waiting for listener', {eventName: event, eventArgs: args});
         return false;
     }
 

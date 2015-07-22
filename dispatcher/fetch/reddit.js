@@ -40,7 +40,7 @@ module.exports = function (feedId, feedUrl, subscribers) {
         var itemCount = 0;
 
         if (err || response.statusCode !== 200) {
-            self.emit('log:warn', 'Failed to fetch feed', {status: response.statusCode, url: jsonUrl, err: err});
+            self.emit('log:warn', 'Failed to fetch Reddit feed', {status: response.statusCode, url: jsonUrl, error: err});
         }
 
         if (response.body.data && response.body.data.children) {

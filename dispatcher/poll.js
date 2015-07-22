@@ -6,13 +6,13 @@ module.exports = function (db) {
     db.get('SELECT id, url, nextFetchUtc FROM feeds WHERE strftime("%s", "now") - strftime("%s", nextFetchUtc) >= 0 ORDER BY nextFetchUtc ASC LIMIT 1', [], function (err, row) {
 
         if (err) {
-            self.emit('log:error', [{error: err}, 'Feed select query failed']);
+            self.emit('log:error', 'Feed select query failed', {error: err});
             self.emit('poll:done');
             return;
         }
 
         if (!row) {
-            self.emit('log:trace', [{}, 'Nothing to fetch at this time']);
+            self.emit('log:trace', 'Nothing to fetch at this time');
             self.emit('poll:done');
             return;
         }

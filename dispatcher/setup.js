@@ -4,7 +4,7 @@ module.exports = function (db) {
     var self = this;
 
     db.on('trace', function (query) {
-        self.emit('log:trace', [{'query': query}, 'sql query']);
+        self.emit('log:trace', 'Database query', {q: query});
     });
 
     db.serialize(function () {

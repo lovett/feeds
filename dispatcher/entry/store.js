@@ -15,9 +15,9 @@ module.exports = function (db, feedId, entry) {
     self = this;
 
     if (!entry.url) {
-        self.emit('log:warn', 'rejecting entry with no url', {
-            'feedId': feedId,
-            'entry': entry
+        self.emit('log:warn', 'Rejecting entry with no url', {
+            feed: feedId,
+            feedEntry: entry
         });
         return;
     }
@@ -43,7 +43,7 @@ module.exports = function (db, feedId, entry) {
 
     db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
         if (err) {
-            self.emit('log:error', 'Failed to select from entries table', {err: err, url: entry.url});
+            self.emit('log:error', 'Failed to select from entries table', {error: err, url: entry.url});
         }
 
         if (row) {
