@@ -1,4 +1,4 @@
-var moment, needle, needleParsers, url;
+var moment, needle, needleParsers, normalize, url;
 
 needleParsers = require('needle/lib/parsers');
 needleParsers['application/rdf+xml'] = needleParsers['text/xml'];
@@ -6,6 +6,7 @@ needleParsers['application/rdf+xml'] = needleParsers['text/xml'];
 needle = require('needle');
 url = require('url');
 moment = require('moment');
+normalize = require('../../util/normalize');
 
 module.exports = function (feedId, feedUrl) {
     'use strict';
@@ -13,6 +14,43 @@ module.exports = function (feedId, feedUrl) {
     var self;
 
     self = this;
+
+    function getItemUrl (item) {
+        var itemUrl;
+
+        if (item['feedburner:origLink']) {
+            itemUrl = item['feedburner:origLink'];
+        } else if (item.link instanceof Array) {
+            itemUrl = item.link.reduce(function (accumulator, link) {
+                if ( link.$.type === 'text/html' && link.$.rel === 'alternate') {
+                    accumulator = link.$.href;
+                }
+                return accumulator;
+            });
+        } else if (item.link) {
+            itemUrl = item.link;
+        }
+        return itemUrl;
+    }
+
+    function findUniqueItems (container) {
+        var unique;
+
+        unique = container.reduce(function (accumulator, item) {
+            var uniqueUrl = getItemUrl(item);
+            if (uniqueUrl) {
+                uniqueUrl = normalize.url(uniqueUrl);
+                if (!accumulator.hasOwnProperty(uniqueUrl)) {
+                    accumulator[uniqueUrl] = item;
+                }
+            }
+            return accumulator;
+        }, {});
+
+        return Object.keys(unique).map(function (key) {
+            return unique[key];
+        });
+    }
 
     function eachItem (item) {
         var fields, parsedCommentsUrl;
@@ -34,18 +72,7 @@ module.exports = function (feedId, feedUrl) {
         }
 
         // url
-        if (item['feedburner:origLink']) {
-            fields.url = item['feedburner:origLink'];
-        } else if (item.link instanceof Array) {
-            fields.url = item.link.reduce(function (accumulator, link) {
-                if ( link.$.type === 'text/html' && link.$.rel === 'alternate') {
-                    accumulator = link.$.href;
-                }
-                return accumulator;
-            });
-        } else if (item.link) {
-            fields.url = item.link;
-        }
+        fields.url = getItemUrl(item);
 
         // discussion
         if (item.comments) {
@@ -60,7 +87,7 @@ module.exports = function (feedId, feedUrl) {
     }
 
     function get (err, response) {
-        var itemContainer, itemCount;
+        var itemContainer, itemCount, uniqueItems;
 
         itemCount = 0;
 
@@ -79,8 +106,9 @@ module.exports = function (feedId, feedUrl) {
         }
 
         if (itemContainer) {
-            itemCount = itemContainer.length;
-            itemContainer.forEach(eachItem);
+            uniqueItems = findUniqueItems(itemContainer);
+            uniqueItems.forEach(eachItem);
+            itemCount = uniqueItems.length;
         }
 
         self.emit('fetch:default:done', feedUrl, response.statusCode, itemCount);

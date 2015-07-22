@@ -52,11 +52,11 @@ describe('default fetch handler', function() {
         var self = this;
 
         this.requestMock.reply(200, { feed: {
-            entry: [1, 2, 3, 4, 5]
+            entry: []
         } });
 
         self.emitter.on('fetch:default:done', function (fetchUrl, statusCode, itemCount) {
-            assert.strictEqual(itemCount, 5);
+            assert.strictEqual(itemCount, 0);
             done();
         });
 
@@ -69,13 +69,13 @@ describe('default fetch handler', function() {
         this.requestMock.reply(200, {
             rss: {
                 channel: {
-                    item: [1, 2, 3, 4, 5]
+                    item: []
                 }
             }
         });
 
         self.emitter.on('fetch:default:done', function (fetchUrl, statusCode, itemCount) {
-            assert.strictEqual(itemCount, 5);
+            assert.strictEqual(itemCount, 0);
             done();
         });
 
@@ -87,12 +87,12 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, {
             'rdf:RDF': {
-                item: [1, 2, 3, 4, 5]
+                item: []
             }
         });
 
         self.emitter.on('fetch:default:done', function (fetchUrl, statusCode, itemCount) {
-            assert.strictEqual(itemCount, 5);
+            assert.strictEqual(itemCount, 0);
             done();
         });
 
@@ -105,7 +105,7 @@ describe('default fetch handler', function() {
         this.requestMock.reply(200, {
             rss: {
                 foo: {
-                    bar: [1, 2, 3, 4, 5]
+                    bar: []
                 }
             }
         });
@@ -256,4 +256,35 @@ describe('default fetch handler', function() {
         self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
 
     });
+
+    it('ignores duplicate normalized urls', function (done) {
+        var reply, self;
+
+        self = this;
+
+        reply = {
+            rss: {
+                channel: {
+                    item: [
+                        {title: 'the title', link: 'http://example.com/entry#hash1'},
+                        {title: 'the title', link: 'http://example.com/entry#hash2'},
+                        {title: 'the title', link: 'http://example.com/entry#hash3'}
+                    ]
+                }
+            }
+        };
+
+        this.requestMock.reply(200, reply);
+
+        self.emitter.on('fetch:default:done', function (feedUrl, statusCode, itemCount) {
+            assert.strictEqual(feedUrl, self.feedUrl);
+            assert.strictEqual(statusCode, 200);
+            assert.strictEqual(itemCount, 1);
+            done();
+        });
+
+        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+
+    });
+
 });
