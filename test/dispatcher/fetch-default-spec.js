@@ -86,7 +86,9 @@ describe('default fetch handler', function() {
         var self = this;
 
         this.requestMock.reply(200, {
-            item: [1, 2, 3, 4, 5]
+            'rdf:RDF': {
+                item: [1, 2, 3, 4, 5]
+            }
         });
 
         self.emitter.on('fetch:default:done', function (fetchUrl, statusCode, itemCount) {
@@ -229,22 +231,25 @@ describe('default fetch handler', function() {
         self = this;
 
         reply = {
-            item: [
-                {
-                    title: 'the title',
-                    pubDate: new Date(),
-                    link: 'http://example.com/entry'
-                }
-            ]
+            'rdf:RDF': {
+                item: [
+                    {
+                        title: 'the title',
+                        pubDate: new Date(),
+                        link: 'http://example.com/entry'
+                    }
+                ]
+            }
         };
 
         this.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (feedId, fields) {
+            var firstItem = reply['rdf:RDF'].item[0];
             assert.strictEqual(feedId, self.feedId);
-            assert.strictEqual(fields.title, reply.item[0].title);
-            assert.strictEqual(fields.url, reply.item[0].link);
-            assert.strictEqual(fields.createdUtc, moment(reply.item[0].pubDate).format('X') * 1000);
+            assert.strictEqual(fields.title, firstItem.title);
+            assert.strictEqual(fields.url, firstItem.link);
+            assert.strictEqual(fields.createdUtc, moment(firstItem.pubDate).format('X') * 1000);
             done();
         });
 

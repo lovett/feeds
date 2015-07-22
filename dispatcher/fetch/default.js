@@ -72,8 +72,8 @@ module.exports = function (feedId, feedUrl) {
             itemContainer = response.body.feed.entry;
         } else if (response.body.rss && response.body.rss.channel) {
             itemContainer = response.body.rss.channel.item;
-        } else if (response.body.item) {
-            itemContainer = response.body.item;
+        } else if (response.body['rdf:RDF']) {
+            itemContainer = response.body['rdf:RDF'].item;
         } else {
             self.emit('log:warn', 'Unable to identify item container', { url: feedUrl });
         }
