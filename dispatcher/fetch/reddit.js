@@ -1,3 +1,5 @@
+// API Documentation: https://github.com/reddit/reddit/wiki
+
 var needle, url;
 
 needle = require('needle');
@@ -21,10 +23,9 @@ module.exports = function (feedId, feedUrl) {
         var entry, fields;
         entry = child.data;
 
-        /*jshint camelcase:false */
         fields = {
             title: entry.title,
-            createdUtc: entry.created_utc,
+            createdUtcSeconds: entry.created_utc,
             url: entry.url,
             discussion: {
                 tally: entry.num_comments,

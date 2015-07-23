@@ -1,3 +1,5 @@
+// API documentation: https://github.com/HackerNews/API
+
 module.exports = function (hnFirebase, feedId) {
     'use strict';
 
@@ -20,7 +22,7 @@ module.exports = function (hnFirebase, feedId) {
 
         entry = {
             title: item.title,
-            date: item.time,
+            createdUtcSeconds: item.time,
             url: item.url,
             discussion: {
                 url: 'https://news.ycombinator.com/item?id=' + item.id,

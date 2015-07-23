@@ -29,6 +29,20 @@ module.exports = function (db, feedId, entry) {
 
     entry.url = normalize.url(entry.url);
 
+    if (!entry.hasOwnProperty('createdUtcSeconds')) {
+        if (entry.hasOwnProperty('created')) {
+            entry.createdUtcSeconds = new Date(entry.created).getTime() / 1000;
+
+            if (Number.isNaN(entry.createdUtcSeconds)) {
+                entry.createdUtcSeconds = undefined;
+            }
+        }
+
+        if (!entry.createdUtcSeconds) {
+            entry.createdUtcSeconds = new Date().getTime() / 1000;
+        }
+    }
+
     function entrySaved() {
         if (this.lastID) {
             entryId = this.lastID;
@@ -38,20 +52,21 @@ module.exports = function (db, feedId, entry) {
             self.emit('discussion', entryId, entry.discussion);
         }
 
-        self.emit('entry:store:done', this.changes, entryId);
+        self.emit('entry:store:done', this.changes, entryId, entry);
     }
 
     db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
         if (err) {
             self.emit('log:error', 'Failed to select from entries table', {error: err, url: entry.url});
+            return;
         }
 
         if (row) {
             entryId = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
         } else {
-            db.run('INSERT INTO entries (feedId, url, title, createdUtc) VALUES (?, ?, ?, datetime(?, "unixepoch"))',
-                   [feedId, entry.url, entry.title, entry.createdUtc], entrySaved);
+            db.run('INSERT INTO entries (feedId, url, title, createdUtcSeconds) VALUES (?, ?, ?, ?)',
+                   [feedId, entry.url, entry.title, entry.createdUtcSeconds], entrySaved);
         }
     });
 

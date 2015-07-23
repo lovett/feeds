@@ -1,3 +1,4 @@
+// API Documentation: https://api.stackexchange.com/docs
 var needle, url;
 
 needle = require('needle');
@@ -30,10 +31,9 @@ module.exports = function (feedId, feedUrl) {
     });
 
     function eachItem (item) {
-        /*jshint camelcase:false */
         var fields = {
             title: item.title,
-            createdUtc: item.creation_date,
+            createdUtcSeconds: item.creation_date,
             url: item.link,
             discussion: {
                 tally: item.answer_count,

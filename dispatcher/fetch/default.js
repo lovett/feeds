@@ -1,11 +1,10 @@
-var moment, needle, needleParsers, normalize, url;
+var needle, needleParsers, normalize, url;
 
 needleParsers = require('needle/lib/parsers');
 needleParsers['application/rdf+xml'] = needleParsers['text/xml'];
 
 needle = require('needle');
 url = require('url');
-moment = require('moment');
 normalize = require('../../util/normalize');
 
 module.exports = function (feedId, feedUrl) {
@@ -66,9 +65,9 @@ module.exports = function (feedId, feedUrl) {
 
         // created
         if (item.published) {
-            fields.createdUtc = moment(new Date(item.published)).format('X') * 1000;
+            fields.created = item.published;
         } else if (item.pubDate) {
-            fields.createdUtc = moment(item.pubDate).format('X') * 1000;
+            fields.created = item.pubDate;
         }
 
         // url

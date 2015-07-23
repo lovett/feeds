@@ -1,10 +1,9 @@
-var assert, events, fetchDefault, moment, nock;
+var assert, events, fetchDefault, nock;
 
 nock = require('nock');
 assert = require('assert');
 events = require('events');
 fetchDefault = require('../../dispatcher/fetch/default');
-moment = require('moment');
 
 describe('default fetch handler', function() {
     'use strict';
@@ -126,7 +125,7 @@ describe('default fetch handler', function() {
             feed: {
                 entry: [{
                     title: { _: 'the title', '$': {type: 'text'} },
-                    published: new Date(),
+                    published: new Date().toString(),
                     link: [
                         { '$':
                           { rel: 'replies',
@@ -158,7 +157,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(feedId, self.feedId);
             assert.strictEqual(fields.title, reply.feed.entry[0].title._);
             assert.strictEqual(fields.url, 'http://example.com/entry');
-            assert.strictEqual(fields.createdUtc, moment(reply.feed.entry[0].published).format('X') * 1000);
+            assert.strictEqual(fields.created, reply.feed.entry[0].published);
             done();
         });
 
@@ -200,7 +199,7 @@ describe('default fetch handler', function() {
                     item: [
                         {
                             title: 'the title',
-                            pubDate: new Date(),
+                            pubDate: new Date().toString(),
                             link: 'http://example.com/entry',
                             comments: 'http://example.com/comments'
                         }
@@ -216,7 +215,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(feedId, self.feedId);
             assert.strictEqual(fields.title, replyItem.title);
             assert.strictEqual(fields.url, replyItem.link);
-            assert.strictEqual(fields.createdUtc, moment(replyItem.pubDate).format('X') * 1000);
+            assert.strictEqual(fields.created, replyItem.pubDate);
             assert.strictEqual(fields.discussion.url, replyItem.comments);
             assert.strictEqual(fields.discussion.label, 'example.com');
             done();
@@ -235,7 +234,7 @@ describe('default fetch handler', function() {
                 item: [
                     {
                         title: 'the title',
-                        pubDate: new Date(),
+                        pubDate: new Date().toString(),
                         link: 'http://example.com/entry'
                     }
                 ]
@@ -249,7 +248,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(feedId, self.feedId);
             assert.strictEqual(fields.title, firstItem.title);
             assert.strictEqual(fields.url, firstItem.link);
-            assert.strictEqual(fields.createdUtc, moment(firstItem.pubDate).format('X') * 1000);
+            assert.strictEqual(fields.created, firstItem.pubDate);
             done();
         });
 

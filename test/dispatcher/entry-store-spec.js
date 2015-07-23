@@ -11,6 +11,7 @@ describe('entry:store handler', function() {
 
     beforeEach(function (done) {
         var self = this;
+        this.feedId = 1;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('entry:store', entryStore);
@@ -40,7 +41,7 @@ describe('entry:store handler', function() {
         self = this;
         entry = {
             title: 'the title',
-            createdUtc: 1,
+            createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html'
         };
 
@@ -55,7 +56,7 @@ describe('entry:store handler', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, 1, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, entry);
     });
 
     it('blocks duplicate urls', function (done) {
@@ -64,11 +65,11 @@ describe('entry:store handler', function() {
         self = this;
         entry = {
             title: 'the title',
-            createdUtc: 1,
+            createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html'
         };
 
-        self.emitter.emit('entry:store', self.db, 1, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, entry);
 
         self.emitter.once('entry:store:done', function (changes, entryId) {
             assert.strictEqual(changes, 1);
@@ -83,7 +84,7 @@ describe('entry:store handler', function() {
                     done();
                 });
             });
-            self.emitter.emit('entry:store', self.db, 1, entry);
+            self.emitter.emit('entry:store', self.db, self.feedId, entry);
         });
     });
 
@@ -106,7 +107,32 @@ describe('entry:store handler', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, 1, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+    });
+
+    it('logs failure to select from entries table', function (done) {
+        var entry, self;
+
+        self = this;
+
+        entry = {
+            title: 'the title',
+            url: 'http://example.com'
+        };
+
+        self.emitter.on('log:error', function (message, fields) {
+            assert(message);
+            assert(fields);
+            done();
+        });
+
+        self.db.run('DROP TABLE entries', function (err) {
+            if (err) {
+                throw err;
+            }
+
+            self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        });
     });
 
     it('requires valid feed ID', function (done) {
@@ -149,7 +175,35 @@ describe('entry:store handler', function() {
             done();
         });
 
-        self.emitter.emit('entry:store', self.db, 1, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+    });
+
+
+    it('parses non-numeric creation date', function (done) {
+        var entries, self;
+
+        self = this;
+        entries = [
+            {title: 'title1', url: 'http://example.com/entry1.html', created: 'Sun, 19 Jul 2015 06:51:17 -0500'},
+            {title: 'title2', url: 'http://example.com/entry2.html', created: '2015-03-30T11:07:01.441-07:00'},
+            {title: 'title3', url: 'http://example.com/entry3.html', created: '2015-06-15T00:00:00Z'},
+            {title: 'title4', url: 'http://example.com/entry4.html', created: 'bogus'},
+            {title: 'title5', url: 'http://example.com/entry5.html'}
+        ];
+
+        entries.forEach(function (entry, index) {
+            self.emitter.once('entry:store:done', function (changes, lastID, savedEntry) {
+                assert.strictEqual(changes, 1);
+                assert(lastID, index + 1);
+                assert(savedEntry.createdUtcSeconds);
+
+                if (entry === entries[entries.length - 1]) {
+                    done();
+                }
+            });
+
+            self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        });
     });
 
 });

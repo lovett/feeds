@@ -45,7 +45,7 @@ describe('Hacker News fetch handler', function() {
         self.emitter.once('entry', function (entryFeedId, entryFields) {
             assert.strictEqual(entryFeedId, self.feedId);
             assert.strictEqual(entryFields.title, story.title);
-            assert.strictEqual(entryFields.date, story.time);
+            assert.strictEqual(entryFields.createdUtcSeconds, story.time);
             assert.strictEqual(entryFields.url, story.url);
             assert.strictEqual(entryFields.discussion.tally, story.kids.length);
             assert.strictEqual(entryFields.discussion.url, 'https://news.ycombinator.com/item?id=1');
