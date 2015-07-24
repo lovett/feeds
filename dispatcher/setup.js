@@ -9,7 +9,7 @@ module.exports = function (db) {
 
     db.serialize(function () {
         db.run('PRAGMA foreign_keys=1');
-        db.run('CREATE TABLE IF NOT EXISTS feeds (id INTEGER PRIMARY KEY, url TEXT NOT NULL, siteUrl TEXT, nextFetchUtc DEFAULT CURRENT_TIMESTAMP)');
+        db.run('CREATE TABLE IF NOT EXISTS feeds (id INTEGER PRIMARY KEY, url TEXT NOT NULL, siteUrl TEXT, nextFetchUtcSeconds FLOAT)');
         db.run('CREATE UNIQUE INDEX IF NOT EXISTS feed_url_unique ON feeds (url)');
 
         db.run('CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, feedId INTEGER NOT NULL, url TEXT NOT NULL, title TEXT NOT NULL, createdUtcSeconds FLOAT DEFAULT 0, FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE)');

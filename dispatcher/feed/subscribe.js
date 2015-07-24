@@ -14,13 +14,20 @@ module.exports = function (db, feedUrl, userId) {
     db.serialize(function () {
         db.run('BEGIN');
         db.run('INSERT OR IGNORE INTO feeds (url) VALUES (?)', [feedUrl], function (err) {
+            var changes, lastId;
+
             if (err) {
                 self.emit('log:error', 'Failed to insert into feeds table', {error: err, url: feedUrl});
-            } else if (userId) {
+            } else {
+                changes = this.changes;
+                lastId = this.lastID;
+            }
+
+            if (userId) {
                 userFeedInsert();
             }
 
-            self.emit('feed:subscribe:done', this.changes, this.lastID, err);
+            self.emit('feed:subscribe:done', changes, lastId, err);
         });
         db.run('COMMIT');
     });

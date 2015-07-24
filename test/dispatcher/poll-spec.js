@@ -31,8 +31,7 @@ describe('poll handler', function() {
     });
 
     it('triggers fetch of a newly added feed', function (done) {
-        var self;
-        self = this;
+        var self = this;
 
         self.emitter.on('fetch', function (feedId, feedUrl) {
             assert.strictEqual(feedId, 1);
@@ -55,12 +54,15 @@ describe('poll handler', function() {
         });
     });
 
-    it('updates nextFetchUtc field', function (done) {
-        var self = this;
+    it('sets the next fetch to a short interval', function (done) {
+        var oneMinuteAgo, self;
+
+        oneMinuteAgo = new Date().getTime() / 1000 - 60;
+        self = this;
 
         self.emitter.on('fetch', function (feedId) {
 
-            self.db.get('SELECT count(*) as count FROM feeds WHERE id=? AND nextFetchUtc IS NOT NULL', [feedId], function (err, row) {
+            self.db.get('SELECT count(*) as count FROM feeds WHERE id=? AND nextFetchUtcSeconds IS NOT NULL', [feedId], function (err, row) {
                 if (err) {
                     throw err;
                 }
@@ -69,7 +71,7 @@ describe('poll handler', function() {
             });
         });
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function (err) {
+        self.db.run('INSERT INTO feeds (url, nextFetchUtcSeconds) VALUES (?, ?)', [self.feedUrl, oneMinuteAgo], function (err) {
             if (err) {
                 throw err;
             }
@@ -152,4 +154,5 @@ describe('poll handler', function() {
             self.emitter.emit('poll', self.db);
         });
     });
+
 });
