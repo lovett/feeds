@@ -31,7 +31,7 @@ describe('stackexchange fetch handler', function() {
 
         this.requestMock.reply(200, {'items': []});
 
-        self.emitter.on('fetch:stackexchange:done', function (apiUrl, statusCode) {
+        self.emitter.on('fetch:done', function (apiUrl, statusCode) {
             var parsedApiUrl = url.parse(apiUrl);
             assert.strictEqual(parsedApiUrl.path, self.mockUrlPath);
             assert.strictEqual(statusCode, 200);
@@ -65,7 +65,7 @@ describe('stackexchange fetch handler', function() {
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:stackexchange:done', function (apiUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (apiUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });

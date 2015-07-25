@@ -49,7 +49,7 @@ module.exports = function (feedId, feedUrl) {
             response.body.data.children.forEach(eachItem);
         }
 
-        self.emit('fetch:reddit:done', jsonUrl, response.statusCode, itemCount);
+        self.emit('fetch:done', jsonUrl, response.statusCode, itemCount);
     }
 
 

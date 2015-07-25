@@ -56,7 +56,7 @@ module.exports = function (feedId, feedUrl) {
             response.body.items.forEach(eachItem);
         }
 
-        self.emit('fetch:stackexchange:done', endpoint, response.statusCode, itemCount);
+        self.emit('fetch:done', endpoint, response.statusCode, itemCount);
     }
 
     needle.get(endpoint, get);
