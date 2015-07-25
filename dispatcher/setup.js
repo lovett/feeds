@@ -23,6 +23,10 @@ module.exports = function (db) {
 
         db.run('CREATE TABLE IF NOT EXISTS userFeeds (userId INTEGER NOT NULL, feedId INTEGER NOT NULL, FOREIGN KEY(userId) REFERENCES users(id), FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE, PRIMARY KEY (userId, feedId))');
 
+        db.run('CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY, created DEFAULT CURRENT_TIMESTAMP, type TEXT NOT NULL, url TEXT NOT NULL, status INTEGER DEFAULT 0, items INTEGER DEFAULT 0)');
+        db.run('CREATE INDEX IF NOT EXISTS history_type ON history(type)');
+        db.run('CREATE INDEX IF NOT EXISTS history_url ON history(url)');
+
         self.emit('setup:done');
     });
 };
