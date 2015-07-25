@@ -110,21 +110,98 @@ describe('poll handler', function() {
         });
     });
 
-    it('logs failure to query for feed', function (done) {
+    it('handles error when querying for feed', function (done) {
         var self = this;
-
-        self.emitter.on('log:error', function () {
-            done();
-        });
 
         self.emitter.on('poll:done', function (feedId, feedUrl) {
             assert(!feedId);
             assert(!feedUrl);
+            done();
         });
-        self.db.run('DROP TABLE IF EXISTS feeds', [], function () {
+
+        self.db.run('DROP TABLE feeds', [], function () {
             self.emitter.emit('poll', self.db);
         });
     });
+
+    it('handles error when querying for most recent feed entry', function (done) {
+        var self = this;
+
+        self.emitter.on('log:error', function (message, fields) {
+            assert(message);
+            assert(fields);
+            done();
+        });
+
+        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function (feedErr) {
+            if (feedErr) {
+                throw feedErr;
+            }
+
+            self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, this.lastID], function (userFeedErr) {
+                if (userFeedErr) {
+                    throw userFeedErr;
+                }
+
+                self.db.run('DROP TABLE entries', [], function (entryErr) {
+                    if (entryErr) {
+                        throw entryErr;
+                    }
+                    self.emitter.emit('poll', self.db);
+                });
+            });
+        });
+    });
+
+    it('rechecks an active feed hourly', function (done) {
+        var nowSeconds, oneHourFromNow, self, threeHoursFromNow;
+        self = this;
+        nowSeconds = new Date().getTime() / 1000;
+        oneHourFromNow = nowSeconds = 60 * 60;
+        threeHoursFromNow = nowSeconds + 60 * 60 * 3;
+
+        self.emitter.on('poll:done', function (feedId, feedUrl, feedNextCheck) {
+            assert(feedNextCheck, oneHourFromNow);
+            done();
+        });
+
+        self.db.serialize(function () {
+            var feedId = 1;
+            self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl]);
+            self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, feedId]);
+            self.db.run('INSERT INTO entries (feedId, url, title, createdUtcSeconds) VALUES (?, ?, ?, ?)', [feedId, 'http://example.com/entry', 'test', threeHoursFromNow], function (entryErr) {
+                if (entryErr) {
+                    throw entryErr;
+                }
+                self.emitter.emit('poll', self.db);
+            });
+        });
+    });
+
+    it('rechecks an inactive feed daily', function (done) {
+        var nowSeconds, self, yesterdaySeconds;
+        self = this;
+        nowSeconds = new Date().getTime() / 1000;
+        yesterdaySeconds = nowSeconds - 86400;
+
+        self.emitter.on('poll:done', function (feedId, feedUrl, feedNextCheck) {
+            assert(feedNextCheck, nowSeconds + 86400);
+            done();
+        });
+
+        self.db.serialize(function () {
+            var feedId = 1;
+            self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl]);
+            self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, feedId]);
+            self.db.run('INSERT INTO entries (feedId, url, title, createdUtcSeconds) VALUES (?, ?, ?, ?)', [feedId, 'http://example.com/entry', 'test', yesterdaySeconds], function (entryErr) {
+                if (entryErr) {
+                    throw entryErr;
+                }
+                self.emitter.emit('poll', self.db);
+            });
+        });
+    });
+
 
     it('does not trigger fetch when no feeds are fetchable', function (done) {
         var self = this;
