@@ -27,7 +27,7 @@ module.exports = function (db, feedId, entry) {
     // Probably not necessary, but just in case
     entry.url = entities.decodeXML(entry.url);
 
-    entry.url = normalize.url(entry.url);
+    entry.normalizedUrl = normalize.url(entry.url);
 
     if (!entry.hasOwnProperty('createdUtcSeconds')) {
         if (entry.hasOwnProperty('created')) {
@@ -65,8 +65,8 @@ module.exports = function (db, feedId, entry) {
             entryId = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
         } else {
-            db.run('INSERT INTO entries (feedId, url, title, createdUtcSeconds) VALUES (?, ?, ?, ?)',
-                   [feedId, entry.url, entry.title, entry.createdUtcSeconds], entrySaved);
+            db.run('INSERT INTO entries (feedId, url, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?)',
+                   [feedId, entry.url, entry.normalizedUrl, entry.title, entry.createdUtcSeconds], entrySaved);
         }
     });
 

@@ -9,7 +9,7 @@ describe('util/normalize.js', function () {
     describe('url()', function () {
         it('lowercases input ', function () {
             var input, result;
-            input = 'example.com'.toUpperCase();
+            input = 'eXaMpLe.cOm';
             result = normalize.url(input);
             assert.strictEqual(result, input.toLowerCase());
         });

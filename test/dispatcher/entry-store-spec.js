@@ -59,6 +59,29 @@ describe('entry:store handler', function() {
         self.emitter.emit('entry:store', self.db, self.feedId, entry);
     });
 
+    it('normalizes the url', function (done) {
+        var entry, self;
+
+        self = this;
+        entry = {
+            title: 'the title',
+            createdUtc: new Date().getTime(),
+            url: 'http://example.com/entry1.html#whatever'
+        };
+
+        self.emitter.on('entry:store:done', function (changes, lastID, savedEntry) {
+            assert.strictEqual(changes, 1);
+            assert.strictEqual(lastID, 1);
+            assert(savedEntry.normalizedUrl);
+            assert(savedEntry.url);
+            assert.notStrictEqual(savedEntry.normalizedUrl, savedEntry.url);
+            done();
+        });
+
+        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+
+    });
+
     it('blocks duplicate urls', function (done) {
         var entry, self;
 

@@ -13,6 +13,7 @@ describe('poll handler', function() {
         var self = this;
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
+        this.entryUrl = 'http://example.com/entry.html';
         this.emitter = new events.EventEmitter();
         this.emitter.on('setup', setup);
         this.emitter.on('poll', poll);
@@ -167,9 +168,10 @@ describe('poll handler', function() {
 
         self.db.serialize(function () {
             var feedId = 1;
+
             self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl]);
             self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, feedId]);
-            self.db.run('INSERT INTO entries (feedId, url, title, createdUtcSeconds) VALUES (?, ?, ?, ?)', [feedId, 'http://example.com/entry', 'test', threeHoursFromNow], function (entryErr) {
+            self.db.run('INSERT INTO entries (feedId, url, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?)', [feedId, self.entryUrl, self.entryUrl, 'test', threeHoursFromNow], function (entryErr) {
                 if (entryErr) {
                     throw entryErr;
                 }
@@ -193,7 +195,7 @@ describe('poll handler', function() {
             var feedId = 1;
             self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl]);
             self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES (?, ?)', [self.userId, feedId]);
-            self.db.run('INSERT INTO entries (feedId, url, title, createdUtcSeconds) VALUES (?, ?, ?, ?)', [feedId, 'http://example.com/entry', 'test', yesterdaySeconds], function (entryErr) {
+            self.db.run('INSERT INTO entries (feedId, url, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?)', [feedId, self.entryUrl, self.entryUrl, 'test', yesterdaySeconds], function (entryErr) {
                 if (entryErr) {
                     throw entryErr;
                 }

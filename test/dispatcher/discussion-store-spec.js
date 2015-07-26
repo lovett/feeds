@@ -15,11 +15,12 @@ describe('discussion:store handler', function() {
         this.emitter = new events.EventEmitter();
         this.emitter.on('discussion:store', discussionStore);
         this.emitter.on('setup', setup);
+        this.entryUrl = 'http://example.com/entry.html';
 
         this.emitter.on('setup:done', function () {
             self.db.serialize(function () {
                 self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss']);
-                self.db.run('INSERT INTO entries (feedId, url, title) VALUES (?, ?, ?)', [1, 'http://example.com/entry.rss', 'test entry']);
+                self.db.run('INSERT INTO entries (feedId, url, normalizedUrl, title) VALUES (?, ?, ?, ?)', [1, self.entryUrl, self.entryUrl, 'test entry']);
                 done();
             });
         });

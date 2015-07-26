@@ -12,8 +12,8 @@ module.exports = function (db) {
         db.run('CREATE TABLE IF NOT EXISTS feeds (id INTEGER PRIMARY KEY, url TEXT NOT NULL, siteUrl TEXT, nextFetchUtcSeconds FLOAT)');
         db.run('CREATE UNIQUE INDEX IF NOT EXISTS feed_url_unique ON feeds (url)');
 
-        db.run('CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, feedId INTEGER NOT NULL, url TEXT NOT NULL, title TEXT NOT NULL, createdUtcSeconds FLOAT DEFAULT 0, FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE)');
-        db.run('CREATE UNIQUE INDEX IF NOT EXISTS entry_url_unique ON entries (url)');
+        db.run('CREATE TABLE IF NOT EXISTS entries (id INTEGER PRIMARY KEY, feedId INTEGER NOT NULL, url TEXT NOT NULL, normalizedUrl TEXT NOT NULL, title TEXT NOT NULL, createdUtcSeconds FLOAT DEFAULT 0, FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE)');
+        db.run('CREATE UNIQUE INDEX IF NOT EXISTS entry_url_unique ON entries (normalizedUrl)');
 
         db.run('CREATE TABLE IF NOT EXISTS discussions (id INTEGER PRIMARY KEY, entryId INTEGER NOT NULL, tally INTEGER DEFAULT 0, label TEXT NOT NULL, url TEXT NOT NULL, FOREIGN KEY (entryId) REFERENCES entries(id) ON DELETE CASCADE)');
         db.run('CREATE UNIQUE INDEX IF NOT EXISTS discussion_url ON discussions (url)');
