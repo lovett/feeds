@@ -12,6 +12,7 @@ describe('history:add handler', function() {
     beforeEach(function (done) {
         var self = this;
         this.feedId = 1;
+        this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('setup', setup);
@@ -52,7 +53,7 @@ describe('history:add handler', function() {
             });
         });
 
-        self.emitter.emit('history:add', self.db, 'fetch', self.feedId, 200, itemCount);
+        self.emitter.emit('history:add', self.db, 'fetch', self.feedId, self.fetchId, 200, itemCount);
     });
 
     it('handles failure to add row', function (done) {
@@ -72,7 +73,7 @@ describe('history:add handler', function() {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('history:add', self.db, 'fetch', self.feedId, 200, itemCount);
+            self.emitter.emit('history:add', self.db, 'fetch', self.feedId, self.fetchId, 200, itemCount);
         });
     });
 });

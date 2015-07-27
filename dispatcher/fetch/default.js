@@ -7,7 +7,7 @@ needle = require('needle');
 url = require('url');
 normalize = require('../../util/normalize');
 
-module.exports = function (feedId, feedUrl) {
+module.exports = function (feedId, fetchId, feedUrl) {
     'use strict';
 
     var self;
@@ -82,7 +82,7 @@ module.exports = function (feedId, feedUrl) {
             };
         }
 
-        self.emit('entry', feedId, fields);
+        self.emit('entry', feedId, fetchId, fields);
     }
 
     function get (err, response) {
@@ -110,7 +110,7 @@ module.exports = function (feedId, feedUrl) {
             itemCount = uniqueItems.length;
         }
 
-        self.emit('fetch:done', feedId, feedUrl, response.statusCode, itemCount);
+        self.emit('fetch:done', feedId, fetchId, feedUrl, response.statusCode, itemCount);
     }
 
     needle.get(feedUrl, get);

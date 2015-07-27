@@ -24,9 +24,10 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://reddit.com/feed.rss';
 
-        self.emitter.on('fetch:reddit', function (feedId, feedUrl) {
+        self.emitter.on('fetch:reddit', function (feedId, fetchId, feedUrl) {
             assert.strictEqual(feedId, self.feedId);
-            assert.strictEqual(feedUrl, feedUrl);
+            assert(fetchId);
+            assert.strictEqual(feedUrl, url);
             done();
         });
 
@@ -39,8 +40,9 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://stackexchange.com/feed.rss';
 
-        self.emitter.on('fetch:stackexchange', function (feedId, feedUrl) {
+        self.emitter.on('fetch:stackexchange', function (feedId, fetchId, feedUrl) {
             assert.strictEqual(feedId, self.feedId);
+            assert(fetchId);
             assert.strictEqual(feedUrl, url);
             done();
         });
@@ -54,8 +56,9 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://news.ycombinator.com/feed.rss';
 
-        self.emitter.on('fetch:hn', function (feedId, feedUrl) {
+        self.emitter.on('fetch:hn', function (feedId, fetchId, feedUrl) {
             assert.strictEqual(feedId, self.feedId);
+            assert(fetchId);
             assert.strictEqual(feedUrl, url);
             done();
         });
@@ -69,8 +72,9 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://example.com/feed.rss';
 
-        self.emitter.on('fetch:default', function (feedId, feedUrl) {
+        self.emitter.on('fetch:default', function (feedId, fetchId, feedUrl) {
             assert.strictEqual(feedId, self.feedId);
+            assert(fetchId);
             assert.strictEqual(feedUrl, url);
             done();
         });

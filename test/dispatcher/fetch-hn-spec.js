@@ -11,6 +11,7 @@ describe('Hacker News fetch handler', function() {
     beforeEach(function (done) {
         this.feedUrl = 'http://example.com/feed';
         this.feedId = 1;
+        this.fetchId = 'fetch';
         this.hnFirebase = new MockFirebase('https://hacker-news.firebaseio.com/v0/');
         this.hnTopStories = this.hnFirebase.child('/topstories');
         this.hnTopStories.limitToFirst = function () {
@@ -42,8 +43,9 @@ describe('Hacker News fetch handler', function() {
         self.hnTopStories.set([1]);
         self.hnFirebase.child('/item/1').set(story);
 
-        self.emitter.once('entry', function (entryFeedId, entryFields) {
+        self.emitter.once('entry', function (entryFeedId, entryFetchId, entryFields) {
             assert.strictEqual(entryFeedId, self.feedId);
+            assert.strictEqual(entryFetchId, self.fetchId);
             assert.strictEqual(entryFields.title, story.title);
             assert.strictEqual(entryFields.createdUtcSeconds, story.time);
             assert.strictEqual(entryFields.url, story.url);
@@ -54,7 +56,7 @@ describe('Hacker News fetch handler', function() {
         });
 
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl);
+        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.fetchId, self.feedUrl);
         self.hnFirebase.flush();
 
     });
@@ -71,7 +73,7 @@ describe('Hacker News fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl);
+        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.fetchId, self.feedUrl);
         self.hnFirebase.flush();
     });
 
@@ -84,12 +86,12 @@ describe('Hacker News fetch handler', function() {
             title: 'test'
         });
 
-        self.emitter.once('entry', function (entryFeedId, entryFields) {
+        self.emitter.once('entry', function (entryFeedId, entryFetchId, entryFields) {
             assert.strictEqual(entryFields.discussion.tally, 0);
             done();
         });
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.feedUrl);
+        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.fetchId, self.feedUrl);
         self.hnFirebase.flush();
     });
 

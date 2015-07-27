@@ -12,6 +12,7 @@ describe('entry:store handler', function() {
     beforeEach(function (done) {
         var self = this;
         this.feedId = 1;
+        this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('entry:store', entryStore);
@@ -45,9 +46,10 @@ describe('entry:store handler', function() {
             url: 'http://example.com/entry1.html'
         };
 
-        self.emitter.on('entry:store:done', function (changes, lastID) {
+        self.emitter.on('entry:store:done', function (changes, lastID, savedEntry) {
             assert.strictEqual(changes, 1);
             assert.strictEqual(lastID, 1);
+            assert.strictEqual(savedEntry.fetchId, self.fetchId);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 assert.strictEqual(err, null);
@@ -56,7 +58,7 @@ describe('entry:store handler', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
     });
 
     it('normalizes the url', function (done) {
@@ -73,12 +75,13 @@ describe('entry:store handler', function() {
             assert.strictEqual(changes, 1);
             assert.strictEqual(lastID, 1);
             assert(savedEntry.normalizedUrl);
+            assert(savedEntry.fetchId, self.fetchId);
             assert(savedEntry.url);
             assert.notStrictEqual(savedEntry.normalizedUrl, savedEntry.url);
             done();
         });
 
-        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
 
     });
 
@@ -92,7 +95,7 @@ describe('entry:store handler', function() {
             url: 'http://example.com/entry1.html'
         };
 
-        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
 
         self.emitter.once('entry:store:done', function (changes, entryId) {
             assert.strictEqual(changes, 1);
@@ -107,7 +110,7 @@ describe('entry:store handler', function() {
                     done();
                 });
             });
-            self.emitter.emit('entry:store', self.db, self.feedId, entry);
+            self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
         });
     });
 
@@ -130,7 +133,7 @@ describe('entry:store handler', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
     });
 
     it('logs failure to select from entries table', function (done) {
@@ -154,7 +157,7 @@ describe('entry:store handler', function() {
                 throw err;
             }
 
-            self.emitter.emit('entry:store', self.db, self.feedId, entry);
+            self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
         });
     });
 
@@ -178,7 +181,7 @@ describe('entry:store handler', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, 999, entry);
+        self.emitter.emit('entry:store', self.db, 999, self.fetchId, entry);
     });
 
     it('emits discussion event', function (done) {
@@ -198,7 +201,7 @@ describe('entry:store handler', function() {
             done();
         });
 
-        self.emitter.emit('entry:store', self.db, self.feedId, entry);
+        self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
     });
 
 
@@ -225,7 +228,7 @@ describe('entry:store handler', function() {
                 }
             });
 
-            self.emitter.emit('entry:store', self.db, self.feedId, entry);
+            self.emitter.emit('entry:store', self.db, self.feedId, self.fetchId, entry);
         });
     });
 

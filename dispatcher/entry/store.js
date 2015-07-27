@@ -7,7 +7,7 @@ normalize = require('../../util/normalize');
  * Store an entry after it has been processed
  * --------------------------------------------------------------------
  */
-module.exports = function (db, feedId, entry) {
+module.exports = function (db, feedId, fetchId, entry) {
     'use strict';
 
     var entryId, self;
@@ -22,6 +22,7 @@ module.exports = function (db, feedId, entry) {
         return;
     }
 
+    entry.fetchId = fetchId;
     entry.title = entities.decodeXML(entry.title);
 
     // Probably not necessary, but just in case
@@ -65,8 +66,8 @@ module.exports = function (db, feedId, entry) {
             entryId = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
         } else {
-            db.run('INSERT INTO entries (feedId, url, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?)',
-                   [feedId, entry.url, entry.normalizedUrl, entry.title, entry.createdUtcSeconds], entrySaved);
+            db.run('INSERT INTO entries (feedId, fetchid, url, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?, ?)',
+                   [feedId, fetchId, entry.url, entry.normalizedUrl, entry.title, entry.createdUtcSeconds], entrySaved);
         }
     });
 

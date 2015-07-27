@@ -10,6 +10,7 @@ describe('reddit fetch handler', function() {
 
     beforeEach(function (done) {
         this.feedId = 1;
+        this.fetchId = 'fetch';
         this.feedUrl = 'http://reddit.com/r/javascript';
         this.requestMock = nock('https://www.reddit.com').get('/r/javascript/.json');
         this.emitter = new events.EventEmitter();
@@ -29,13 +30,13 @@ describe('reddit fetch handler', function() {
 
         this.requestMock.reply(200, {});
 
-        self.emitter.on('fetch:done', function (feedId, jsonUrl, statusCode) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, jsonUrl, statusCode) {
             assert.strictEqual(jsonUrl, 'https://www.reddit.com/r/javascript/.json');
             assert.strictEqual(statusCode, 200);
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
+        self.emitter.emit('fetch:reddit', this.feedId, this.fetchId, this.feedUrl);
     });
 
     it('logs failure', function (done) {
@@ -50,7 +51,7 @@ describe('reddit fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
+        self.emitter.emit('fetch:reddit', this.feedId, this.fetchId, this.feedUrl);
     });
 
     it('handles absence of children in response', function (done) {
@@ -60,12 +61,12 @@ describe('reddit fetch handler', function() {
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (feedId, jsonUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, jsonUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
+        self.emitter.emit('fetch:reddit', this.feedId, this.fetchId, this.feedUrl);
     });
 
     it('triggers entry storage', function (done) {
@@ -81,12 +82,13 @@ describe('reddit fetch handler', function() {
             }
         });
 
-        self.emitter.on('entry', function (entryFeedId) {
+        self.emitter.on('entry', function (entryFeedId, entryFetchId) {
             assert.strictEqual(entryFeedId, self.feedId);
+            assert.strictEqual(entryFetchId, self.fetchId);
             done();
         });
 
-        self.emitter.emit('fetch:reddit', this.feedId, this.feedUrl);
+        self.emitter.emit('fetch:reddit', this.feedId, this.fetchId, this.feedUrl);
 
     });
 

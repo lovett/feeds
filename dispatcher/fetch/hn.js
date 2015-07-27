@@ -1,6 +1,6 @@
 // API documentation: https://github.com/HackerNews/API
 
-module.exports = function (hnFirebase, feedId) {
+module.exports = function (hnFirebase, feedId, fetchId) {
     'use strict';
 
     var self = this;
@@ -34,7 +34,7 @@ module.exports = function (hnFirebase, feedId) {
             type: item.type
         };
 
-        self.emit('entry', feedId, entry);
+        self.emit('entry', feedId, fetchId, entry);
     }
 
     function onValue (snapshot) {

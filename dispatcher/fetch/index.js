@@ -1,4 +1,7 @@
-var url = require('url');
+var crypto, url;
+
+crypto = require('crypto');
+url = require('url');
 
 /**
  * Figure out how to fetch a feed
@@ -9,7 +12,7 @@ var url = require('url');
 module.exports = function (feedId, feedUrl) {
     'use strict';
 
-    var fetchEvent, host;
+    var fetchEvent, fetchId, host;
 
     host = url.parse(feedUrl).host;
 
@@ -23,5 +26,7 @@ module.exports = function (feedId, feedUrl) {
         fetchEvent = 'fetch:default';
     }
 
-    this.emit(fetchEvent, feedId, feedUrl);
+    fetchId = crypto.pseudoRandomBytes(10).toString('hex');
+
+    this.emit(fetchEvent, feedId, fetchId, feedUrl);
 };

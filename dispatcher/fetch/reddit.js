@@ -9,7 +9,7 @@ url = require('url');
  * Fetch a Reddit feed
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, feedUrl) {
+module.exports = function (feedId, fetchId, feedUrl) {
     'use strict';
 
     var jsonUrl, parsedUrl, self, subreddit;
@@ -34,7 +34,7 @@ module.exports = function (feedId, feedUrl) {
             }
         };
 
-        self.emit('entry', feedId, fields);
+        self.emit('entry', feedId, fetchId, fields);
     }
 
     function get (err, response) {
@@ -49,7 +49,7 @@ module.exports = function (feedId, feedUrl) {
             response.body.data.children.forEach(eachItem);
         }
 
-        self.emit('fetch:done', feedId, jsonUrl, response.statusCode, itemCount);
+        self.emit('fetch:done', feedId, fetchId, jsonUrl, response.statusCode, itemCount);
     }
 
 

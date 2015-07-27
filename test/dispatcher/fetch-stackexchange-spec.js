@@ -11,6 +11,7 @@ describe('stackexchange fetch handler', function() {
 
     beforeEach(function (done) {
         this.feedUrl = 'http://emacs.stackexchange.com/feeds';
+        this.fetchId = 'fetch';
         this.mockUrlPath = '/2.2/questions?site=emacs&order=desc&sort=week&filter=!)R7_Ydm)7LrqRF9BkudkXj*v';
         this.requestMock = nock('https://api.stackexchange.com').get(this.mockUrlPath);
         this.emitter = new events.EventEmitter();
@@ -31,14 +32,15 @@ describe('stackexchange fetch handler', function() {
 
         this.requestMock.reply(200, {'items': []});
 
-        self.emitter.on('fetch:done', function (fetchedFeedId, apiUrl, statusCode) {
+        self.emitter.on('fetch:done', function (fetchedFeedId, fetchId, apiUrl, statusCode) {
             var parsedApiUrl = url.parse(apiUrl);
             assert.strictEqual(parsedApiUrl.path, self.mockUrlPath);
+            assert.strictEqual(fetchId, self.fetchId);
             assert.strictEqual(statusCode, 200);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl);
+        self.emitter.emit('fetch:stackexchange', feedId, this.fetchId, this.feedUrl);
     });
 
     it('logs failure', function (done) {
@@ -54,7 +56,7 @@ describe('stackexchange fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, this.feedUrl);
+        self.emitter.emit('fetch:stackexchange', feedId, this.fetchId, this.feedUrl);
     });
 
     it('handles absence of children in response', function (done) {
@@ -65,12 +67,12 @@ describe('stackexchange fetch handler', function() {
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (fetchedFeedId, apiUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (fetchedFeedId, fetchId, apiUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl);
+        self.emitter.emit('fetch:stackexchange', feedId, self.fetchId, self.feedUrl);
     });
 
     it('triggers entry storage', function (done) {
@@ -85,12 +87,13 @@ describe('stackexchange fetch handler', function() {
             ]
         });
 
-        self.emitter.on('entry', function (entryFeedId) {
+        self.emitter.on('entry', function (entryFeedId, entryFetchId) {
             assert.strictEqual(feedId, entryFeedId);
+            assert.strictEqual(entryFetchId, self.fetchId);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, self.feedUrl);
+        self.emitter.emit('fetch:stackexchange', feedId, self.fetchId, self.feedUrl);
 
     });
 

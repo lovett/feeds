@@ -11,6 +11,7 @@ describe('default fetch handler', function() {
     beforeEach(function (done) {
         this.feedUrl = 'http://example.com/feed';
         this.feedId = 1;
+        this.fetchId = 'fetch';
         this.requestMock = nock('http://example.com').get('/feed');
         this.emitter = new events.EventEmitter();
         this.emitter.on('fetch:default', fetchDefault);
@@ -31,7 +32,7 @@ describe('default fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, this.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, this.feedUrl);
     });
 
     it('handles absence of children in response', function (done) {
@@ -39,12 +40,13 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (feedId, fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, fetchUrl, statusCode, itemCount) {
+            assert(fetchId);
             assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
     });
 
     it('identifies the entry container for atom feeds', function (done) {
@@ -54,12 +56,12 @@ describe('default fetch handler', function() {
             entry: []
         } });
 
-        self.emitter.on('fetch:done', function (fetchId, fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
     });
 
     it('identifies the entry container for rss feeds', function (done) {
@@ -73,12 +75,12 @@ describe('default fetch handler', function() {
             }
         });
 
-        self.emitter.on('fetch:done', function (feedId, fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
     });
 
     it('identifies the entry container for rdf feeds', function (done) {
@@ -90,12 +92,12 @@ describe('default fetch handler', function() {
             }
         });
 
-        self.emitter.on('fetch:done', function (feedId, fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
     });
 
     it('logs failure to identify item container', function (done) {
@@ -114,7 +116,7 @@ describe('default fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
     });
 
     it('triggers entry storage for atom feeds', function (done) {
@@ -153,15 +155,16 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('entry', function (feedId, fields) {
+        self.emitter.on('entry', function (feedId, fetchId, fields) {
             assert.strictEqual(feedId, self.feedId);
+            assert.strictEqual(fetchId, self.fetchId);
             assert.strictEqual(fields.title, reply.feed.entry[0].title._);
             assert.strictEqual(fields.url, 'http://example.com/entry');
             assert.strictEqual(fields.created, reply.feed.entry[0].published);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, self.fetchId, self.feedUrl);
 
     });
 
@@ -179,13 +182,13 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('entry', function (feedId, fields) {
+        self.emitter.on('entry', function (feedId, fetchId, fields) {
             assert.strictEqual(feedId, self.feedId);
             assert.strictEqual(fields.url, reply.feed.entry[0]['feedburner:origLink']);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, self.fetchId, self.feedUrl);
 
     });
 
@@ -210,9 +213,10 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('entry', function (feedId, fields) {
+        self.emitter.on('entry', function (feedId, fetchId, fields) {
             var replyItem = reply.rss.channel.item[0];
             assert.strictEqual(feedId, self.feedId);
+            assert.strictEqual(fetchId, self.fetchId);
             assert.strictEqual(fields.title, replyItem.title);
             assert.strictEqual(fields.url, replyItem.link);
             assert.strictEqual(fields.created, replyItem.pubDate);
@@ -221,7 +225,7 @@ describe('default fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
 
     });
 
@@ -243,16 +247,17 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('entry', function (feedId, fields) {
+        self.emitter.on('entry', function (feedId, fetchId, fields) {
             var firstItem = reply['rdf:RDF'].item[0];
             assert.strictEqual(feedId, self.feedId);
+            assert.strictEqual(fetchId, self.fetchId);
             assert.strictEqual(fields.title, firstItem.title);
             assert.strictEqual(fields.url, firstItem.link);
             assert.strictEqual(fields.created, firstItem.pubDate);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, self.fetchId, self.feedUrl);
 
     });
 
@@ -275,14 +280,15 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('fetch:done', function (feedId, feedUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchId, feedUrl, statusCode, itemCount) {
+            assert.strictEqual(fetchId, self.fetchId);
             assert.strictEqual(feedUrl, self.feedUrl);
             assert.strictEqual(statusCode, 200);
             assert.strictEqual(itemCount, 1);
             done();
         });
 
-        self.emitter.emit('fetch:default', this.feedId, self.feedUrl);
+        self.emitter.emit('fetch:default', this.feedId, this.fetchId, self.feedUrl);
 
     });
 

@@ -11,7 +11,7 @@ url = require('url');
  * creation_date, link, title
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, feedUrl) {
+module.exports = function (feedId, fetchId, feedUrl) {
     'use strict';
 
     var endpoint, parsedUrl, self;
@@ -42,7 +42,7 @@ module.exports = function (feedId, feedUrl) {
             }
         };
 
-        self.emit('entry', feedId, fields);
+        self.emit('entry', feedId, fetchId, fields);
     }
 
     function get (err, response) {
@@ -56,7 +56,7 @@ module.exports = function (feedId, feedUrl) {
             response.body.items.forEach(eachItem);
         }
 
-        self.emit('fetch:done', feedId, endpoint, response.statusCode, itemCount);
+        self.emit('fetch:done', feedId, fetchId, endpoint, response.statusCode, itemCount);
     }
 
     needle.get(endpoint, get);
