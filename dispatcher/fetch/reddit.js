@@ -49,7 +49,7 @@ module.exports = function (feedId, fetchId, feedUrl) {
             response.body.data.children.forEach(eachItem);
         }
 
-        self.emit('fetch:done', feedId, fetchId, jsonUrl, response.statusCode, itemCount);
+        self.emit('fetch:done', feedId, fetchId, jsonUrl, response.statusCode, itemCount, response.headers);
     }
 
 

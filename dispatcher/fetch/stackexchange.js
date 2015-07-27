@@ -56,7 +56,7 @@ module.exports = function (feedId, fetchId, feedUrl) {
             response.body.items.forEach(eachItem);
         }
 
-        self.emit('fetch:done', feedId, fetchId, endpoint, response.statusCode, itemCount);
+        self.emit('fetch:done', feedId, fetchId, endpoint, response.statusCode, itemCount, response.headers);
     }
 
     needle.get(endpoint, get);
