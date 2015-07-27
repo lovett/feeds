@@ -35,6 +35,23 @@ describe('setup handler', function() {
                 });
             });
         });
-        self.emitter.emit('setup', this.db);
+        self.emitter.emit('setup', self.db);
+    });
+
+    it('enforces foreign keys', function (done) {
+        var self = this;
+
+        self.emitter.on('setup:done', function () {
+            self.db.get('PRAGMA foreign_keys', function (err, row) {
+                if (err) {
+                    throw err;
+                }
+
+                assert.strictEqual(row.foreign_keys, 1);
+                done();
+            });
+        });
+
+        self.emitter.emit('setup', self.db);
     });
 });
