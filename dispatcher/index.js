@@ -5,51 +5,35 @@ emitter = new events.EventEmitter();
 fs = require('fs');
 path = require('path');
 
-// How long to wait between retries
-emitter.retryMs = 10;
-
-// How many retries to make
-emitter.maxRetries = 10;
-
 /**
  * Emit an event repeatedly until a listener is available
  */
-emitter.insist = function (event, args, retries) {
+emitter.insist = function (event) {
     'use strict';
+
+    var args, callback, retries, self;
 
     if (!event) {
         return false;
     }
 
+    args = arguments;
+    retries = 10;
+    self = this;
 
-    if (args === undefined) {
-        args = [];
-    }
+    callback = function () {
+        if (self.listeners(event).length > 0) {
+            self.emit.apply(self, args);
+        } else if (retries > 0) {
+            retries -= 1;
+            callback();
+        } else {
+            self.emit('insist:failure', event);
+        }
+    };
 
-    if (retries === undefined) {
-        retries = emitter.maxRetries;
-    }
+    setTimeout(callback, 10);
 
-    if (!Array.isArray(args)) {
-        this.emit('log:error', 'Event arguments not provided as an array', {eventName: event, eventArgs: args});
-        return false;
-    }
-
-    // if a listener exists, call it
-    if (this.listeners(event).length > 0) {
-        args.unshift(event);
-        this.emit.apply(this, args);
-        return true;
-    }
-
-    // give up if no more retries
-    if (retries < 1) {
-        this.emit('log:fatal', 'Timed out while waiting for listener', {eventName: event, eventArgs: args});
-        return false;
-    }
-
-    // if no listener, retry
-    setTimeout(this.insist.bind(this, event, args, retries - 1), this.retryMs);
     return true;
 };
 

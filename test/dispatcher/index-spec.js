@@ -32,52 +32,45 @@ describe('dispatcher', function() {
 
     describe('insist()', function () {
         beforeEach(function () {
-            dispatcher.retryMs = 1;
-            this.spy = sinon.spy();
             this.clock = sinon.useFakeTimers();
-            sinon.spy(dispatcher, 'emit');
         });
 
         afterEach(function () {
             dispatcher.removeAllListeners();
             this.clock.restore();
-            dispatcher.emit.restore();
         });
 
-        it('should emit when a listener is available', function () {
-            dispatcher.on('test', this.spy);
-            dispatcher.insist('test', ['arg1', 'arg2', this.spy]);
-            sinon.assert.calledWith(dispatcher.emit, 'test');
-            sinon.assert.calledWith(this.spy, 'arg1', 'arg2');
+        it('should emit when a listener is available', function (done) {
+            dispatcher.on('test', function (arg1, arg2) {
+                assert.strictEqual(arg1, 'arg1');
+                assert.strictEqual(arg2, 'arg2');
+                done();
+            });
+            dispatcher.insist('test', 'arg1', 'arg2');
+            this.clock.tick(10);
         });
 
-        it('should eventually give up', function () {
-            dispatcher.insist('test', ['arg1', 'arg2', this.spy]);
+        it('should eventually give up', function (done) {
+            var event = 'test';
+            dispatcher.on('insist:failure', function (failedEvent) {
+                assert.strictEqual(event, failedEvent);
+                done();
+            });
+            dispatcher.insist('test', 'arg1', 'arg2');
             this.clock.tick(500);
-            sinon.assert.notCalled(this.spy);
         });
 
-        it('should emit if a listener is subsequently added', function () {
-            dispatcher.insist('test', ['arg1', 'arg2', this.spy]);
-            this.clock.tick(1);
-            dispatcher.on('test', this.spy);
-            this.clock.tick(1);
-            sinon.assert.calledWith(this.spy, 'arg1', 'arg2');
+        it('should emit if a listener is eventually available', function (done) {
+            dispatcher.on('test', function () {
+                done();
+            });
+            this.clock.tick(10);
+            dispatcher.insist('test');
+            this.clock.tick(10);
         });
 
         it('should require an event argument', function () {
             var result = dispatcher.insist();
-            assert.strictEqual(result, false);
-        });
-
-        it('should provide a default value for args', function () {
-            dispatcher.on('test', this.spy);
-            dispatcher.insist('test');
-            sinon.assert.calledOnce(this.spy);
-        });
-
-        it('should reject arguments not provided as an array', function () {
-            var result = dispatcher.insist('test', 'arg1');
             assert.strictEqual(result, false);
         });
 
