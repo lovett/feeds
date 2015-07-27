@@ -1,9 +1,9 @@
-module.exports = function (db, type, url, status, itemCount) {
+module.exports = function (db, type, feedId, status, itemCount) {
     'use strict';
 
     var self = this;
 
-    db.run('INSERT INTO history (type, url, status, items) VALUES (?, ?, ?, ?)', [type, url, status, itemCount], function (err) {
+    db.run('INSERT INTO history (type, feedId, status, items) VALUES (?, ?, ?, ?)', [type, feedId, status, itemCount], function (err) {
         var changes, lastId;
 
         if (err) {

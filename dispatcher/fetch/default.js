@@ -110,7 +110,7 @@ module.exports = function (feedId, feedUrl) {
             itemCount = uniqueItems.length;
         }
 
-        self.emit('fetch:done', feedUrl, response.statusCode, itemCount);
+        self.emit('fetch:done', feedId, feedUrl, response.statusCode, itemCount);
     }
 
     needle.get(feedUrl, get);

@@ -10,13 +10,19 @@ describe('history:add handler', function() {
     'use strict';
 
     beforeEach(function (done) {
-        this.url = 'http://example.com/feed.rss';
+        var self = this;
+        this.feedId = 1;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('setup', setup);
         this.emitter.on('history:add', historyAdd);
         this.emitter.on('setup:done', function () {
-            done();
+            self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
+                if (err) {
+                    throw err;
+                }
+                done();
+            });
         });
         this.emitter.emit('setup', this.db);
     });
@@ -46,7 +52,7 @@ describe('history:add handler', function() {
             });
         });
 
-        self.emitter.emit('history:add', self.db, 'fetch', self.url, 200, itemCount);
+        self.emitter.emit('history:add', self.db, 'fetch', self.feedId, 200, itemCount);
     });
 
     it('handles failure to add row', function (done) {
@@ -66,7 +72,7 @@ describe('history:add handler', function() {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('history:add', self.db, 'fetch', self.url, 200, itemCount);
+            self.emitter.emit('history:add', self.db, 'fetch', self.feedId, 200, itemCount);
         });
     });
 });

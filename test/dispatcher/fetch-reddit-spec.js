@@ -29,7 +29,7 @@ describe('reddit fetch handler', function() {
 
         this.requestMock.reply(200, {});
 
-        self.emitter.on('fetch:done', function (jsonUrl, statusCode) {
+        self.emitter.on('fetch:done', function (feedId, jsonUrl, statusCode) {
             assert.strictEqual(jsonUrl, 'https://www.reddit.com/r/javascript/.json');
             assert.strictEqual(statusCode, 200);
             done();
@@ -60,7 +60,7 @@ describe('reddit fetch handler', function() {
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (jsonUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, jsonUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });

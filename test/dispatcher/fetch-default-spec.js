@@ -39,7 +39,7 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
@@ -54,7 +54,7 @@ describe('default fetch handler', function() {
             entry: []
         } });
 
-        self.emitter.on('fetch:done', function (fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (fetchId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
@@ -73,7 +73,7 @@ describe('default fetch handler', function() {
             }
         });
 
-        self.emitter.on('fetch:done', function (fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
@@ -90,7 +90,7 @@ describe('default fetch handler', function() {
             }
         });
 
-        self.emitter.on('fetch:done', function (fetchUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, fetchUrl, statusCode, itemCount) {
             assert.strictEqual(itemCount, 0);
             done();
         });
@@ -275,7 +275,7 @@ describe('default fetch handler', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('fetch:done', function (feedUrl, statusCode, itemCount) {
+        self.emitter.on('fetch:done', function (feedId, feedUrl, statusCode, itemCount) {
             assert.strictEqual(feedUrl, self.feedUrl);
             assert.strictEqual(statusCode, 200);
             assert.strictEqual(itemCount, 1);
