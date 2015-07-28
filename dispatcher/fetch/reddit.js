@@ -27,8 +27,9 @@ module.exports = function (args) {
             feedId: args.id,
             fetchId: args.fetchId,
             title: item.title,
-            createdUtcSeconds: item.created_utc,
             url: item.url,
+            createdUtcSeconds: item.created_utc,
+            author: item.author,
             discussion: {
                 tally: item.num_comments,
                 label: parsedUrl.hostname,

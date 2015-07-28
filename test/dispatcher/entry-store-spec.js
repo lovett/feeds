@@ -42,6 +42,7 @@ describe('entry:store handler', function() {
         self = this;
         entry = {
             title: 'the title',
+            author: 'H&#229;kon',
             createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html',
             feedId: self.feedId,
@@ -51,6 +52,7 @@ describe('entry:store handler', function() {
         self.emitter.on('entry:store:done', function (args) {
             assert.strictEqual(args.changes, 1);
             assert.strictEqual(args.id, 1);
+            assert.strictEqual(args.author, 'Håkon');
             assert.strictEqual(args.fetchId, self.fetchId);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {

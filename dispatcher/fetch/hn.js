@@ -26,6 +26,7 @@ module.exports = function (hnFirebase, args) {
             title: item.title,
             createdUtcSeconds: item.time,
             url: item.url,
+            author: item.by,
             discussion: {
                 url: 'https://news.ycombinator.com/item?id=' + item.id,
                 label: 'Hacker News',

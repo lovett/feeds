@@ -13,7 +13,7 @@ describe('stackexchange fetch handler', function() {
         this.feedUrl = 'http://emacs.stackexchange.com/feeds';
         this.feedId = 1;
         this.fetchId = 'fetch';
-        this.mockUrlPath = '/2.2/questions?site=emacs&order=desc&sort=week&filter=!)R7_Ydm)7LrqRF9BkudkXj*v';
+        this.mockUrlPath = '/2.2/questions?site=emacs&order=desc&sort=week&filter=!.Hq849GtQAYbstk1tqHP6_wvoz8SU';
         this.requestMock = nock('https://api.stackexchange.com').get(this.mockUrlPath);
         this.emitter = new events.EventEmitter();
         this.emitter.on('fetch:stackexchange', fetchStackExchange);
@@ -84,7 +84,7 @@ describe('stackexchange fetch handler', function() {
 
         this.requestMock.reply(200, {
             items: [
-                {'answer_count': 3, 'score': 12, 'creation_date': 1436868796, 'link': 'the url', 'title': 'the title'}
+                {'answer_count': 3, 'score': 12, 'creation_date': 1436868796, 'link': 'the url', 'title': 'the title', 'owner': { 'display_name': 'author'}}
             ]
         });
 

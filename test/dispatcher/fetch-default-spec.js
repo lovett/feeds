@@ -153,12 +153,16 @@ describe('default fetch handler', function() {
                 entry: [{
                     title: { _: 'the title', '$': {type: 'text'} },
                     published: new Date().toString(),
+                    author: {
+                        name: 'the author'
+                    },
                     link: [
                         { '$':
                           { rel: 'replies',
                             type: 'application/atom+xml',
                             href: 'http://example.com/replies',
-                            title: 'Post Comments' }
+                            title: 'Post Comments'
+                          }
                         },
                         { '$':
                           { rel: 'whatever',
@@ -184,6 +188,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.feedId, self.feedId);
             assert.strictEqual(args.fetchId, self.fetchId);
             assert.strictEqual(args.title, reply.feed.entry[0].title._);
+            assert.strictEqual(args.author, reply.feed.entry[0].author.name);
             assert.strictEqual(args.url, 'http://example.com/entry');
             assert.strictEqual(args.created, reply.feed.entry[0].published);
             done();
@@ -237,7 +242,8 @@ describe('default fetch handler', function() {
                             title: 'the title',
                             pubDate: new Date().toString(),
                             link: 'http://example.com/entry',
-                            comments: 'http://example.com/comments'
+                            comments: 'http://example.com/comments',
+                            author: 'the author'
                         }
                     ]
                 }
@@ -251,6 +257,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.feedId, self.feedId);
             assert.strictEqual(args.fetchId, self.fetchId);
             assert.strictEqual(args.title, replyItem.title);
+            assert.strictEqual(args.author, replyItem.author);
             assert.strictEqual(args.url, replyItem.link);
             assert.strictEqual(args.created, replyItem.pubDate);
             assert.strictEqual(args.discussion.url, replyItem.comments);
@@ -263,7 +270,31 @@ describe('default fetch handler', function() {
             fetchId: this.fetchId,
             url: self.feedUrl
         });
+    });
 
+    it('handles items with no url', function (done) {
+        var self = this;
+
+        this.requestMock.reply(200, {
+            rss: {
+                channel: {
+                    item: [
+                        {title: 'the title'}
+                    ]
+                }
+            }
+        });
+
+        self.emitter.on('entry', function (entry) {
+            assert.strictEqual(entry.url, undefined);
+            done();
+        });
+
+        self.emitter.emit('fetch:default', {
+            feedId: this.feedId,
+            fetchId: this.fetchId,
+            url: self.feedUrl
+        });
     });
 
     it('triggers entry storage for rdf feeds', function (done) {
@@ -276,7 +307,10 @@ describe('default fetch handler', function() {
                     {
                         title: 'the title',
                         pubDate: new Date().toString(),
-                        link: 'http://example.com/entry'
+                        link: 'http://example.com/entry/',
+                        'dc:creator': 'the author',
+                        'slash:comments': 3
+
                     }
                 ]
             }
@@ -290,7 +324,10 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.fetchId, self.fetchId);
             assert.strictEqual(args.title, firstItem.title);
             assert.strictEqual(args.url, firstItem.link);
+            assert.strictEqual(args.author, firstItem['dc:creator']);
             assert.strictEqual(args.created, firstItem.pubDate);
+            assert.strictEqual(args.discussion.tally, firstItem['slash:comments']);
+            assert.strictEqual(args.discussion.url, args.url);
             done();
         });
 

@@ -89,7 +89,7 @@ describe('reddit fetch handler', function() {
         this.requestMock.reply(200, {
             data: {
                 children: [
-                    {'data': {'num_comments': 3, 'permalink': 'the permalink', 'created': 1436999356.0, 'url': 'the url', 'title': 'the title', 'created_utc': 1436970556.0}}
+                    {'data': {'num_comments': 3, 'permalink': 'the permalink', 'created': 1436999356.0, 'author': 'the author', 'url': 'the url', 'title': 'the title', 'created_utc': 1436970556.0}}
                 ]
             }
         });
@@ -97,6 +97,8 @@ describe('reddit fetch handler', function() {
         self.emitter.on('entry', function (args) {
             assert.strictEqual(args.feedId, self.feedId);
             assert.strictEqual(args.fetchId, self.fetchId);
+            assert.strictEqual(args.url, 'the url');
+            assert.strictEqual(args.author, 'the author');
             done();
         });
 

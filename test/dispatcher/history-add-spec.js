@@ -64,7 +64,6 @@ describe('history:add handler', function() {
         var self = this;
 
         self.emitter.on('history:add:done', function (args) {
-            console.log(args);
             assert.strictEqual(args.changes, undefined);
             assert.strictEqual(args.id, undefined);
             assert(args.error);

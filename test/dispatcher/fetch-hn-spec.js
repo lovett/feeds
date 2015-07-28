@@ -36,6 +36,7 @@ describe('Hacker News fetch handler', function() {
             id: 1,
             kids: { 0: 1, 1: 2, 2: 3},
             title: 'test',
+            by: 'author',
             time: new Date().getTime(),
             url: 'http://example.com'
         };
@@ -49,6 +50,7 @@ describe('Hacker News fetch handler', function() {
             assert.strictEqual(args.title, story.title);
             assert.strictEqual(args.createdUtcSeconds, story.time);
             assert.strictEqual(args.url, story.url);
+            assert.strictEqual(args.author, story.by);
             assert.strictEqual(args.discussion.tally, story.kids.length);
             assert.strictEqual(args.discussion.url, 'https://news.ycombinator.com/item?id=1');
             assert.strictEqual(args.discussion.label, 'Hacker News');

@@ -26,7 +26,7 @@ module.exports = function (args) {
             'site': parsedUrl.host.split('.').shift(),
             'order': 'desc',
             'sort': 'week',
-            'filter': '!)R7_Ydm)7LrqRF9BkudkXj*v'
+            'filter': '!.Hq849GtQAYbstk1tqHP6_wvoz8SU'
         }
     });
 
@@ -43,6 +43,11 @@ module.exports = function (args) {
                 url: item.link
             }
         };
+
+        if (item.owner && item.owner.display_name) {
+            entry.author = item.owner.display_name;
+        }
+
 
         self.emit('entry', entry);
     }

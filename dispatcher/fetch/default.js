@@ -30,15 +30,18 @@ module.exports = function (args) {
         } else if (item.link) {
             itemUrl = item.link;
         }
+
         return itemUrl;
     }
 
     function findUniqueItems (container) {
         var unique;
 
-        unique = container.reduce(function (accumulator, item) {
+        unique = container.reduce(function (accumulator, item, index) {
             var uniqueUrl = getItemUrl(item);
-            if (uniqueUrl) {
+            if (!uniqueUrl) {
+                accumulator[index] = item;
+            } else {
                 uniqueUrl = normalize.url(uniqueUrl);
                 if (!accumulator.hasOwnProperty(uniqueUrl)) {
                     accumulator[uniqueUrl] = item;
@@ -56,6 +59,15 @@ module.exports = function (args) {
         var entry, parsedCommentsUrl;
 
         entry = {};
+
+        // author
+        if (item.author && item.author.name) {
+            entry.author = item.author.name;
+        } else if (item['dc:creator']) {
+            entry.author = item['dc:creator'];
+        } else if (item.author) {
+            entry.author = item.author;
+        }
 
         // title
         if (item.title && item.title._ && item.title.$.type === 'text') {
@@ -79,6 +91,13 @@ module.exports = function (args) {
             parsedCommentsUrl = url.parse(item.comments);
             entry.discussion = {
                 url: item.comments,
+                label: parsedCommentsUrl.hostname
+            };
+        } else if (item['slash:comments']) {
+            parsedCommentsUrl = url.parse(entry.url);
+            entry.discussion = {
+                url: entry.url,
+                tally: item['slash:comments'],
                 label: parsedCommentsUrl.hostname
             };
         }
