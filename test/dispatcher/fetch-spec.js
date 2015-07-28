@@ -24,14 +24,17 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://reddit.com/feed.rss';
 
-        self.emitter.on('fetch:reddit', function (feedId, fetchId, feedUrl) {
-            assert.strictEqual(feedId, self.feedId);
-            assert(fetchId);
-            assert.strictEqual(feedUrl, url);
+        self.emitter.on('fetch:reddit', function (args) {
+            assert.strictEqual(args.id, self.feedId);
+            assert(args.fetchId);
+            assert.strictEqual(args.url, url);
             done();
         });
 
-        self.emitter.emit('fetch', self.feedId, url);
+        self.emitter.emit('fetch', {
+            id: self.feedId,
+            'url': url
+        });
     });
 
     it('delegates fetches of stackexchange feeds', function (done) {
@@ -40,14 +43,17 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://stackexchange.com/feed.rss';
 
-        self.emitter.on('fetch:stackexchange', function (feedId, fetchId, feedUrl) {
-            assert.strictEqual(feedId, self.feedId);
-            assert(fetchId);
-            assert.strictEqual(feedUrl, url);
+        self.emitter.on('fetch:stackexchange', function (args) {
+            assert.strictEqual(args.id, self.feedId);
+            assert(args.fetchId);
+            assert.strictEqual(args.url, url);
             done();
         });
 
-        self.emitter.emit('fetch', self.feedId, url);
+        self.emitter.emit('fetch', {
+            id: self.feedId,
+            'url': url
+        });
     });
 
     it('delegates fetches of hacker news feeds', function (done) {
@@ -56,14 +62,17 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://news.ycombinator.com/feed.rss';
 
-        self.emitter.on('fetch:hn', function (feedId, fetchId, feedUrl) {
-            assert.strictEqual(feedId, self.feedId);
-            assert(fetchId);
-            assert.strictEqual(feedUrl, url);
+        self.emitter.on('fetch:hn', function (args) {
+            assert.strictEqual(args.id, self.feedId);
+            assert(args.fetchId);
+            assert.strictEqual(args.url, url);
             done();
         });
 
-        self.emitter.emit('fetch', self.feedId, url);
+        self.emitter.emit('fetch', {
+            id: self.feedId,
+            url: url
+        });
     });
 
     it('delegates fetching to default handler', function (done) {
@@ -72,14 +81,17 @@ describe('fetch handler', function() {
         self = this;
         url = 'http://example.com/feed.rss';
 
-        self.emitter.on('fetch:default', function (feedId, fetchId, feedUrl) {
-            assert.strictEqual(feedId, self.feedId);
-            assert(fetchId);
-            assert.strictEqual(feedUrl, url);
+        self.emitter.on('fetch:default', function (args) {
+            assert.strictEqual(args.id, self.feedId);
+            assert(args.fetchId);
+            assert.strictEqual(args.url, url);
             done();
         });
 
-        self.emitter.emit('fetch', self.feedId, url);
+        self.emitter.emit('fetch', {
+            id: self.feedId,
+            url: url
+        });
     });
 
 });

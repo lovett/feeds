@@ -1,16 +1,16 @@
-module.exports = function (db, entryId, discussion) {
+module.exports = function (db, discussion) {
     'use strict';
 
-    var discussionID, self;
-
-    self = this;
+    var self = this;
 
     function discussionSaved () {
-        if (!discussionID) {
-            discussionID = this.lastID;
+        if (!discussion.id) {
+            discussion.id = this.lastID;
         }
 
-        self.emit('discussion:store:done', this.changes, discussionID);
+        discussion.changes = this.changes;
+
+        self.emit('discussion:store:done', discussion);
     }
 
     db.get('SELECT id FROM discussions WHERE url=?', [discussion.url], function (err, row) {
@@ -20,11 +20,11 @@ module.exports = function (db, entryId, discussion) {
         }
 
         if (row) {
-            discussionID = row.id;
-            db.run('UPDATE discussions SET tally=? WHERE id=?', [discussion.tally, discussionID], discussionSaved);
+            discussion.id = row.id;
+            db.run('UPDATE discussions SET tally=? WHERE id=?', [discussion.tally, discussion.id], discussionSaved);
         } else {
             db.run('INSERT INTO discussions (entryId, tally, label, url) VALUES (?, ?, ?, ?)',
-                   [entryId, discussion.tally, discussion.label, discussion.url], discussionSaved);
+                   [discussion.entryId, discussion.tally, discussion.label, discussion.url], discussionSaved);
         }
     });
 };

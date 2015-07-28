@@ -9,12 +9,11 @@ url = require('url');
  * Feeds from Reddit, StackExchange, and Hacker News are requested via
  * their respective APIs. All other feeds are requested directly.
  */
-module.exports = function (feedId, feedUrl) {
+module.exports = function (args) {
     'use strict';
 
     var fetchEvent, fetchId, host;
-
-    host = url.parse(feedUrl).host;
+    host = url.parse(args.url).host;
 
     if (host.indexOf('reddit.com') > -1) {
         fetchEvent = 'fetch:reddit';
@@ -28,5 +27,9 @@ module.exports = function (feedId, feedUrl) {
 
     fetchId = crypto.pseudoRandomBytes(10).toString('hex');
 
-    this.emit(fetchEvent, feedId, fetchId, feedUrl);
+    this.emit(fetchEvent, {
+        id: args.id,
+        fetchId: fetchId,
+        url: args.url
+    });
 };

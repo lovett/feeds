@@ -7,12 +7,13 @@ needle = require('needle');
 url = require('url');
 normalize = require('../../util/normalize');
 
-module.exports = function (feedId, fetchId, feedUrl) {
+module.exports = function (args) {
     'use strict';
 
     var self;
 
     self = this;
+
 
     function getItemUrl (item) {
         var itemUrl;
@@ -52,37 +53,41 @@ module.exports = function (feedId, fetchId, feedUrl) {
     }
 
     function eachItem (item) {
-        var fields, parsedCommentsUrl;
+        var entry, parsedCommentsUrl;
 
-        fields = {};
+        entry = {};
 
         // title
         if (item.title && item.title._ && item.title.$.type === 'text') {
-            fields.title = item.title._;
+            entry.title = item.title._;
         } else if (item.title) {
-            fields.title = item.title;
+            entry.title = item.title;
         }
 
         // created
         if (item.published) {
-            fields.created = item.published;
+            entry.created = item.published;
         } else if (item.pubDate) {
-            fields.created = item.pubDate;
+            entry.created = item.pubDate;
         }
 
         // url
-        fields.url = getItemUrl(item);
+        entry.url = getItemUrl(item);
 
         // discussion
         if (item.comments) {
             parsedCommentsUrl = url.parse(item.comments);
-            fields.discussion = {
+            entry.discussion = {
                 url: item.comments,
                 label: parsedCommentsUrl.hostname
             };
         }
 
-        self.emit('entry', feedId, fetchId, fields);
+        entry.feedUrl = args.url;
+        entry.feedId = args.id;
+        entry.fetchId = args.fetchId;
+
+        self.emit('entry', entry);
     }
 
     function get (err, response) {
@@ -91,7 +96,7 @@ module.exports = function (feedId, fetchId, feedUrl) {
         itemCount = 0;
 
         if (err || response.statusCode !== 200) {
-            self.emit('log:warn', 'Failed to fetch feed', {response: response.statusCode, url: feedUrl, error: err});
+            self.emit('log:warn', 'Failed to fetch feed', {response: response.statusCode, url: args.url, error: err});
         }
 
         if (response.body.feed) {
@@ -101,7 +106,7 @@ module.exports = function (feedId, fetchId, feedUrl) {
         } else if (response.body['rdf:RDF']) {
             itemContainer = response.body['rdf:RDF'].item;
         } else {
-            self.emit('log:warn', 'Unable to identify item container', { url: feedUrl });
+            self.emit('log:warn', 'Unable to identify item container', { url: args.url });
         }
 
         if (itemContainer) {
@@ -110,8 +115,15 @@ module.exports = function (feedId, fetchId, feedUrl) {
             itemCount = uniqueItems.length;
         }
 
-        self.emit('fetch:done', feedId, fetchId, feedUrl, response.statusCode, itemCount, response.headers);
+        self.emit('fetch:done', {
+            id: args.id,
+            fetchId: args.fetchId,
+            feedUrl: args.url,
+            status: response.statusCode,
+            itemCount: itemCount,
+            headers: response.headers
+        });
     }
 
-    needle.get(feedUrl, get);
+    needle.get(args.url, get);
 };

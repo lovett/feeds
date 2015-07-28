@@ -33,11 +33,17 @@ module.exports = function (db) {
             }
 
             db.run('UPDATE feeds SET nextFetchUtcSeconds=? WHERE id=?', [feed.nextFetchUtcSeconds, feed.id], function () {
-                self.emit('poll:done', feed.id, feed.url, feed.nextFetchUtcSeconds);
+                self.emit('poll:done', {
+                    id: feed.id,
+                    url: feed.url,
+                    nextFetchUtcSeconds: feed.nextFetchUtcSeconds
+                });
             });
         });
 
-        self.emit('fetch', feed.id, feed.url);
-
+        self.emit('fetch', {
+            id: feed.id,
+            url: feed.url
+        });
     });
 };

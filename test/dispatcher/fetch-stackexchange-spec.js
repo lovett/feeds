@@ -11,6 +11,7 @@ describe('stackexchange fetch handler', function() {
 
     beforeEach(function (done) {
         this.feedUrl = 'http://emacs.stackexchange.com/feeds';
+        this.feedId = 1;
         this.fetchId = 'fetch';
         this.mockUrlPath = '/2.2/questions?site=emacs&order=desc&sort=week&filter=!)R7_Ydm)7LrqRF9BkudkXj*v';
         this.requestMock = nock('https://api.stackexchange.com').get(this.mockUrlPath);
@@ -25,29 +26,27 @@ describe('stackexchange fetch handler', function() {
     });
 
     it('normalizes the feed URL to JSON over HTTPS', function (done) {
-        var feedId, self;
-
-        self = this;
-        feedId = 1;
+        var self = this;
 
         this.requestMock.reply(200, {'items': []});
 
-        self.emitter.on('fetch:done', function (fetchedFeedId, fetchId, apiUrl, statusCode) {
-            var parsedApiUrl = url.parse(apiUrl);
+        self.emitter.on('fetch:done', function (args) {
+            var parsedApiUrl = url.parse(args.url);
             assert.strictEqual(parsedApiUrl.path, self.mockUrlPath);
-            assert.strictEqual(fetchId, self.fetchId);
-            assert.strictEqual(statusCode, 200);
+            assert.strictEqual(args.fetchId, self.fetchId);
+            assert.strictEqual(args.status, 200);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, this.fetchId, this.feedUrl);
+        self.emitter.emit('fetch:stackexchange', {
+            id: this.feedId,
+            fetchId: this.fetchId,
+            url: this.feedUrl
+        });
     });
 
     it('logs failure', function (done) {
-        var feedId, self;
-
-        self = this;
-        feedId = 1;
+        var self = this;
 
         this.requestMock.reply(400, {});
 
@@ -56,30 +55,32 @@ describe('stackexchange fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, this.fetchId, this.feedUrl);
+        self.emitter.emit('fetch:stackexchange', {
+            id: this.feedId,
+            fetchId: this.fetchId,
+            url: this.feedUrl
+        });
     });
 
     it('handles absence of children in response', function (done) {
-        var feedId, self;
-
-        self = this;
-        feedId = 1;
+        var self = this;
 
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (fetchedFeedId, fetchId, apiUrl, statusCode, itemCount) {
-            assert.strictEqual(itemCount, 0);
+        self.emitter.on('fetch:done', function (args) {
+            assert.strictEqual(args.itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, self.fetchId, self.feedUrl);
+        self.emitter.emit('fetch:stackexchange', {
+            feedId: this.feedId,
+            fetchId: this.fetchId,
+            url: this.feedUrl
+        });
     });
 
     it('triggers entry storage', function (done) {
-        var feedId, self;
-
-        self = this;
-        feedId = 1;
+        var self = this;
 
         this.requestMock.reply(200, {
             items: [
@@ -87,14 +88,17 @@ describe('stackexchange fetch handler', function() {
             ]
         });
 
-        self.emitter.on('entry', function (entryFeedId, entryFetchId) {
-            assert.strictEqual(feedId, entryFeedId);
-            assert.strictEqual(entryFetchId, self.fetchId);
+        self.emitter.on('entry', function (args) {
+            assert.strictEqual(args.feedId, self.feedId);
+            assert.strictEqual(args.fetchId, self.fetchId);
             done();
         });
 
-        self.emitter.emit('fetch:stackexchange', feedId, self.fetchId, self.feedUrl);
-
+        self.emitter.emit('fetch:stackexchange', {
+            id: this.feedId,
+            fetchId: this.fetchId,
+            url: this.feedUrl
+        });
     });
 
 });

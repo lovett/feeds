@@ -9,32 +9,34 @@ url = require('url');
  * Fetch a Reddit feed
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, fetchId, feedUrl) {
+module.exports = function (args) {
     'use strict';
 
     var jsonUrl, parsedUrl, self, subreddit;
 
     self = this;
-    parsedUrl = url.parse(feedUrl);
+    parsedUrl = url.parse(args.url);
     subreddit = parsedUrl.path.split('/')[2];
     jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
 
     function eachItem (child) {
-        var entry, fields;
-        entry = child.data;
+        var entry, item;
+        item = child.data;
 
-        fields = {
-            title: entry.title,
-            createdUtcSeconds: entry.created_utc,
-            url: entry.url,
+        entry = {
+            feedId: args.id,
+            fetchId: args.fetchId,
+            title: item.title,
+            createdUtcSeconds: item.created_utc,
+            url: item.url,
             discussion: {
-                tally: entry.num_comments,
+                tally: item.num_comments,
                 label: parsedUrl.hostname,
-                url: 'https://' + parsedUrl.hostname + entry.permalink
+                url: 'https://' + parsedUrl.hostname + item.permalink
             }
         };
 
-        self.emit('entry', feedId, fetchId, fields);
+        self.emit('entry', entry);
     }
 
     function get (err, response) {
@@ -49,7 +51,14 @@ module.exports = function (feedId, fetchId, feedUrl) {
             response.body.data.children.forEach(eachItem);
         }
 
-        self.emit('fetch:done', feedId, fetchId, jsonUrl, response.statusCode, itemCount, response.headers);
+        self.emit('fetch:done', {
+            id: args.id,
+            fetchId: args.fetchId,
+            url: jsonUrl,
+            status: response.statusCode,
+            itemCount: itemCount,
+            headers: response.headers
+        });
     }
 
 

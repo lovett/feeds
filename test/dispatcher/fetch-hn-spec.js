@@ -43,22 +43,26 @@ describe('Hacker News fetch handler', function() {
         self.hnTopStories.set([1]);
         self.hnFirebase.child('/item/1').set(story);
 
-        self.emitter.once('entry', function (entryFeedId, entryFetchId, entryFields) {
-            assert.strictEqual(entryFeedId, self.feedId);
-            assert.strictEqual(entryFetchId, self.fetchId);
-            assert.strictEqual(entryFields.title, story.title);
-            assert.strictEqual(entryFields.createdUtcSeconds, story.time);
-            assert.strictEqual(entryFields.url, story.url);
-            assert.strictEqual(entryFields.discussion.tally, story.kids.length);
-            assert.strictEqual(entryFields.discussion.url, 'https://news.ycombinator.com/item?id=1');
-            assert.strictEqual(entryFields.discussion.label, 'Hacker News');
+        self.emitter.once('entry', function (args) {
+            assert.strictEqual(args.feedId, self.feedId);
+            assert.strictEqual(args.fetchId, self.fetchId);
+            assert.strictEqual(args.title, story.title);
+            assert.strictEqual(args.createdUtcSeconds, story.time);
+            assert.strictEqual(args.url, story.url);
+            assert.strictEqual(args.discussion.tally, story.kids.length);
+            assert.strictEqual(args.discussion.url, 'https://news.ycombinator.com/item?id=1');
+            assert.strictEqual(args.discussion.label, 'Hacker News');
             done();
         });
 
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.fetchId, self.feedUrl);
-        self.hnFirebase.flush();
+        self.emitter.emit('fetch:hn', self.hnFirebase, {
+            id: self.feedId,
+            fetchId: self.fetchId,
+            url: self.feedUrl
+        });
 
+        self.hnFirebase.flush();
     });
 
     it('handles empty snapshot for item', function (done) {
@@ -73,7 +77,12 @@ describe('Hacker News fetch handler', function() {
             done();
         });
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.fetchId, self.feedUrl);
+        self.emitter.emit('fetch:hn', self.hnFirebase, {
+            feedId: self.feedId,
+            fetchId: self.fetchId,
+            url: self.feedUrl
+        });
+
         self.hnFirebase.flush();
     });
 
@@ -86,12 +95,17 @@ describe('Hacker News fetch handler', function() {
             title: 'test'
         });
 
-        self.emitter.once('entry', function (entryFeedId, entryFetchId, entryFields) {
-            assert.strictEqual(entryFields.discussion.tally, 0);
+        self.emitter.once('entry', function (args) {
+            assert.strictEqual(args.discussion.tally, 0);
             done();
         });
 
-        self.emitter.emit('fetch:hn', self.hnFirebase, self.feedId, self.fetchId, self.feedUrl);
+        self.emitter.emit('fetch:hn', self.hnFirebase, {
+            feedId: self.feedId,
+            fetchId: self.fetchId,
+            url: self.feedUrl
+        });
+
         self.hnFirebase.flush();
     });
 

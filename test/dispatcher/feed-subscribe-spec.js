@@ -33,10 +33,10 @@ describe('feed:subscribe handler', function() {
     it('adds a row to the feeds table when a user id is not provided', function (done) {
         var self = this;
 
-        self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
-            assert.strictEqual(changes, 1);
-            assert.strictEqual(lastID, 1);
-            assert.strictEqual(err, null);
+        self.emitter.on('feed:subscribe:done', function (args) {
+            assert.strictEqual(args.changes, 1);
+            assert.strictEqual(args.lastId, 1);
+            assert.strictEqual(args.error, null);
 
             self.db.get('SELECT COUNT(*) as count FROM feeds', function (dbErr, row) {
                 if (dbErr) {
@@ -47,16 +47,16 @@ describe('feed:subscribe handler', function() {
             });
         });
 
-        self.emitter.emit('feed:subscribe', self.db, self.feedUrl);
+        self.emitter.emit('feed:subscribe', self.db, {url: self.feedUrl});
     });
 
     it('adds rows to the feed and userFeeds tables', function (done) {
         var self = this;
 
-        self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
-            assert.strictEqual(changes, 1);
-            assert.strictEqual(lastID, 1);
-            assert.strictEqual(err, null);
+        self.emitter.on('feed:subscribe:done', function (args) {
+            assert.strictEqual(args.changes, 1);
+            assert.strictEqual(args.lastId, 1);
+            assert.strictEqual(args.error, null);
 
             self.db.get('SELECT COUNT(*) as count FROM feeds, userFeeds WHERE feeds.id=userFeeds.feedId', function (dbErr, row) {
                 if (dbErr) {
@@ -68,16 +68,16 @@ describe('feed:subscribe handler', function() {
 
         });
 
-        self.emitter.emit('feed:subscribe', self.db, self.feedUrl, self.userId);
+        self.emitter.emit('feed:subscribe', self.db, {url: self.feedUrl, userId: self.userId});
     });
 
     it('prevents duplicates', function (done) {
         var self = this;
 
-        self.emitter.on('feed:subscribe:done', function (changes, lastID, err) {
-            assert.strictEqual(changes, 0);
-            assert.strictEqual(lastID, 1);
-            assert.strictEqual(err, null);
+        self.emitter.on('feed:subscribe:done', function (args) {
+            assert.strictEqual(args.changes, 0);
+            assert.strictEqual(args.lastId, 1);
+            assert.strictEqual(args.error, null);
 
             self.db.get('SELECT COUNT(*) as count FROM feeds', function (dbErr, row) {
                 if (dbErr) {
@@ -89,7 +89,7 @@ describe('feed:subscribe handler', function() {
         });
 
         self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function () {
-            self.emitter.emit('feed:subscribe', self.db, self.feedUrl);
+            self.emitter.emit('feed:subscribe', self.db, { url: self.feedUrl});
         });
 
 
@@ -105,7 +105,7 @@ describe('feed:subscribe handler', function() {
         });
 
         self.db.run('DROP TABLE IF EXISTS feeds', [], function () {
-            self.emitter.emit('feed:subscribe', self.db);
+            self.emitter.emit('feed:subscribe', self.db, {url: self.feedUrl});
         });
     });
 
@@ -120,7 +120,7 @@ describe('feed:subscribe handler', function() {
             done();
         });
 
-        self.emitter.emit('feed:subscribe', self.db, self.feedUrl, invalidUserId);
+        self.emitter.emit('feed:subscribe', self.db, {url: self.feedUrl, userId: invalidUserId});
     });
 
 });

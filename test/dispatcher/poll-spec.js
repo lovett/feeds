@@ -34,9 +34,9 @@ describe('poll handler', function() {
     it('triggers fetch of a newly added feed', function (done) {
         var self = this;
 
-        self.emitter.on('fetch', function (feedId, feedUrl) {
-            assert.strictEqual(feedId, 1);
-            assert.strictEqual(feedUrl, self.feedUrl);
+        self.emitter.on('fetch', function (args) {
+            assert.strictEqual(args.id, 1);
+            assert.strictEqual(args.url, self.feedUrl);
             done();
         });
 
@@ -61,9 +61,9 @@ describe('poll handler', function() {
         oneMinuteAgo = new Date().getTime() / 1000 - 60;
         self = this;
 
-        self.emitter.on('fetch', function (feedId) {
+        self.emitter.on('fetch', function (args) {
 
-            self.db.get('SELECT count(*) as count FROM feeds WHERE id=? AND nextFetchUtcSeconds IS NOT NULL', [feedId], function (err, row) {
+            self.db.get('SELECT count(*) as count FROM feeds WHERE id=? AND nextFetchUtcSeconds IS NOT NULL', [args.id], function (err, row) {
                 if (err) {
                     throw err;
                 }
@@ -90,9 +90,9 @@ describe('poll handler', function() {
     it('emits done event', function (done) {
         var self = this;
 
-        self.emitter.on('poll:done', function (feedId, feedUrl) {
-            assert.strictEqual(feedId, 1);
-            assert.strictEqual(feedUrl, self.feedUrl);
+        self.emitter.on('poll:done', function (args) {
+            assert.strictEqual(args.id, 1);
+            assert.strictEqual(args.url, self.feedUrl);
             done();
         });
 
@@ -161,8 +161,8 @@ describe('poll handler', function() {
         oneHourFromNow = nowSeconds = 60 * 60;
         threeHoursFromNow = nowSeconds + 60 * 60 * 3;
 
-        self.emitter.on('poll:done', function (feedId, feedUrl, feedNextCheck) {
-            assert(feedNextCheck, oneHourFromNow);
+        self.emitter.on('poll:done', function (args) {
+            assert(args.nextFetchUtcSeconds, oneHourFromNow);
             done();
         });
 
@@ -186,8 +186,8 @@ describe('poll handler', function() {
         nowSeconds = new Date().getTime() / 1000;
         yesterdaySeconds = nowSeconds - 86400;
 
-        self.emitter.on('poll:done', function (feedId, feedUrl, feedNextCheck) {
-            assert(feedNextCheck, nowSeconds + 86400);
+        self.emitter.on('poll:done', function (args) {
+            assert(args.nextFetchUtcSeconds, nowSeconds + 86400);
             done();
         });
 
@@ -208,9 +208,8 @@ describe('poll handler', function() {
     it('does not trigger fetch when no feeds are fetchable', function (done) {
         var self = this;
 
-        self.emitter.on('poll:done', function (feedId, feedUrl) {
-            assert(!feedId);
-            assert(!feedUrl);
+        self.emitter.on('poll:done', function (args) {
+            assert.strictEqual(args, undefined);
             done();
         });
 
@@ -220,9 +219,8 @@ describe('poll handler', function() {
     it('ignores fetchable feed if no users are subscribed to it', function (done) {
         var self = this;
 
-        self.emitter.on('poll:done', function (feedId, feedUrl) {
-            assert(!feedId);
-            assert(!feedUrl);
+        self.emitter.on('poll:done', function (args) {
+            assert.strictEqual(args, undefined);
             done();
         });
 

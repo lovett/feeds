@@ -11,7 +11,6 @@ describe('history:add handler', function() {
 
     beforeEach(function (done) {
         var self = this;
-        this.feedId = 1;
         this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
@@ -22,6 +21,8 @@ describe('history:add handler', function() {
                 if (err) {
                     throw err;
                 }
+
+                self.feedId = this.lastID;
                 done();
             });
         });
@@ -34,15 +35,12 @@ describe('history:add handler', function() {
     });
 
     it('adds a row to the history table', function (done) {
-        var itemCount, self;
+        var self = this;
 
-        self = this;
-        itemCount = 10;
-
-        self.emitter.on('history:add:done', function (changes, lastID, err) {
-            assert.strictEqual(changes, 1);
-            assert.strictEqual(lastID, 1);
-            assert.strictEqual(err, null);
+        self.emitter.on('history:add:done', function (args) {
+            assert.strictEqual(args.changes, 1);
+            assert.strictEqual(args.id, 1);
+            assert.strictEqual(args.error, null);
 
             self.db.get('SELECT COUNT(*) as count FROM history', function (dbErr, row) {
                 if (dbErr) {
@@ -53,19 +51,23 @@ describe('history:add handler', function() {
             });
         });
 
-        self.emitter.emit('history:add', self.db, 'fetch', self.feedId, self.fetchId, 200, itemCount);
+        self.emitter.emit('history:add', self.db, {
+            type: 'fetch',
+            id: self.feedId,
+            fetchId: self.fetchId,
+            status: 200,
+            'itemCount': 10
+        });
     });
 
     it('handles failure to add row', function (done) {
-        var itemCount, self;
+        var self = this;
 
-        self = this;
-        itemCount = 10;
-
-        self.emitter.on('history:add:done', function (changes, lastID, err) {
-            assert.strictEqual(changes, undefined);
-            assert.strictEqual(lastID, undefined);
-            assert(err);
+        self.emitter.on('history:add:done', function (args) {
+            console.log(args);
+            assert.strictEqual(args.changes, undefined);
+            assert.strictEqual(args.id, undefined);
+            assert(args.error);
             done();
         });
 
@@ -73,7 +75,13 @@ describe('history:add handler', function() {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('history:add', self.db, 'fetch', self.feedId, self.fetchId, 200, itemCount);
+            self.emitter.emit('history:add', self.db, {
+                type: 'fetch',
+                id: self.feedId,
+                fetchId: self.fetchId,
+                status: 200,
+                'itemCount': 10
+            });
         });
     });
 });

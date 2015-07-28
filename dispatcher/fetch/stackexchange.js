@@ -11,13 +11,13 @@ url = require('url');
  * creation_date, link, title
  * --------------------------------------------------------------------
  */
-module.exports = function (feedId, fetchId, feedUrl) {
+module.exports = function (args) {
     'use strict';
 
     var endpoint, parsedUrl, self;
 
     self = this;
-    parsedUrl = url.parse(feedUrl);
+    parsedUrl = url.parse(args.url);
     endpoint = url.format({
         protocol: 'https',
         host: 'api.stackexchange.com',
@@ -31,7 +31,9 @@ module.exports = function (feedId, fetchId, feedUrl) {
     });
 
     function eachItem (item) {
-        var fields = {
+        var entry = {
+            feedId: args.id,
+            fetchId: args.fetchId,
             title: item.title,
             createdUtcSeconds: item.creation_date,
             url: item.link,
@@ -42,7 +44,7 @@ module.exports = function (feedId, fetchId, feedUrl) {
             }
         };
 
-        self.emit('entry', feedId, fetchId, fields);
+        self.emit('entry', entry);
     }
 
     function get (err, response) {
@@ -56,7 +58,14 @@ module.exports = function (feedId, fetchId, feedUrl) {
             response.body.items.forEach(eachItem);
         }
 
-        self.emit('fetch:done', feedId, fetchId, endpoint, response.statusCode, itemCount, response.headers);
+        self.emit('fetch:done', {
+            id: args.id,
+            fetchId: args.fetchId,
+            url: endpoint,
+            status: response.statusCode,
+            'itemCount': itemCount,
+            headers: response.headers
+        });
     }
 
     needle.get(endpoint, get);

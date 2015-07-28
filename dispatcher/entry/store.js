@@ -7,22 +7,16 @@ normalize = require('../../util/normalize');
  * Store an entry after it has been processed
  * --------------------------------------------------------------------
  */
-module.exports = function (db, feedId, fetchId, entry) {
+module.exports = function (db, entry) {
     'use strict';
 
-    var entryId, self;
-
-    self = this;
+    var self = this;
 
     if (!entry.url) {
-        self.emit('log:warn', 'Rejecting entry with no url', {
-            feed: feedId,
-            feedEntry: entry
-        });
+        self.emit('log:warn', 'Rejecting entry with no url', entry);
         return;
     }
 
-    entry.fetchId = fetchId;
     entry.title = entities.decodeXML(entry.title);
 
     // Probably not necessary, but just in case
@@ -46,14 +40,18 @@ module.exports = function (db, feedId, fetchId, entry) {
 
     function entrySaved() {
         if (this.lastID) {
-            entryId = this.lastID;
+            entry.id = this.lastID;
         }
+
+        entry.changes = this.changes;
 
         if (entry.hasOwnProperty('discussion')) {
-            self.emit('discussion', entryId, entry.discussion);
+            entry.discussion.entryId = entry.id;
+
+            self.emit('discussion', entry.discussion);
         }
 
-        self.emit('entry:store:done', this.changes, entryId, entry);
+        self.emit('entry:store:done', entry);
     }
 
     db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
@@ -63,11 +61,11 @@ module.exports = function (db, feedId, fetchId, entry) {
         }
 
         if (row) {
-            entryId = row.id;
+            entry.id = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
         } else {
             db.run('INSERT INTO entries (feedId, fetchid, url, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?, ?)',
-                   [feedId, fetchId, entry.url, entry.normalizedUrl, entry.title, entry.createdUtcSeconds], entrySaved);
+                   [entry.feedId, entry.fetchId, entry.url, entry.normalizedUrl, entry.title, entry.createdUtcSeconds], entrySaved);
         }
     });
 

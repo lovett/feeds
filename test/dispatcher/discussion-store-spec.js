@@ -39,14 +39,15 @@ describe('discussion:store handler', function() {
 
         self = this;
         discussion = {
+            entryId: 1,
             tally: 1,
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.on('discussion:store:done', function (changes, lastID) {
-            assert.strictEqual(changes, 1);
-            assert.strictEqual(lastID, 1);
+        self.emitter.on('discussion:store:done', function (savedDiscussion) {
+            assert.strictEqual(savedDiscussion.changes, 1);
+            assert.strictEqual(savedDiscussion.id, 1);
 
             self.db.get('SELECT COUNT(*) as count FROM discussions', function (err, row) {
                 assert.strictEqual(err, null);
@@ -55,7 +56,7 @@ describe('discussion:store handler', function() {
             });
         });
 
-        self.emitter.emit('discussion:store', self.db, 1, discussion);
+        self.emitter.emit('discussion:store', self.db, discussion);
     });
 
     it('updates an existing row', function (done) {
@@ -63,19 +64,19 @@ describe('discussion:store handler', function() {
 
         self = this;
         discussion = {
+            entryId: 1,
             tally: 1,
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
 
+        self.emitter.once('discussion:store:done', function (args) {
+            assert.strictEqual(args.changes, 1);
+            assert.strictEqual(args.id, 1);
 
-        self.emitter.once('discussion:store:done', function (firstChanges, firstDiscussionID) {
-            assert.strictEqual(firstChanges, 1);
-            assert.strictEqual(firstDiscussionID, 1);
-
-            self.emitter.once('discussion:store:done', function (secondChanges, secondDiscussionID) {
-                assert.strictEqual(secondChanges, 1);
-                assert.strictEqual(secondDiscussionID, 1);
+            self.emitter.once('discussion:store:done', function (args2) {
+                assert.strictEqual(args2.changes, 1);
+                assert.strictEqual(args2.id, 1);
 
                 self.db.get('SELECT tally FROM discussions LIMIT 1', function (err, row) {
                     assert.strictEqual(err, null);
@@ -85,11 +86,11 @@ describe('discussion:store handler', function() {
             });
 
             discussion.tally = 100;
-            self.emitter.emit('discussion:store', self.db, 1, discussion);
+            self.emitter.emit('discussion:store', self.db, discussion);
 
         });
 
-        self.emitter.emit('discussion:store', self.db, 1, discussion);
+        self.emitter.emit('discussion:store', self.db, discussion);
 
     });
 
@@ -99,6 +100,7 @@ describe('discussion:store handler', function() {
         self = this;
 
         discussion = {
+            entryId: 1,
             tally: 1,
             label: 'test',
             url: 'http://example.com/discussion.html'
@@ -113,7 +115,7 @@ describe('discussion:store handler', function() {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('discussion:store', self.db, 1, discussion);
+            self.emitter.emit('discussion:store', self.db, discussion);
         });
     });
 
