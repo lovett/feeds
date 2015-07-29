@@ -151,6 +151,29 @@ describe('dispatcher', function() {
             dispatcher.load(loadPath);
             sinon.assert.called(dispatcher.on);
         });
+    });
 
+    describe('unlisten()', function () {
+        beforeEach(function () {
+            dispatcher.on('test', function () {
+                return true;
+            });
+        });
+
+        afterEach(function () {
+            dispatcher.removeAllListeners();
+        });
+
+        it('removes the callback for the specified event', function (done) {
+            var loadPath;
+            loadPath = path.join(__dirname, '..', '..', 'dispatcher', 'test.js');
+
+            dispatcher.once('unlisten:done', function (params) {
+                assert.strictEqual(params.event, 'test');
+                assert.strictEqual(dispatcher.listeners('test').length, 0);
+                done();
+            });
+            dispatcher.unlisten(loadPath);
+        });
     });
 });

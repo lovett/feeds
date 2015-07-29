@@ -13,6 +13,7 @@ describe('discussion:store handler', function() {
         var self = this;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
+        this.emitter.unlisten = function () {};
         this.emitter.on('discussion:store', discussionStore);
         this.emitter.on('setup', setup);
         this.entryUrl = 'http://example.com/entry.html';

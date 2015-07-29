@@ -14,6 +14,7 @@ describe('feed:subscribe handler', function() {
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
+        this.emitter.unlisten = function () {};
         this.emitter.on('setup', setup);
         this.emitter.on('feed:subscribe', subscribe);
         this.emitter.on('setup:done', function () {

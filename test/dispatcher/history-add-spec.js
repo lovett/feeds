@@ -14,6 +14,7 @@ describe('history:add handler', function() {
         this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
+        this.emitter.unlisten = function () {};
         this.emitter.on('setup', setup);
         this.emitter.on('history:add', historyAdd);
         this.emitter.on('setup:done', function () {

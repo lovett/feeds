@@ -96,29 +96,43 @@ emitter.autoload = function (dir) {
     return this;
 };
 
-emitter.load = function (filePath, root) {
+emitter.pathToEvent = function (filePath, root) {
     'use strict';
-
-    var event, module, parsedPath, relPath;
+    var event, parsedPath, relPath;
     parsedPath = path.parse(filePath);
     root = root || __dirname;
     relPath = filePath.replace(root, '').replace(path.sep, '');
-
-    // the event name is derived from the file path
     event = relPath.replace(parsedPath.ext, '');
-
     event = event.split(path.sep);
     if (event[event.length - 1] === 'index') {
         event.pop();
     }
-
     event = event.join(':');
+    return event;
+};
+
+emitter.load = function (filePath, root) {
+    'use strict';
+
+    var event, module;
+    event = this.pathToEvent(filePath, root);
 
     module = require(filePath);
 
     if (typeof module === 'function') {
         this.on(event, module);
     }
+};
+
+emitter.unlisten = function (filePath, root) {
+    'use strict';
+
+    var event = this.pathToEvent(filePath, root);
+    this.removeAllListeners(event);
+    this.emit('unlisten:done', {
+        'filePath': filePath,
+        'event': event
+    });
 };
 
 module.exports = emitter;

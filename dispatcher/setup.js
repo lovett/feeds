@@ -28,6 +28,7 @@ module.exports = function (db) {
         db.run('CREATE INDEX IF NOT EXISTS history_type ON history(type)');
         db.run('CREATE INDEX IF NOT EXISTS history_feedId ON history(feedId)');
 
+        self.unlisten(__filename);
         self.emit('setup:done');
     });
 };

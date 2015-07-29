@@ -13,6 +13,7 @@ describe('feed:update handler', function() {
         var self = this;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
+        this.emitter.unlisten = function () {};
         this.emitter.on('feed:update', feedUpdate);
         this.emitter.on('setup', setup);
         this.entryUrl = 'http://example.com/entry.html';

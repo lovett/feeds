@@ -15,6 +15,7 @@ describe('poll handler', function() {
         this.feedUrl = 'http://example.com/feed.rss';
         this.entryUrl = 'http://example.com/entry.html';
         this.emitter = new events.EventEmitter();
+        this.emitter.unlisten = function () {};
         this.emitter.on('setup', setup);
         this.emitter.on('poll', poll);
         this.emitter.on('setup:done', function () {
