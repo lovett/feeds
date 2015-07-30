@@ -79,18 +79,6 @@ module.exports = function(grunt) {
             }
         },
 
-        eslint: {
-            dispatcher: ['dispatcher/**/*.js'],
-            test: ['test/dispatcher/**/*.js'],
-            gruntfile: ['Gruntfile.js']
-        },
-
-        githooks: {
-            all: {
-                'pre-commit': 'eslint'
-            }
-        },
-
         less: {
             main: {
                 options: {
@@ -233,6 +221,6 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('build', ['clean:preBuild', 'uglify', 'less', 'autoprefixer', 'cssmin', 'copy', 'concat', 'string-replace:dev', 'clean:postBuild']);
-    grunt.registerTask('default', ['githooks', 'build', 'watch']);
+    grunt.registerTask('default', ['build', 'watch']);
 
 };
