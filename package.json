@@ -56,7 +56,7 @@
     "restify": "3.0.3",
     "sqlite3": "3.0.9",
     "string": "3.3.0",
-    "xml2js": "^0.4.9",
+    "xml2js": "0.4.9",
     "xmlbuilder": "2.6.4"
   }
 }
