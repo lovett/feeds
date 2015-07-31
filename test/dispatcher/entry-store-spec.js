@@ -11,7 +11,6 @@ describe('entry:store handler', function() {
 
     beforeEach(function (done) {
         var self = this;
-        this.feedId = 1;
         this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
@@ -24,7 +23,24 @@ describe('entry:store handler', function() {
                 if (err) {
                     throw err;
                 }
-                done();
+
+                self.feedId = this.lastID;
+
+                self.db.run('INSERT INTO users (username, passwordHash) VALUES ("test", "test")', function (userErr) {
+                    if (userErr) {
+                        throw userErr;
+                    }
+
+                    self.userId = this.lastID;
+
+                    self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES(?, ?)', [self.userId, self.feedId], function (userFeedErr) {
+                        if (userFeedErr) {
+                            throw userFeedErr;
+                        }
+
+                        done();
+                    });
+                });
             });
         });
 
@@ -53,6 +69,7 @@ describe('entry:store handler', function() {
         self.emitter.on('entry:store:done', function (args) {
             assert.strictEqual(args.changes, 1);
             assert.strictEqual(args.id, 1);
+            assert.strictEqual(args.userIds[0], self.userId);
             assert.strictEqual(args.author, 'Håkon');
             assert.strictEqual(args.fetchId, self.fetchId);
 
@@ -206,6 +223,7 @@ describe('entry:store handler', function() {
         self = this;
         entry = {
             url: 'http://example.com',
+            title: 'the title',
             discussion: {
                 'foo': 'bar'
             },
@@ -249,6 +267,33 @@ describe('entry:store handler', function() {
 
             self.emitter.emit('entry:store', self.db, entry);
         });
+    });
+
+    it('handles failure to select from userFeeds table', function (done) {
+        var entry, self;
+
+        self = this;
+        entry = {
+            title: 'the title',
+            createdUtc: new Date().getTime(),
+            url: 'http://example.com/entry1.html',
+            feedId: self.feedId,
+            fetchId: self.fetchId
+        };
+
+        self.emitter.on('log:error', function (message, fields) {
+            assert.strictEqual(fields.entry.userIds.length, 0);
+            done();
+        });
+
+        self.db.run('DROP TABLE userFeeds', function (err) {
+            if (err) {
+                throw err;
+            }
+
+            self.emitter.emit('entry:store', self.db, entry);
+        });
+
     });
 
 });

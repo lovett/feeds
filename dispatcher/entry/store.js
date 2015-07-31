@@ -49,6 +49,7 @@ module.exports = function (db, entry) {
         }
 
         entry.changes = this.changes;
+        entry.userIds = [];
 
         if (entry.hasOwnProperty('discussion')) {
             entry.discussion.entryId = entry.id;
@@ -56,7 +57,29 @@ module.exports = function (db, entry) {
             self.emit('discussion', entry.discussion);
         }
 
-        self.emit('entry:store:done', entry);
+        db.all('SELECT userId from userFeeds WHERE feedId=?', [entry.feedId], function (err, rows) {
+            if (err) {
+                self.emit('log:error', 'Failed to select user from userFeeds table', {error: err, entry: entry});
+                self.emit('entry:store:done', entry);
+                return;
+            }
+
+            entry.userIds = rows.map(function (row) {
+                return row.userId;
+            });
+
+            db.run('BEGIN');
+            entry.userIds.forEach(function (userId) {
+                db.run('INSERT INTO userEntries (userId, entryId) VALUES (?, ?)', [userId, entry.id], function (insertErr) {
+                    if (insertErr) {
+                        self.emit('log:error', 'Failed to insert into userEntries table', {error: insertErr, entry: entry});
+                    }
+                });
+            });
+            db.run('COMMIT');
+
+            self.emit('entry:store:done', entry);
+        });
     }
 
     db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
