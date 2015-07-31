@@ -28,6 +28,8 @@ module.exports = function (db) {
         db.run('CREATE INDEX IF NOT EXISTS history_type ON history(type)');
         db.run('CREATE INDEX IF NOT EXISTS history_feedId ON history(feedId)');
 
+        db.run('CREATE TABLE IF NOT EXISTS filters (id INTEGER PRIMARY KEY, userId INTEGER NOT NULL, feedId INTEGER NOT NULL, value TEXT, FOREIGN KEY(userId) REFERENCES users(id), FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE)');
+
         self.unlisten(__filename);
         self.emit('setup:done');
     });
