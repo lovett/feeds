@@ -92,26 +92,6 @@ module.exports = function(grunt) {
             }
         },
 
-        mochaTest: {
-            dispatcher: {
-                options: {
-                    reporter: 'spec',
-                    bail: true
-                },
-                src: ['test/dispatcher/*-spec.js']
-            }
-        },
-
-        'mocha_istanbul': {
-            dispatcher: {
-                src: 'test/dispatcher',
-                options: {
-                    mask: '*-spec.js',
-                    coverageFolder: 'coverage/dispatcher'
-                }
-            }
-        },
-
         http: {
             onefeed: {
                 options: {
