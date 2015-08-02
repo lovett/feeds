@@ -29,6 +29,14 @@ module.exports = function (db, entry) {
         entry.author = entities.decodeXML(entry.author);
     }
 
+    if (entry.extras) {
+        try {
+            entry.extras = JSON.stringify(entry.extras);
+        } catch (e) {
+            entry.extras = undefined;
+        }
+    }
+
     if (!entry.hasOwnProperty('createdUtcSeconds')) {
         if (entry.hasOwnProperty('created')) {
             entry.createdUtcSeconds = new Date(entry.created).getTime() / 1000;
@@ -92,8 +100,8 @@ module.exports = function (db, entry) {
             entry.id = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
         } else {
-            db.run('INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, createdUtcSeconds) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                   [entry.feedId, entry.fetchId, entry.url, entry.author, entry.normalizedUrl, entry.title, entry.createdUtcSeconds], entrySaved);
+            db.run('INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, createdUtcSeconds, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                   [entry.feedId, entry.fetchId, entry.url, entry.author, entry.normalizedUrl, entry.title, entry.createdUtcSeconds, entry.body, entry.extras], entrySaved);
         }
     });
 

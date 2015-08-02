@@ -88,9 +88,20 @@ describe('reddit fetch handler', function() {
 
         this.requestMock.reply(200, {
             data: {
-                children: [
-                    {'data': {'num_comments': 3, 'permalink': 'the permalink', 'created': 1436999356.0, 'author': 'the author', 'url': 'the url', 'title': 'the title', 'created_utc': 1436970556.0}}
-                ]
+                children: [{
+                    'data': {
+                        'num_comments': 3,
+                        'permalink': 'the permalink',
+                        'created': 1436999356.0,
+                        'author': 'the author',
+                        'url': 'the url',
+                        'title': 'the title',
+                        'created_utc': 1436970556.0,
+                        'selftext': 'the body',
+                        'score': 1234,
+                        'link_flair_text': 'keyword1 keyword2'
+                    }
+                }]
             }
         });
 
@@ -99,6 +110,9 @@ describe('reddit fetch handler', function() {
             assert.strictEqual(args.fetchId, self.fetchId);
             assert.strictEqual(args.url, 'the url');
             assert.strictEqual(args.author, 'the author');
+            assert.strictEqual(args.body, 'the body');
+            assert.strictEqual(args.extras.score, 1234);
+            assert.strictEqual(args.extras.keywords, 'keyword1 keyword2');
             done();
         });
 

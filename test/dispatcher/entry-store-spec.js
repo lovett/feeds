@@ -63,7 +63,12 @@ describe('entry:store handler', function() {
             createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html',
             feedId: self.feedId,
-            fetchId: self.fetchId
+            fetchId: self.fetchId,
+            body: 'the body',
+            extras: {
+                score: 1234,
+                keywords: 'keyword1 keyword2'
+            }
         };
 
         self.emitter.on('entry:store:done', function (args) {
@@ -72,6 +77,8 @@ describe('entry:store handler', function() {
             assert.strictEqual(args.userIds[0], self.userId);
             assert.strictEqual(args.author, 'Håkon');
             assert.strictEqual(args.fetchId, self.fetchId);
+            assert.strictEqual(args.body, entry.body);
+            assert.strictEqual(typeof args.extras, 'string');
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 assert.strictEqual(err, null);

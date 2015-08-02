@@ -30,6 +30,11 @@ module.exports = function (args) {
             url: item.url,
             createdUtcSeconds: item.created_utc,
             author: item.author,
+            body: item.selftext || undefined,
+            extras: {
+                score: item.score,
+                keywords: item.link_flair_text || undefined
+            },
             discussion: {
                 tally: item.num_comments,
                 label: parsedUrl.hostname,
