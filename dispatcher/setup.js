@@ -29,7 +29,8 @@ module.exports = function (db) {
         db.run('CREATE INDEX IF NOT EXISTS history_type ON history(type)');
         db.run('CREATE INDEX IF NOT EXISTS history_feedId ON history(feedId)');
 
-        db.run('CREATE TABLE IF NOT EXISTS filters (id INTEGER PRIMARY KEY, userId INTEGER NOT NULL, feedId INTEGER NOT NULL, value TEXT, FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE)');
+        db.run('CREATE TABLE IF NOT EXISTS filters (id INTEGER PRIMARY KEY, userId INTEGER NOT NULL, feedId INTEGER NOT NULL, value TEXT, weight INTEGER DEFAULT 0, FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE)');
+        db.run('CREATE TABLE IF NOT EXISTS userEntryFilters (userId INTEGER NOT NULL, entryId INTEGER NOT NULL, filterId INTEGER NOT NULL, FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (entryId) REFERENCES entries(id) ON DELETE CASCADE, FOREIGN KEY (filterId) REFERENCES filters(id) ON DELETE CASCADE, PRIMARY KEY (userId, entryId, filterId))');
 
         self.unlisten(__filename);
         self.emit('setup:done');

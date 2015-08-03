@@ -87,6 +87,7 @@ module.exports = function (db, entry) {
             db.run('COMMIT');
 
             self.emit('entry:store:done', entry);
+            self.emit('filter:apply', db, entry);
         });
     }
 
