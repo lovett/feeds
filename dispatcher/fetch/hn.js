@@ -32,8 +32,12 @@ module.exports = function (hnFirebase, args) {
                 label: 'Hacker News',
                 tally: item.kids.length
             },
-            score: item.score,
-            dead: item.dead,
+            body: item.text || undefined,
+            extras: {
+                dead: item.dead,
+                score: item.score,
+                keywords: item.type
+            },
             type: item.type
         };
 

@@ -38,7 +38,11 @@ describe('Hacker News fetch handler', function() {
             title: 'test',
             by: 'author',
             time: new Date().getTime(),
-            url: 'http://example.com'
+            url: 'http://example.com',
+            type: 'story',
+            dead: false,
+            score: 1,
+            text: 'the text'
         };
 
         self.hnTopStories.set([1]);
@@ -54,6 +58,9 @@ describe('Hacker News fetch handler', function() {
             assert.strictEqual(args.discussion.tally, story.kids.length);
             assert.strictEqual(args.discussion.url, 'https://news.ycombinator.com/item?id=1');
             assert.strictEqual(args.discussion.label, 'Hacker News');
+            assert.strictEqual(args.body, story.text);
+            assert.strictEqual(args.extras.score, story.score);
+            assert.strictEqual(args.extras.dead, story.dead);
             done();
         });
 
