@@ -113,6 +113,7 @@ describe('reddit fetch handler', function() {
             assert.strictEqual(args.body, 'the body');
             assert.strictEqual(args.extras.score, 1234);
             assert.strictEqual(args.extras.keywords, 'keyword1 keyword2');
+            assert.strictEqual(args.discussion.tally, 3);
             done();
         });
 

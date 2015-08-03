@@ -320,7 +320,7 @@ describe('default fetch handler', function() {
                         pubDate: new Date().toString(),
                         link: 'http://example.com/entry/',
                         'dc:creator': 'the author',
-                        'slash:comments': 3,
+                        'slash:comments': '3',
                         'dc:subject': 'test',
                         'slash:section': 'section'
 
@@ -339,7 +339,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.url, firstItem.link);
             assert.strictEqual(args.author, firstItem['dc:creator']);
             assert.strictEqual(args.created, firstItem.pubDate);
-            assert.strictEqual(args.discussion.tally, firstItem['slash:comments']);
+            assert.strictEqual(args.discussion.tally, parseInt(firstItem['slash:comments'], 10));
             assert.strictEqual(args.discussion.url, args.url);
             assert.strictEqual(args.extras.keywords, 'test section');
             done();

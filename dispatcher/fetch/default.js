@@ -108,7 +108,7 @@ module.exports = function (args) {
             parsedCommentsUrl = url.parse(entry.url);
             entry.discussion = {
                 url: entry.url,
-                tally: item['slash:comments'],
+                tally: parseInt(item['slash:comments'], 10),
                 label: parsedCommentsUrl.hostname
             };
         }
@@ -120,7 +120,7 @@ module.exports = function (args) {
                     if (category.$ && category.$.term) {
                         acc += ' ' + category.$.term;
                     }
-                    return acc.trim();;
+                    return acc.trim();
                 }, '');
             } else {
                 entry.extras.keywords = item.category;
