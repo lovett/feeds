@@ -74,7 +74,8 @@ emitter.autoload = function (dir) {
 
     fs.readdir(dir, function (err, items) {
         if (err) {
-            throw err;
+            this.insist('log:error', 'Unable to read autoload directory', {error: err});
+            return;
         }
 
         // prepend directory

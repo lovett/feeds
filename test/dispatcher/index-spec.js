@@ -1,7 +1,8 @@
-var assert, dispatcher, events, os, path, sinon;
+var assert, dispatcher, events, fs, os, path, sinon;
 
 assert = require('assert');
 events = require('events');
+fs = require('fs');
 path = require('path');
 dispatcher = require('../../dispatcher');
 sinon = require('sinon');
@@ -110,6 +111,19 @@ describe('dispatcher', function() {
                     done();
                 }
             });
+        });
+
+        it('handles failure to read directories', function (done) {
+            var dirPath;
+
+            dirPath = path.join(os.tmpdir(), 'non-existant');
+
+            dispatcher.once('log:error', function () {
+                done();
+            });
+
+            dispatcher.autoload(dirPath);
+
         });
     });
 
