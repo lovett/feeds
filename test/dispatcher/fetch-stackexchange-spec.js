@@ -10,10 +10,10 @@ describe('stackexchange fetch handler', function() {
     'use strict';
 
     beforeEach(function (done) {
-        this.feedUrl = 'http://emacs.stackexchange.com/feeds';
+        this.feedUrl = 'http://example.stackexchange.com/feeds';
         this.feedId = 1;
         this.fetchId = 'fetch';
-        this.mockUrlPath = '/2.2/questions?site=emacs&order=desc&sort=week&filter=!.Hq849GtQAYbstk1tqHP6_wvoz8SU';
+        this.mockUrlPath = '/2.2/questions?site=example&order=desc&sort=week&filter=!LaSRLvLuv_4B5l2XT986IL';
         this.requestMock = nock('https://api.stackexchange.com').get(this.mockUrlPath);
         this.emitter = new events.EventEmitter();
         this.emitter.on('fetch:stackexchange', fetchStackExchange);
@@ -80,17 +80,53 @@ describe('stackexchange fetch handler', function() {
     });
 
     it('triggers entry storage', function (done) {
-        var self = this;
+        var response, self;
 
-        this.requestMock.reply(200, {
+        self = this;
+
+        response = {
             items: [
-                {'answer_count': 3, 'score': 12, 'creation_date': 1436868796, 'link': 'the url', 'title': 'the title', 'owner': { 'display_name': 'author'}}
+                {
+                    'tags': [
+                        'regular-expressions'
+                    ],
+                    'owner': {
+                        'reputation': 2565,
+                        'user_id': 2642,
+                        'user_type': 'registered',
+                        'accept_rate': 71,
+                        'profile_image': 'http://example.com',
+                        'display_name': 'PythonNut',
+                        'link': 'http://example.net/users/123/user'
+                    },
+                    'view_count': 50,
+                    'accepted_answer_id': 1,
+                    'answer_count': 1,
+                    'score': 5,
+                    'creation_date': 1438389050,
+                    'question_id': 1,
+                    'body_markdown': 'I want to write a function',
+                    'link': 'http://example.org/entry',
+                    'title': 'This is the title'
+                }
             ]
-        });
+        };
+
+        this.requestMock.reply(200, response);
 
         self.emitter.on('entry', function (args) {
+            var item = response.items[0];
             assert.strictEqual(args.feedId, self.feedId);
             assert.strictEqual(args.fetchId, self.fetchId);
+            assert.strictEqual(args.title, item.title);
+            assert.strictEqual(args.createdUtcSeconds, item.creation_date);
+            assert.strictEqual(args.url, item.link);
+            assert.strictEqual(args.body, item.body_markdown);
+            assert.strictEqual(args.extras.score, item.score);
+            assert.strictEqual(args.extras.keywords, item.tags.join(' '));
+            assert.strictEqual(args.discussion.tally, item.answer_count);
+            assert.strictEqual(args.discussion.label, url.parse(self.feedUrl).host);
+            assert.strictEqual(args.discussion.url, item.link);
             done();
         });
 
