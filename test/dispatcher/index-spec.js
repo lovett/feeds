@@ -111,12 +111,6 @@ describe('dispatcher', function() {
                 }
             });
         });
-
-        it('handles unreadable directories', function (done) {
-            var nonexistantDir = path.join(os.tmpdir(), 'nonexistant-dir');
-            dispatcher.autoload(nonexistantDir);
-            done();
-        });
     });
 
     describe('load()', function () {
