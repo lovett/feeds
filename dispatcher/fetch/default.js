@@ -34,6 +34,15 @@ module.exports = function (args) {
         return itemUrl;
     }
 
+    function addKeyword(entry, keyword) {
+        if (entry.extras.keywords) {
+            entry.extras.keywords += ' ' + keyword;
+        } else {
+            entry.extras.keywords = keyword;
+        }
+        return entry;
+    }
+
     function findUniqueItems (container) {
         var unique;
 
@@ -58,7 +67,9 @@ module.exports = function (args) {
     function eachItem (item) {
         var entry, parsedCommentsUrl;
 
-        entry = {};
+        entry = {
+            extras: {}
+        };
 
         // author
         if (item.author && item.author.name) {
@@ -100,6 +111,28 @@ module.exports = function (args) {
                 tally: item['slash:comments'],
                 label: parsedCommentsUrl.hostname
             };
+        }
+
+        // keywords
+        if (item.category) {
+            if (item.category instanceof Array) {
+                entry.extras.keywords = item.category.reduce(function (acc, category) {
+                    if (category.$ && category.$.term) {
+                        acc += ' ' + category.$.term;
+                    }
+                    return acc.trim();;
+                }, '');
+            } else {
+                entry.extras.keywords = item.category;
+            }
+        }
+
+        if (item['dc:subject']) {
+            entry = addKeyword(entry, item['dc:subject']);
+        }
+
+        if (item['slash:section']) {
+            entry = addKeyword(entry, item['slash:section']);
         }
 
         entry.feedUrl = args.url;

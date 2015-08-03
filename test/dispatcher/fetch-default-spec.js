@@ -156,6 +156,14 @@ describe('default fetch handler', function() {
                     author: {
                         name: 'the author'
                     },
+                    category: [
+                        { '$':
+                          { scheme: 'http://www.blogger.com/atom/ns#', term: 'accessibility' }
+                        },
+                        { '$':
+                          { scheme: 'http://www.blogger.com/atom/ns#', term: 'apps' }
+                        }
+                    ],
                     link: [
                         { '$':
                           { rel: 'replies',
@@ -191,6 +199,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.author, reply.feed.entry[0].author.name);
             assert.strictEqual(args.url, 'http://example.com/entry');
             assert.strictEqual(args.created, reply.feed.entry[0].published);
+            assert.strictEqual(args.extras.keywords, 'accessibility apps');
             done();
         });
 
@@ -243,7 +252,8 @@ describe('default fetch handler', function() {
                             pubDate: new Date().toString(),
                             link: 'http://example.com/entry',
                             comments: 'http://example.com/comments',
-                            author: 'the author'
+                            author: 'the author',
+                            category: 'test category'
                         }
                     ]
                 }
@@ -262,6 +272,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.created, replyItem.pubDate);
             assert.strictEqual(args.discussion.url, replyItem.comments);
             assert.strictEqual(args.discussion.label, 'example.com');
+            assert.strictEqual(args.extras.keywords, 'test category');
             done();
         });
 
@@ -309,7 +320,9 @@ describe('default fetch handler', function() {
                         pubDate: new Date().toString(),
                         link: 'http://example.com/entry/',
                         'dc:creator': 'the author',
-                        'slash:comments': 3
+                        'slash:comments': 3,
+                        'dc:subject': 'test',
+                        'slash:section': 'section'
 
                     }
                 ]
@@ -328,6 +341,7 @@ describe('default fetch handler', function() {
             assert.strictEqual(args.created, firstItem.pubDate);
             assert.strictEqual(args.discussion.tally, firstItem['slash:comments']);
             assert.strictEqual(args.discussion.url, args.url);
+            assert.strictEqual(args.extras.keywords, 'test section');
             done();
         });
 
