@@ -14,7 +14,7 @@
     "feedfetcher": "nodemon --watch feedfetcher feedfetcher/index.js",
     "lint": "eslint dispatcher test Gruntfile.js",
     "hooks": "cp hooks/* .git/hooks/",
-    "test": "mocha --reporter min test/dispatcher",
+    "test": "mocha --bail --watch --reporter min test/dispatcher",
     "coverage": "istanbul cover --dir coverage/dispatcher _mocha -- -R min test/dispatcher"
   },
   "author": "",
