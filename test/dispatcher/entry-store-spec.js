@@ -302,5 +302,4 @@ describe('entry:store handler', function() {
         });
 
     });
-
 });

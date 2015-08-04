@@ -30,11 +30,7 @@ module.exports = function (db, entry) {
     }
 
     if (entry.extras) {
-        try {
-            entry.extras = JSON.stringify(entry.extras);
-        } catch (e) {
-            entry.extras = undefined;
-        }
+        entry.extras = JSON.stringify(entry.extras);
     }
 
     if (!entry.hasOwnProperty('createdUtcSeconds')) {
