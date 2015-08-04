@@ -72,15 +72,13 @@ module.exports = function (db, entry) {
                 return row.userId;
             });
 
-            db.run('BEGIN');
             entry.userIds.forEach(function (userId) {
-                db.run('INSERT INTO userEntries (userId, entryId) VALUES (?, ?)', [userId, entry.id], function (insertErr) {
+                db.run('INSERT OR IGNORE INTO userEntries (userId, entryId) VALUES (?, ?)', [userId, entry.id], function (insertErr) {
                     if (insertErr) {
                         self.emit('log:error', 'Failed to insert into userEntries table', {error: insertErr, entry: entry});
                     }
                 });
             });
-            db.run('COMMIT');
 
             self.emit('entry:store:done', entry);
             self.emit('filter:apply', db, entry);

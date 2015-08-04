@@ -300,6 +300,65 @@ describe('entry:store handler', function() {
 
             self.emitter.emit('entry:store', self.db, entry);
         });
+    });
 
+    it('handles multiple saves of the same entry', function (done) {
+        var entry, inserts, self;
+
+        self = this;
+        entry = {
+            title: 'multi save title',
+            createdUtc: new Date().getTime(),
+            url: 'http://example.com/entry1.html',
+            feedId: self.feedId,
+            fetchId: self.fetchId,
+            body: 'the body'
+        };
+        inserts = 0;
+
+        self.emitter.on('log:error', function (message, fields) {
+            done(message);
+        });
+
+        self.emitter.on('entry:store:done', function (args) {
+            inserts += 1;
+
+            self.db.get('SELECT COUNT(*) as count FROM userEntries', function (err, row) {
+                assert.strictEqual(err, null);
+                assert.strictEqual(row.count, 1);
+
+                if (inserts < 3) {
+                    self.emitter.emit('entry:store', self.db, entry);
+                } else {
+                    done();
+                }
+            });
+
+        });
+
+        self.emitter.emit('entry:store', self.db, entry);
+    });
+
+    it('handles failure to insert into userEntries table', function (done) {
+        var entry, self;
+
+        self = this;
+        entry = {
+            title: 'the title',
+            createdUtc: new Date().getTime(),
+            url: 'http://example.com/entry1.html',
+            feedId: self.feedId,
+            fetchId: self.fetchId,
+            body: 'the body'
+        };
+
+        self.emitter.on('log:error', function (message, fields) {
+            done();
+        });
+
+        self.db.exec('DROP TABLE userEntries', function () {
+            self.emitter.emit('entry:store', self.db, entry);
+            done();
+        });
     });
 });
