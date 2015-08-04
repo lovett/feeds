@@ -6,7 +6,7 @@ entryStore = require('../../dispatcher/entry/store');
 assert = require('assert');
 events = require('events');
 
-describe('entry:store handler', function() {
+describe('entry:store', function() {
     'use strict';
 
     beforeEach(function (done) {

@@ -6,7 +6,7 @@ feedUpdate = require('../../dispatcher/feed/update');
 assert = require('assert');
 events = require('events');
 
-describe('feed:update handler', function() {
+describe('feed:update', function() {
     'use strict';
 
     beforeEach(function (done) {

@@ -6,7 +6,7 @@ poll = require('../../dispatcher/poll');
 assert = require('assert');
 events = require('events');
 
-describe('poll handler', function() {
+describe('poll', function() {
     'use strict';
 
     beforeEach(function (done) {

@@ -6,7 +6,7 @@ assert = require('assert');
 events = require('events');
 fetchStackExchange = require('../../dispatcher/fetch/stackexchange');
 
-describe('stackexchange fetch handler', function() {
+describe('fetch:stackexchange', function() {
     'use strict';
 
     beforeEach(function (done) {

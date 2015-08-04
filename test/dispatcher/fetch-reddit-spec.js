@@ -5,7 +5,7 @@ assert = require('assert');
 events = require('events');
 fetchReddit = require('../../dispatcher/fetch/reddit');
 
-describe('reddit fetch handler', function() {
+describe('fetch:reddit', function() {
     'use strict';
 
     beforeEach(function (done) {

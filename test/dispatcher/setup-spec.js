@@ -6,7 +6,7 @@ assert = require('assert');
 sinon = require('sinon');
 events = require('events');
 
-describe('setup handler', function() {
+describe('setup', function() {
     'use strict';
 
     beforeEach(function () {

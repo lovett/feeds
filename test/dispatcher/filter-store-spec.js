@@ -6,7 +6,7 @@ filterStore = require('../../dispatcher/filter/store');
 assert = require('assert');
 events = require('events');
 
-describe('filter:store handler', function() {
+describe('filter:store', function() {
     'use strict';
 
     beforeEach(function (done) {

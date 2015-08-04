@@ -9,7 +9,7 @@ logTrace = require('../../dispatcher/log/trace');
 assert = require('assert');
 events = require('events');
 
-describe('log handler', function() {
+describe('log', function() {
     'use strict';
 
     beforeEach(function () {

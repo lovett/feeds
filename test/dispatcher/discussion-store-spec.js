@@ -6,7 +6,7 @@ discussionStore = require('../../dispatcher/discussion/store');
 assert = require('assert');
 events = require('events');
 
-describe('discussion:store handler', function() {
+describe('discussion:store', function() {
     'use strict';
 
     beforeEach(function (done) {

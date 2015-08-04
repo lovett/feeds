@@ -5,7 +5,7 @@ assert = require('assert');
 events = require('events');
 fetchHn = require('../../dispatcher/fetch/hn');
 
-describe('Hacker News fetch handler', function() {
+describe('fetch:hn', function() {
     'use strict';
 
     beforeEach(function (done) {

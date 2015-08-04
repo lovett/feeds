@@ -6,7 +6,7 @@ subscribe = require('../../dispatcher/feed/subscribe');
 assert = require('assert');
 events = require('events');
 
-describe('feed:subscribe handler', function() {
+describe('feed:subscribe', function() {
     'use strict';
 
     beforeEach(function (done) {

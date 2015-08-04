@@ -3,7 +3,7 @@ var assert, normalize;
 assert = require('assert');
 normalize = require('../../util/normalize');
 
-describe('util/normalize.js', function () {
+describe('util/normalize', function () {
     'use strict';
 
     describe('url()', function () {

@@ -6,7 +6,7 @@ historyAdd = require('../../dispatcher/history/add.js');
 assert = require('assert');
 events = require('events');
 
-describe('history:add handler', function() {
+describe('history:add', function() {
     'use strict';
 
     beforeEach(function (done) {

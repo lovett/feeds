@@ -6,7 +6,7 @@ filterRemove = require('../../dispatcher/filter/remove');
 assert = require('assert');
 events = require('events');
 
-describe('filter:remove handler', function() {
+describe('filter:remove', function() {
     'use strict';
 
     beforeEach(function (done) {

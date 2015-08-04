@@ -8,7 +8,7 @@ dispatcher = require('../../dispatcher');
 sinon = require('sinon');
 os = require('os');
 
-describe('dispatcher', function() {
+describe('index', function() {
     'use strict';
 
     beforeEach(function () {

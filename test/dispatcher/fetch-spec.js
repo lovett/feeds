@@ -4,7 +4,7 @@ assert = require('assert');
 events = require('events');
 fetch = require('../../dispatcher/fetch');
 
-describe('fetch handler', function() {
+describe('fetch', function() {
     'use strict';
 
     beforeEach(function (done) {
