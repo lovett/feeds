@@ -53,9 +53,16 @@ describe('util/normalize', function () {
 
         it('preserves the querystring', function () {
             var input, result;
+            input = 'http://example.com/?id=1';
+            result = normalize.url(input);
+            assert.strictEqual(result, 'example.com/?id=1');
+        });
+
+        it('removes unvalued querystring variables', function () {
+            var input, result;
             input = 'http://example.com/?test';
             result = normalize.url(input);
-            assert.strictEqual(result, 'example.com/?test');
+            assert.strictEqual(result, 'example.com');
         });
 
         it('removes the trailing slash', function () {
@@ -68,6 +75,20 @@ describe('util/normalize', function () {
         it('performs decoding', function () {
             var input, result;
             input = 'http%3A%2F%2Fexample.com';
+            result = normalize.url(input);
+            assert.strictEqual(result, 'example.com');
+        });
+
+        it('removes multiple utm_ querystring parameters', function () {
+            var input, result;
+            input = 'http://example.com/?utm_campaign=example&utm_medium=whatever&utm_source=something';
+            result = normalize.url(input);
+            assert.strictEqual(result, 'example.com');
+        });
+
+        it('removes single utm_ querystring parameter', function () {
+            var input, result;
+            input = 'http://example.com/?utm_whatever=example';
             result = normalize.url(input);
             assert.strictEqual(result, 'example.com');
         });
