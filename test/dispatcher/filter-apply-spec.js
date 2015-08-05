@@ -398,7 +398,19 @@ describe('filter:apply', function() {
         });
 
         self.emitter.emit('filter:store', self.db, filter);
+    });
 
+    it('applies global filters', function (done) {
+        var filter, self;
+
+        self = this;
+        filter = {
+            userId: self.userId,
+            value: 'title contains the',
+            weight: 8
+        };
+
+        storeFilterAndApply(self, filter, done);
     });
 
     it('handles absence of filters', function (done) {

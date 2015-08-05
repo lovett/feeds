@@ -42,7 +42,7 @@ describe('filter:store', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('adds a row to the filters table', function (done) {
+    it('adds a feed-specific filter', function (done) {
         var filter, self;
 
         self = this;
@@ -61,6 +61,31 @@ describe('filter:store', function() {
             self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
                 assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
+                done();
+            });
+        });
+
+        self.emitter.emit('filter:store', self.db, filter);
+    });
+
+    it('adds a global filter', function (done) {
+        var filter, self;
+
+        self = this;
+        filter = {
+            userId: self.userId,
+            value: 'test'
+        };
+
+        self.emitter.on('filter:store:done', function (args) {
+            assert.strictEqual(args.feedId, undefined);
+            assert.strictEqual(args.userId, filter.userId);
+            assert.strictEqual(args.value, filter.value);
+            assert(args.id);
+
+            self.db.get('SELECT feedId FROM filters', function (err, row) {
+                assert.strictEqual(err, null);
+                assert.strictEqual(row.feedId, null);
                 done();
             });
         });

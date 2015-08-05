@@ -96,7 +96,7 @@ module.exports = function (db, entry) {
     };
 
 
-    db.all('SELECT id, value, weight FROM filters WHERE feedId=? AND userId IN (' + entry.userIds.join(',') + ')', [entry.feedId], function (err, filters) {
+    db.all('SELECT id, value, weight FROM filters WHERE userId IN (' + entry.userIds.join(',') + ') AND (feedId=? OR feedId IS NULL)', [entry.feedId], function (err, filters) {
         if (err) {
             self.emit('log:error', 'Failed to select from filters table', {error: err});
             return;
