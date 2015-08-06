@@ -55,8 +55,8 @@ module.exports = function (db, entry) {
             var entryValue, field, predicate, words;
 
             words = filter.value.split(' ');
-            field = words.shift();
-            predicate = words.shift();
+            field = words.shift().toLowerCase();
+            predicate = words.shift().toLowerCase();
             filterValue = words.join(' ');
 
             if (entry.hasOwnProperty(field)) {

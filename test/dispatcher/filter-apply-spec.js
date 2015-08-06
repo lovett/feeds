@@ -484,6 +484,58 @@ describe('filter:apply', function() {
 
     });
 
+    it('lowercases the field name', function (done) {
+        var filter, self;
+
+        self = this;
+
+        self.entry.title = 'dog cat';
+
+        filter = {
+            feedId: self.feedId,
+            userId: self.userId,
+            value: 'TITLE contains dog',
+            weight: 5
+        };
+
+        storeFilterAndApply(self, filter, done);
+    });
+
+    it('lowercases the predicate', function (done) {
+        var filter, self;
+
+        self = this;
+
+        self.entry.title = 'dog cat';
+
+        filter = {
+            feedId: self.feedId,
+            userId: self.userId,
+            value: 'title CONTAINS dog',
+            weight: 5
+        };
+
+        storeFilterAndApply(self, filter, done);
+    });
+
+    it('treats filter value case-insensitively ', function (done) {
+        var filter, self;
+
+        self = this;
+
+        self.entry.title = 'dog cat';
+
+        filter = {
+            feedId: self.feedId,
+            userId: self.userId,
+            value: 'title contains DOG',
+            weight: 5
+        };
+
+        storeFilterAndApply(self, filter, done);
+    });
+
+
     afterEach(function () {
         this.db.close();
         this.emitter.removeAllListeners();
