@@ -36,7 +36,7 @@
     "load-grunt-tasks": "3.2.0",
     "mocha": "2.2.5",
     "mockfirebase": "0.11.0",
-    "nock": "2.9.1",
+    "nock": "2.10.0",
     "sinon": "1.15.4"
   },
   "dependencies": {
@@ -54,9 +54,9 @@
     "redis": "0.12.1",
     "request": "2.60.0",
     "restify": "3.0.3",
-    "sqlite3": "3.0.9",
-    "string": "3.3.0",
-    "xml2js": "0.4.9",
+    "sqlite3": "3.0.10",
+    "string": "3.3.1",
+    "xml2js": "0.4.10",
     "xmlbuilder": "2.6.4"
   }
 }
