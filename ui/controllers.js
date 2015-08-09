@@ -103,7 +103,7 @@ appControllers.controller('SearchController', ['$rootScope', '$scope', function 
 
 }]);
 
-appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '$location', 'List', 'Feed', 'Reader', function ($rootScope, $scope, $route, $location, List, Feed, Reader) {
+appControllers.controller('FeedController', ['$window', '$rootScope', '$scope', '$route', '$location', 'List', 'Feed', 'Reader', function ($window, $rootScope, $scope, $route, $location, List, Feed, Reader) {
     'use strict';
 
     $rootScope.listName = 'feeds';
@@ -188,12 +188,16 @@ appControllers.controller('FeedController', ['$rootScope', '$scope', '$route', '
         });
     };
 
-    $scope.export = function () {
+    $scope.export = function (e) {
+        e.preventDefault();
         List.export({name: 'feeds'}, {}, function (response) {
-            // Safari 7 will not trigger a file download. See
-            // https://github.com/eligrey/FileSaver.js/issues/12#issuecomment-47247096
-            var blob = new Blob([response.xml], {type: 'text/xml;charset=utf-8'});
-            saveAs(blob, 'feeds.xml');
+            var blob, blobUrl, surrogate;
+            blob = new Blob([response.xml], {type: 'text/xml;charset=utf-8'});
+            blobUrl = $window.URL.createObjectURL(blob);
+            surrogate = e.target.nextElementSibling;
+            surrogate.setAttribute('href', blobUrl);
+            surrogate.click();
+            //saveAs(blob, 'feeds.xml');
         });
     };
 
@@ -267,7 +271,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
             if (entry.hnLink && !entry.url) {
                 entry.url = entry.hnLink;
             }
-            
+
             temp = document.createElement('a');
             temp.href = entry.url;
             entry.domain = temp.hostname;

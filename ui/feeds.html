@@ -68,7 +68,8 @@
                     You are
                     <span ng-pluralize count="feeds.length" when="{'0': 'not subscribed to any feeds.', 'one': 'subscribed to 1 feed.', 'other': 'subscribed to {} feeds.'}"></span>
 
-                    <a class="subaction" ng-show="feeds.length > 0" ng-click="export('opml')">Export as OPML</a>
+                    <a class="subaction" ng-show="feeds.length > 0" href="" ng-click="export($event)">Export as OPML</a>
+                    <a href="" download="feeds.opml"></a>
                 </p>
 
                 <table ng-show="feeds.length > 0">
