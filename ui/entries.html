@@ -2,9 +2,9 @@
     <p>There are no {{ listName }} entries.</p>
 </div>
 
-<ul id="entries" class="small-block-grid-1 medium-block-grid-2 large-block-grid-3">
+<ul class="entries">
     <li class="entry" ng-repeat="entry in entries" ng-class="entry.state">
-        <div id="entry-{{entry.id}}" class="inner">
+        <div id="entry-{{entry.id}}" class="sleeve">
             <header>
                 <a class="headline" ng-href="{{entry.url}}" target="_blank" rel="noreferrer">{{ entry.title }}</a>
             </header>

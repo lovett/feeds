@@ -7,51 +7,40 @@
         <link rel="stylesheet" href="/css/app.min.css" />
     </head>
     <body>
-        <div class="fixed">
-            <nav class="top-bar" data-topbar="">
-                <ul class="title-area">
-                    <li class="name">
-                        <h1><a href="/">Headlines</a></h1>
-                    </li>
-                </ul>
+        <nav class="nav-bar">
 
+            <div class="panel">
+                <h1 class="appname">Headlines</h1>
+            </div>
 
-                <section ng-show="user.loggedIn" class="top-bar-section" ng-cloak>
-                    <ul class="right">
-                        <li class="divider"></li>
-                        <li ng-class="{active: listName == 'unread'}"><a href="/entries/unread/">Unread</a></li>
-                        <li class="divider"></li>
-                        <li ng-class="{active: listName == 'saved'}"><a href="/entries/saved/">Saved</a></li>
-                        <li class="divider"></li>
-                        <li ng-class="{active: listName == 'feeds'}"><a href="/feeds">Feeds</a></li>
-                        <li class="divider"></li>
-                        <li><a href="/logout">Log out</a></li>
-                    </ul>
-                    <ul class="right" ng-show="listName == 'unread' && listSize > 0">
-                        <li class="has-form">
-                            <a href="#" ng-click="setEntryState('saved')" class="button radius success">
-                                Save
-                                <span ng-show="savedCount > 0">the rest</span>
-                                <span ng-show="savedCount == 0">all</span>
-                            </a>
-                        </li>
-                        <li class="has-form">
-                            <a href="#" ng-click="setEntryState('discarded')" class="button radius alert">
-                                Ignore
-                                <span ng-show="savedCount > 0">the rest</span>
-                                <span ng-show="savedCount == 0">all</span>
-                            </a>
-                        </li>
-                    </ul>
-                </section>
-            </nav>
-            <section ng-show="showPager" id="pager" class="flex-wrapper">
-                <div ng-class="{hidden: page == 1}"><a href="{{ prevLink }}">Previous Page</a></div>
-                <div class="current">Page {{ page }} of {{ pageCount }}</div>
-                <div ng-class="{hidden: page == pageCount}"><a href="{{ nextLink }}">Next Page</a></div>
-            </section>
+            <ul class="right panel" ng-show="user.loggedIn" ng-cloak>
+                <li ng-show="listName == 'unread' && listSize > 0">
+                    <a href="#" class="action" ng-click="setEntryState('saved')">
+                        Save
+                        <span ng-show="savedCount > 0">the rest</span>
+                        <span ng-show="savedCount == 0">all</span>
+                    </a>
+                </li>
+                <li ng-show="listName == 'unread' && listSize > 0">
+                    <a href="#" class="action" ng-click="setEntryState('discarded')">
+                        Ignore
+                        <span ng-show="savedCount > 0">the rest</span>
+                        <span ng-show="savedCount == 0">all</span>
+                    </a>
+                </li>
+                <li><a ng-class="{active: listName == 'unread'}" href="/entries/unread/">Unread</a></li>
+                <li><a ng-class="{active: listName == 'saved'}" href="/entries/saved/">Saved</a></li>
+                <li><a ng-class="{active: listName == 'feeds'}" href="/feeds">Feeds</a></li>
+                <li><a href="/logout">Log out</a></li>
+            </ul>
+        </nav>
 
+        <div ng-show="showPager" class="pager flex-wrapper">
+            <div ng-class="{hidden: page == 1}"><a href="{{ prevLink }}">Previous Page</a></div>
+            <div class="current">Page {{ page }} of {{ pageCount }}</div>
+            <div ng-class="{hidden: page == pageCount}"><a href="{{ nextLink }}">Next Page</a></div>
         </div>
+
         <main ng-view></main>
 
         <div id="screen-size">

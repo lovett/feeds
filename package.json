@@ -40,6 +40,9 @@
     "sinon": "1.15.4"
   },
   "dependencies": {
+    "angular": "1.4.3",
+    "angular-resource": "1.4.3",
+    "angular-route": "1.4.3",
     "bunyan": "1.4.0",
     "entities": "1.1.1",
     "firebase": "2.2.9",
@@ -47,8 +50,10 @@
     "grunt-contrib-cssmin": "0.13.0",
     "htmlparser": "1.7.7",
     "htmlparser2": "3.8.3",
+    "jquery": "2.1.4",
     "moment": "2.10.6",
     "needle": "0.10.0",
+    "normalize.css": "3.0.3",
     "passport": "0.2.2",
     "passport-local": "1.0.0",
     "redis": "0.12.1",

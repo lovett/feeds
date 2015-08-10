@@ -32,16 +32,13 @@ module.exports = function(grunt) {
             app: {
                 files: [
                     {
-                        src: ['bower_components/jquery/dist/jquery.min.js',
-                              'bower_components/foundation/js/foundation.min.js',
-                              'bower_components/angular/angular.min.js',
-                              'bower_components/angular-route/angular-route.min.js',
-                              'bower_components/angular-resource/angular-resource.min.js',
-                              'bower_components/moment/min/moment.min.js',
-                              'bower_components/angular-moment/angular-moment.min.js',
-                              'bower_components/lodash/lodash.min.js',
-                              'static/app.min.js'
-                             ],
+                        src: [
+                            'node_modules/jquery/dist/jquery.min.js',
+                            'node_modules/angular/angular.min.js',
+                            'node_modules/angular-route/angular-route.min.js',
+                            'node_modules/angular-resource/angular-resource.js',
+                            'static/app.min.js'
+                        ],
                         dest: 'static/headlines.js'
                     }
                 ]
@@ -58,22 +55,24 @@ module.exports = function(grunt) {
             main: {
                 expand: true,
                 flatten: true,
-                src: ['bower_components/jquery/dist/jquery.min.map',
-                      'bower_components/angular/angular.min.js.map',
-                      'bower_components/angular-route/angular-route.min.js.map',
-                      'bower_components/angular-resource/angular-resource.min.js.map',
-                      'ui/images/favicon.ico',
-                      'bower_components/jquery/dist/jquery.js',
-                      'ui/*',
-                      '!ui/less'],
+                src: [
+                    'node_modules/jquery/dist/jquery.min.map',
+                    'node_modules/angular/angular.min.js.map',
+                    'node_modules/angular-route/angular-route.min.js.map',
+                    'node_modules/angular-resource/angular-resource.min.js.map',
+                    'ui/images/favicon.ico',
+                    'node_modules/jquery/dist/jquery.js',
+                    'ui/*',
+                    '!ui/less'],
                 dest: 'static/'
             }
         },
 
         cssmin: {
             combine: {
-                'src': ['bower_components/foundation/css/normalize.css',
-                        'bower_components/foundation/css/foundation.css'],
+                'src': [
+                    'node_modules/normalize.css/normalize.css'
+                ],
                 'dest': 'static/css/lib.min.css'
             }
         },
@@ -193,7 +192,7 @@ module.exports = function(grunt) {
             },
 
             app: {
-                files: ['ui/less/*.less', 'ui/*.js', '!ui/**/.*', '!ui/**/flycheck_*'],
+                files: ['ui/less/*.less', 'ui/*.js', 'ui/*.html', '!ui/**/.*', '!ui/**/flycheck_*'],
                 tasks: ['build']
             }
         }

@@ -90,7 +90,7 @@ app.filter('reldate', function () {
 
 app.directive('fileUpload', function () {
     'use strict';
-    
+
     return {
         restrict: 'A',
         scope: { fileUpload: '&' },
@@ -107,9 +107,3 @@ app.directive('fileUpload', function () {
         }
     };
 });
-
-app.run(function () {
-    'use strict';
-    $(document).foundation();
-});
-

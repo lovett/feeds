@@ -114,9 +114,10 @@ appControllers.controller('FeedController', ['$window', '$rootScope', '$scope', 
 
     var populate = function (response) {
         $scope.feeds = [];
-        _.forEach(response.feeds, function (values, key) {
-            values.id = key;
-            $scope.feeds.push(values);
+        console.log(response);
+        Object.keys(response.feeds).forEach(function (key) {
+            response.feeds[key].id = key;
+            $scope.feeds.push(response.feeds[key]);
         });
         $scope.sortBy('nextCheck', 'asc');
     };
@@ -131,9 +132,16 @@ appControllers.controller('FeedController', ['$window', '$rootScope', '$scope', 
             $scope.sortDirection = ($scope.sortDirection === 'asc')? 'desc':'asc';
         }
 
+        $scope.feeds = $scope.feeds.sort(function (a, b) {
+            if (a[$scope.sortField] < b[$scope.sortField]) {
+                return -1;
+            }
 
-        $scope.feeds = _.sortBy($scope.feeds, function (feed) {
-            return feed[$scope.sortField];
+            if (a[$scope.sortField] > b[$scope.sortField]) {
+                return 1;
+            }
+
+            return 0;
         });
 
         if ($scope.sortDirection === 'desc') {
@@ -235,8 +243,10 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
         return;
     }
 
-    var screenSize = $('#screen-size SPAN:visible').attr('class');
-    screenSize = screenSize.replace(/^show-for-([a-z]+)-only/, '$1');
+    //var screenSize = $('#screen-size SPAN:visible').attr('class');
+    //console.log(screenSize);
+    //screenSize = screenSize.replace(/^show-for-([a-z]+)-only/, '$1');
+    var screenSize = 'large';
 
     var numEntries;
     if (screenSize === 'small') {
@@ -244,7 +254,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
     } else if (screenSize === 'medium') {
         numEntries = 8;
     } else {
-        numEntries = 12;
+        numEntries = 25;
     }
 
     List.get({'name': $routeParams.name, page: $routeParams.page, size: numEntries}, function (response) {
@@ -314,8 +324,6 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
                 $rootScope.nextLink = null;
             }
         }
-
-
     });
 
     $rootScope.listName = $routeParams.name;
@@ -355,7 +363,7 @@ appControllers.controller('ListController', ['$rootScope', '$scope', '$routePara
         }
 
         List.update({name: listName, segment: listSegment}, {ids: ids}, function (data) {
-            _.forEach($scope.entries, function (entry) {
+            $scope.entries.forEach(function (entry) {
                 if (data.ids.indexOf(entry.id) > -1) {
                     entry.state = newState;
                 }
