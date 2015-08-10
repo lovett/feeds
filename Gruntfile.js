@@ -193,7 +193,7 @@ module.exports = function(grunt) {
             },
 
             app: {
-                files: ['ui/less/*.less', 'ui/*.js', 'ui/*.html'],
+                files: ['ui/less/*.less', 'ui/*.js', '!ui/**/.*', '!ui/**/flycheck_*'],
                 tasks: ['build']
             }
         }
