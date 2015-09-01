@@ -14,20 +14,6 @@
             </div>
 
             <ul class="right panel" ng-show="user.loggedIn" ng-cloak>
-                <li ng-show="listName == 'unread' && listSize > 0">
-                    <a href="#" class="action" ng-click="setEntryState('saved')">
-                        Save
-                        <span ng-show="savedCount > 0">the rest</span>
-                        <span ng-show="savedCount == 0">all</span>
-                    </a>
-                </li>
-                <li ng-show="listName == 'unread' && listSize > 0">
-                    <a href="#" class="action" ng-click="setEntryState('discarded')">
-                        Ignore
-                        <span ng-show="savedCount > 0">the rest</span>
-                        <span ng-show="savedCount == 0">all</span>
-                    </a>
-                </li>
                 <li><a ng-class="{active: listName == 'unread'}" href="/entries/unread/">Unread</a></li>
                 <li><a ng-class="{active: listName == 'saved'}" href="/entries/saved/">Saved</a></li>
                 <li><a ng-class="{active: listName == 'feeds'}" href="/feeds">Feeds</a></li>
@@ -42,6 +28,25 @@
         </div>
 
         <main ng-view></main>
+
+        <nav class="nav-bar">
+            <ul class="right panel" ng-show"user.loggedIn" ng-cloak>
+                <li ng-show="listName == 'unread' && listSize > 0">
+                    <a href="#" class="action" ng-click="setEntryState('saved')">
+                        Save
+                        <span ng-show="savedCount > 0">the rest</span>
+                        <span ng-show="savedCount == 0">all</span>
+                    </a>
+                </li>
+                <li ng-show="listName == 'unread' && listSize > 0">
+                    <a href="#" class="action" ng-click="setEntryState('discarded')">
+                        Ignore
+                        <span ng-show="savedCount > 0">the rest</span>
+                        <span ng-show="savedCount == 0">all</span>
+                    </a>
+                </li>
+            </ul
+        </nav>
 
         <div id="screen-size">
             <span class="show-for-small-only"></span>
