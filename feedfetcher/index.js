@@ -28,7 +28,7 @@ dispatcher.on('fetch', function (feedId, feedUrl, subscribers) {
     } else if (host === 'news.ycombinator.com') {
         event = 'fetch:hn';
     } else {
-        event = 'fetch:google';
+        event = 'fetch:direct';
     }
 
     dispatcher.emit(event, feedId, feedUrl, subscribers);
@@ -212,91 +212,8 @@ dispatcher.on('fetch:reddit', function (feedId, feedUrl, subscribers) {
     });
 });
 
-/**
- * Fetch a feed via Google Feed API
- * --------------------------------------------------------------------
- * https://developers.google.com/feed/v1/jsondevguide
- */
-dispatcher.on('fetch:google', function (feedId, feedUrl, subscribers) {
-    var self, parsedUrl, endpoint, headers;
-
-    self = this;
-    parsedUrl = world.url.parse(feedUrl);
-
-    endpoint = world.url.format({
-        'protocol': 'https:',
-        'host': 'ajax.googleapis.com',
-        'pathname': '/ajax/services/feed/load',
-        'query': {
-            'v': '1.0',
-            'q': feedUrl,
-            'userip': process.env.HEADLINES_IP,
-            'num': -1,
-            'output': 'json'
-        }
-    });
-
-    headers = {
-        'Referer': process.env.HEADLINES_URL
-    };
-
-    logger.info({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint}, 'querying google feed api');
-
-    needle.get(endpoint, headers, function (err, response) {
-        var map, processEvent;
-
-        if (err) {
-            dispatcher.emit('reschedule', feedId, err);
-            return;
-        }
-
-        if (response.statusCode !== 200) {
-            dispatcher.emit('reschedule', feedId, response.statusCode);
-            return;
-        }
-
-        logger.trace({feedId: feedId, feedUrl: feedUrl}, 'google feed api queried successfully');
-
-        map = {
-            'news.ycombinator.com': 'hn',
-            'slashdot.org': 'slashdot'
-        };
-
-        processEvent = 'processEntry';
-
-        Object.keys(map).some(function (key) {
-            // Test for presence of key at end of parsedUrl.host
-            if (parsedUrl.host.indexOf(key, parsedUrl.host.length - key.length) === -1) {
-                return false;
-            }
-            processEvent += ':' + map[key];
-            return true;
-        });
-
-        var feed = response.body.responseData.feed;
-
-        feed.entries.reverse().forEach(function (entry) {
-            self.emit(processEvent, feedId, entry, subscribers);
-            return true;
-        });
-
-        // Warn if there are no entries in the feed
-        if (feed.entries.length === 0) {
-            logger.warn({feedId: feedId, feedUrl: feedUrl, googleUrl: endpoint}, 'no entries found');
-        }
-
-        // Update the feed URL if Google indicates a different one
-        if (feedUrl !== feed.feedUrl) {
-            logger.info({'feedId': feedId, 'oldUrl': feedUrl, 'newUrl': feed.feedUrl}, 'updating feed url');
-            world.redisClient.hset(world.keys.feedKey(feedId), 'url', feed.feedUrl, function (err) {
-                if (err) {
-                    world.logger.error({err: err}, 'unable to update feed url');
-                }
-            });
-        }
-
-        dispatcher.emit('reschedule', feedId);
-    });
+dispatcher.on('fetch:direct', function (feedId, feedUrl, subscribers) {
+    dispatcher.emit('reschedule', feedId);
 });
 
 /**
