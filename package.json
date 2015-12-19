@@ -37,7 +37,7 @@
     "load-grunt-tasks": "3.3.0",
     "mocha": "2.3.4",
     "mockfirebase": "0.12.0",
-    "nock": "3.4.0",
+    "nock": "3.5.0",
     "sinon": "1.17.2"
   },
   "dependencies": {
@@ -63,6 +63,6 @@
     "sqlite3": "3.1.1",
     "string": "3.3.1",
     "xml2js": "0.4.15",
-    "xmlbuilder": "4.1.0"
+    "xmlbuilder": "4.2.0"
   }
 }
