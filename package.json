@@ -37,7 +37,7 @@
     "load-grunt-tasks": "3.4.0",
     "mocha": "2.3.4",
     "mockfirebase": "0.12.0",
-    "nock": "3.6.0",
+    "nock": "4.0.0",
     "sinon": "1.17.2"
   },
   "dependencies": {
@@ -52,7 +52,7 @@
     "htmlparser": "1.7.7",
     "htmlparser2": "3.9.0",
     "jquery": "2.1.4",
-    "moment": "2.10.6",
+    "moment": "2.11.0",
     "needle": "0.11.0",
     "normalize.css": "3.0.3",
     "passport": "0.3.2",
