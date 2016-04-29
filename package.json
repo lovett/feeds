@@ -20,7 +20,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "2.8.0",
+    "eslint": "2.9.0",
     "eslint-plugin-mocha": "2.2.0",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.0.3",
@@ -57,7 +57,7 @@
     "normalize.css": "4.1.1",
     "passport": "0.3.2",
     "passport-local": "1.0.0",
-    "redis": "2.6.0-1",
+    "redis": "2.6.0-2",
     "request": "2.72.0",
     "restify": "4.0.4",
     "sqlite3": "3.1.3",
