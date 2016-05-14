@@ -20,7 +20,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "2.9.0",
+    "eslint": "2.10.0",
     "eslint-plugin-mocha": "2.2.0",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.0.3",
