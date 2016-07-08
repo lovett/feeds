@@ -21,8 +21,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "3.0.0",
-    "eslint-plugin-mocha": "3.0.0",
+    "eslint": "3.0.1",
+    "eslint-plugin-mocha": "4.0.0",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.0.4",
     "grunt-contrib-clean": "1.0.0",
@@ -52,8 +52,8 @@
     "grunt-contrib-cssmin": "1.0.1",
     "htmlparser": "1.7.7",
     "htmlparser2": "3.9.1",
-    "jquery": "3.0.0",
-    "moment": "2.13.0",
+    "jquery": "3.1.0",
+    "moment": "2.14.1",
     "needle": "1.0.0",
     "normalize.css": "4.2.0",
     "passport": "0.3.2",
@@ -63,7 +63,7 @@
     "restify": "4.1.1",
     "sqlite3": "3.1.4",
     "string": "3.3.1",
-    "xml2js": "0.4.16",
+    "xml2js": "0.4.17",
     "xmlbuilder": "8.2.2"
   }
 }
