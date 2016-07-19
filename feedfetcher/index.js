@@ -3,7 +3,7 @@ var needle = require('needle');
 var path = require('path');
 var logger = world.logger.child({source: 'feedfetcher'});
 var dispatcher = new world.events.EventEmitter();
-var Firebase = require('firebase');
+var firebase = require('firebase');
 
 // Number of feeds to process per run
 var batchSize = 1;
@@ -66,8 +66,13 @@ dispatcher.on('fetch:hn', function (feedId, feedurl, subscribers) {
         return;
     }
 
-    hnFirebase = new Firebase('https://hacker-news.firebaseio.com/v0');
-    var topStories = hnFirebase.child('/topstories').limitToFirst(30);
+    var firebaseConnection = firebase.initializeApp({
+        databaseURL: 'https://hacker-news.firebaseio.com'
+    });
+
+    hnFirebase = firebaseConnection.database();
+
+    var topStories = hnFirebase.ref('/v0/topstories').limitToFirst(30);
 
     topStories.on('value', function (snapshot) {
         var storyIds, redisKeys, keyMaker;
@@ -264,7 +269,7 @@ dispatcher.on('processEntry:slashdot', function (feedId, entry, subscribers) {
  */
 dispatcher.on('processEntry:hn', function (feedId, storyId, subscribers) {
     var self = this;
-    hnFirebase.child('/item/' + storyId).once('value', function (snapshot) {
+    hnFirebase.ref('/item/' + storyId).once('value', function (snapshot) {
         var story = snapshot.val();
 
         // val() could have returned a null, indicating the snapshot was empty

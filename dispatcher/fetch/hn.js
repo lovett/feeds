@@ -58,10 +58,10 @@ module.exports = function (hnFirebase, args) {
         }
 
         ids.forEach(function (storyId) {
-            hnFirebase.child('/item/' + storyId).once('value', onItem);
+            hnFirebase.ref('/item/' + storyId).once('value', onItem);
         });
     }
 
 
-    hnFirebase.child('/topstories').limitToFirst(30).on('value', onValue);
+    hnFirebase.ref('/topstories').limitToFirst(30).on('value', onValue);
 };
