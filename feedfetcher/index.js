@@ -269,7 +269,8 @@ dispatcher.on('processEntry:slashdot', function (feedId, entry, subscribers) {
  */
 dispatcher.on('processEntry:hn', function (feedId, storyId, subscribers) {
     var self = this;
-    hnFirebase.ref('/item/' + storyId).once('value', function (snapshot) {
+
+    hnFirebase.ref('/v0/item/' + storyId).once('value', function (snapshot) {
         var story = snapshot.val();
 
         // val() could have returned a null, indicating the snapshot was empty
