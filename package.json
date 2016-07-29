@@ -21,8 +21,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "3.1.1",
-    "eslint-plugin-mocha": "4.1.0",
+    "eslint": "3.2.0",
+    "eslint-plugin-mocha": "4.2.0",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.0.4",
     "grunt-contrib-clean": "1.0.0",
@@ -39,7 +39,7 @@
     "mocha": "2.5.3",
     "mockfirebase": "0.12.0",
     "nock": "8.0.0",
-    "sinon": "1.17.4"
+    "sinon": "1.17.5"
   },
   "dependencies": {
     "angular": "1.5.8",
@@ -47,7 +47,7 @@
     "angular-route": "1.5.8",
     "bunyan": "1.8.1",
     "entities": "1.1.1",
-    "firebase": "3.2.0",
+    "firebase": "3.2.1",
     "grunt-autoprefixer": "3.0.4",
     "grunt-contrib-cssmin": "1.0.1",
     "htmlparser": "1.7.7",
