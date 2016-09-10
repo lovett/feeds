@@ -21,7 +21,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "3.4.0",
+    "eslint": "3.5.0",
     "eslint-plugin-mocha": "4.5.1",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.1.0",
@@ -47,7 +47,7 @@
     "angular-route": "1.5.8",
     "bunyan": "1.8.1",
     "entities": "1.1.1",
-    "firebase": "3.3.0",
+    "firebase": "3.3.2",
     "grunt-autoprefixer": "3.0.4",
     "grunt-contrib-cssmin": "1.0.2",
     "htmlparser": "1.7.7",
