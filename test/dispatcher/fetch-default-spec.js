@@ -157,33 +157,38 @@ describe('fetch:default', function() {
                         name: 'the author'
                     },
                     category: [
-                        { '$':
-                          { scheme: 'http://www.blogger.com/atom/ns#', term: 'accessibility' }
+                        {
+                            '$':
+                            { scheme: 'http://www.blogger.com/atom/ns#', term: 'accessibility' }
                         },
-                        { '$':
-                          { scheme: 'http://www.blogger.com/atom/ns#', term: 'apps' }
+                        {
+                            '$':
+                            { scheme: 'http://www.blogger.com/atom/ns#', term: 'apps' }
                         }
                     ],
                     link: [
-                        { '$':
-                          { rel: 'replies',
-                            type: 'application/atom+xml',
-                            href: 'http://example.com/replies',
-                            title: 'Post Comments'
-                          }
+                        {
+                            '$': {
+                                rel: 'replies',
+                                type: 'application/atom+xml',
+                                href: 'http://example.com/replies',
+                                title: 'Post Comments'
+                            }
                         },
-                        { '$':
-                          { rel: 'whatever',
-                            type: 'text/html',
-                            href: 'http://example.com/whatever'
-                          }
+                        {
+                            '$': {
+                                rel: 'whatever',
+                                type: 'text/html',
+                                href: 'http://example.com/whatever'
+                            }
                         },
-                        { '$':
-                          { rel: 'alternate',
-                            type: 'text/html',
-                            href: 'http://example.com/entry',
-                            title: 'link title'
-                          }
+                        {
+                            '$': {
+                                rel: 'alternate',
+                                type: 'text/html',
+                                href: 'http://example.com/entry',
+                                title: 'link title'
+                            }
                         }
                     ]
                 }]
