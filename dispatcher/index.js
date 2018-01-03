@@ -1,139 +1,35 @@
-var emitter, events, fs, path;
+'use strict';
 
-events = require('events');
-emitter = new events.EventEmitter();
-fs = require('fs');
-path = require('path');
+const events = require('events');
+const emitter = new events.EventEmitter();
 
-/**
- * Emit an event repeatedly until a listener is available
- */
-emitter.insist = function (event) {
-    'use strict';
+// Database initialization
+emitter.once('setup', require('./setup'));
 
-    var args, callback, retries, self;
+// Determine when a feed should be fetched
+emitter.on('poll', require('./poll'));
 
-    if (!event) {
-        return false;
-    }
+// Track feed fetches over time
+emitter.on('history:add', require('./history/add'));
 
-    args = arguments;
-    retries = 10;
-    self = this;
+// Manage the filters that are applied to entries
+emitter.on('filter:apply', require('./filter/apply'));
+emitter.on('filter:remove', require('./filter/remove'));
+emitter.on('filter:store', require('./filter/store'));
 
-    callback = function () {
-        if (self.listeners(event).length > 0) {
-            self.emit.apply(self, args);
-        } else if (retries > 0) {
-            retries -= 1;
-            callback();
-        } else {
-            self.emit('insist:failure', event);
-        }
-    };
+// Make an HTTP request for a feed
+emitter.on('fetch', require('./fetch/index'));
 
-    setTimeout(callback, 10);
+// Add a URL to the list of feeds
+emitter.on('feed:subscribe', require('./feed/subscribe'));
 
-    return true;
-};
+// Change a feed's URL
+emitter.on('feed:update', require('./feed/update'));
 
-/**
- * Load event listeners
- */
-emitter.autoload = function (dir) {
-    'use strict';
+// Save an item found in a feed
+emitter.on('entry:store', require('./entry/store'));
 
-    dir = dir || __dirname;
-
-    function statPath(itemPath, err, stats) {
-        var parsedPath;
-
-        if (stats.isDirectory()) {
-            this.autoload(itemPath);
-            return;
-        }
-
-        // exclude dot files and non-js files
-        parsedPath = path.parse(itemPath);
-
-        if (parsedPath.name.indexOf('.') === 0) {
-            return;
-        }
-
-        if (parsedPath.ext !== '.js') {
-            return;
-        }
-
-        // only consider files
-        if (!stats.isFile()) {
-            return;
-        }
-
-        this.load(itemPath);
-    }
-
-    fs.readdir(dir, function (err, items) {
-        if (err) {
-            this.insist('log:error', 'Unable to read autoload directory', {error: err});
-            return;
-        }
-
-        // prepend directory
-        items = items.map(function (item) {
-            return path.join(dir, item);
-        });
-
-        // prevent self-loading
-        items = items.filter(function (item) {
-            return item !== __filename;
-        });
-
-        items.forEach(function (item) {
-            fs.lstat(item, statPath.bind(this, item));
-        }.bind(this));
-
-    }.bind(this));
-
-    return this;
-};
-
-emitter.pathToEvent = function (filePath, root) {
-    'use strict';
-    var event, parsedPath, relPath;
-    parsedPath = path.parse(filePath);
-    root = root || __dirname;
-    relPath = filePath.replace(root, '').replace(path.sep, '');
-    event = relPath.replace(parsedPath.ext, '');
-    event = event.split(path.sep);
-    if (event[event.length - 1] === 'index') {
-        event.pop();
-    }
-    event = event.join(':');
-    return event;
-};
-
-emitter.load = function (filePath, root) {
-    'use strict';
-
-    var event, module;
-    event = this.pathToEvent(filePath, root);
-
-    module = require(filePath);
-
-    if (typeof module === 'function') {
-        this.on(event, module);
-    }
-};
-
-emitter.unlisten = function (filePath, root) {
-    'use strict';
-
-    var event = this.pathToEvent(filePath, root);
-    this.removeAllListeners(event);
-    this.emit('unlisten:done', {
-        'filePath': filePath,
-        'event': event
-    });
-};
+// Update the comment count for an entry
+emitter.on('discussion:store', require('./discussion/store'));
 
 module.exports = emitter;
