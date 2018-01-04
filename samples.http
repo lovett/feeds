@@ -1,0 +1,25 @@
+# Subscriptions
+
+## List
+GET http://127.0.0.1:8081/subscription
+
+## Add
+POST http://127.0.0.1:8081/subscription
+Content-Type: application/json
+
+[
+  {"url": "http://example.net", "name": "Example1"},
+  {"url": "http://example.org", "name": "Example2"}
+]
+
+## Remove
+DELETE http://127.0.0.1:8081/subscription
+Content-Type: application/json
+
+[
+  "http://example.net",
+  2,
+  "http://invalid.example.com"
+]
+
+#
