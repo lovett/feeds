@@ -26,17 +26,11 @@ tmux attach-session -d -t "$PROJECT_NAME" || {
     ## 1: Shell
     tmux new-window -a -t "$PROJECT_NAME" bash
 
-    ## 2: Bunyan log
-    tmux new-window -a -t "$PROJECT_NAME" -n "log" "tail -f $APP_LOG | ./node_modules/.bin/bunyan"
-
-    ## 3: Web server
+    ## 2: Server
     tmux new-window -a -t "$PROJECT_NAME" -n "server" "npm run-script server"
 
-    ## 4: Scheduler
-    tmux new-window -a -t "$PROJECT_NAME" -n "scheduler" "npm run-script scheduler"
-
-    ## 5: Fetcher
-    tmux new-window -a -t "$PROJECT_NAME" -n "feedfetcher" "npm run-script feedfetcher"
+    ## 3: Database
+    tmux new-window -a -t "$PROJECT_NAME" -n "db" bash
 
     tmux select-window -t "$PROJECT_NAME":0
     tmux attach-session -t "$PROJECT_NAME"

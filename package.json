@@ -10,9 +10,7 @@
   "main": "server/index.js",
   "scripts": {
     "postinstall": "npm prune",
-    "server": "nodemon --watch server server/index.js",
-    "scheduler": "nodemon --watch scheduler scheduler/index.js",
-    "feedfetcher": "nodemon --watch feedfetcher feedfetcher/index.js",
+    "server": "nodemon",
     "lint": "eslint dispatcher test Gruntfile.js",
     "hooks": "cp hooks/* .git/hooks/",
     "test": "mocha --bail --reporter min test/dispatcher",
@@ -21,8 +19,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "3.19.0",
-    "eslint-plugin-mocha": "4.9.0",
+    "eslint": "4.14.0",
+    "eslint-plugin-mocha": "4.11.0",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.1.0",
     "grunt-contrib-clean": "1.1.0",
@@ -62,7 +60,8 @@
     "redis": "2.7.1",
     "request": "2.81.0",
     "restify": "4.3.0",
-    "sqlite3": "3.1.8",
+    "restify-errors": "5.0.0",
+    "sqlite3": "3.1.13",
     "string": "3.3.3",
     "xml2js": "0.4.17",
     "xmlbuilder": "9.0.0"

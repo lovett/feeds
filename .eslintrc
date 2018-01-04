@@ -1,4 +1,11 @@
 {
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": false
+    }
+  },
   "rules": {
     "default-case": 1,
     "guard-for-in": 1,
@@ -6,7 +13,6 @@
     "linebreak-style": [2, "unix"],
     "no-warning-comments": 2,
     "no-inline-comments": 2,
-    "one-var": [2, "always"],
     "quotes": [2, "single"],
     "radix": 2,
     "semi": [2, "always"],
