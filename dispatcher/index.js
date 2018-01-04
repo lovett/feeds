@@ -4,7 +4,7 @@ const events = require('events');
 const emitter = new events.EventEmitter();
 
 // Database initialization
-emitter.once('setup', require('./setup'));
+emitter.once('startup', require('./startup'));
 
 // Determine when a feed should be fetched
 emitter.on('poll', require('./poll'));
