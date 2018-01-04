@@ -20,8 +20,14 @@ emitter.on('filter:store', require('./filter/store'));
 // Make an HTTP request for a feed
 emitter.on('fetch', require('./fetch/index'));
 
-// Add a URL to the list of feeds
-emitter.on('feed:subscribe', require('./feed/subscribe'));
+// Add a URL to the a user's feed list
+emitter.on('feed:watch', require('./feed/watch'));
+
+// Remove a URL from a user's feed list
+emitter.on('feed:unwatch', require('./feed/unwatch'));
+
+// List a user's subscribed feeds
+emitter.on('feed:list', require('./feed/list'));
 
 // Change a feed's URL
 emitter.on('feed:update', require('./feed/update'));
@@ -31,5 +37,9 @@ emitter.on('entry:store', require('./entry/store'));
 
 // Update the comment count for an entry
 emitter.on('discussion:store', require('./discussion/store'));
+
+emitter.on('test', function () {
+    console.log('hello world');
+});
 
 module.exports = emitter;

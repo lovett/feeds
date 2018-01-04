@@ -8,12 +8,9 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('Expected an array'));
     }
 
-    const feeds = req.params.reduce((accumulator, feed) => {
-        if (feed.hasOwnProperty('url')) {
-            accumulator.push(feed.url);
-        }
-        return accumulator;
-    }, []);
+    const feeds = req.params.filter((feed) => {
+        return feed.hasOwnProperty('url');
+    });
 
     if (feeds.length === 0) {
         return next(new errors.BadRequestError('Nothing to add'));

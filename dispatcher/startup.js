@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS feeds
 (
   id INTEGER PRIMARY KEY,
   url TEXT NOT NULL,
-  siteUrl TEXT,
-  nextFetchUtcSeconds FLOAT
+  title TEXT DEFAULT NULL,
+  siteUrl TEXT DEFAULT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS feed_url_unique
@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS userFeeds
 (
   userId INTEGER NOT NULL,
   feedId INTEGER NOT NULL,
+  title TEXT DEFAULT NULL,
   FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE,
   PRIMARY KEY (userId, feedId)
@@ -123,6 +124,8 @@ CREATE TABLE IF NOT EXISTS userEntryFilters
   FOREIGN KEY (filterId) REFERENCES filters(id) ON DELETE CASCADE,
   PRIMARY KEY (userId, entryId, filterId)
 );
+
+INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('test', 'test');
 `;
 
     let schemaQueries = schema.split(';');

@@ -6,7 +6,7 @@ module.exports = function (userId, callback) {
     const emitter = this;
 
     emitter.db.all(
-        'SELECT f.* from userFeeds u JOIN feeds f ON u.feedId=f.id WHERE u.userId=?',
+        'SELECT coalesce(u.title, f.title) as title, f.id, f.url, f.siteUrl FROM userFeeds u JOIN feeds f ON u.feedId=f.id WHERE u.userId=?',
         [userId],
         (err, rows) => {
             emitter.emit('feed:list:done', userId, rows);

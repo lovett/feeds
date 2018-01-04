@@ -8,8 +8,8 @@ POST http://127.0.0.1:8081/subscription
 Content-Type: application/json
 
 [
-  {"url": "http://example.net", "name": "Example1"},
-  {"url": "http://example.org", "name": "Example2"}
+  {"url": "http://example.net/feed.rss", "title": "Example Feed 1"},
+  {"url": "http://example.org/feed.rdf", "title": "Example Feed 2"}
 ]
 
 ## Remove
@@ -17,7 +17,7 @@ DELETE http://127.0.0.1:8081/subscription
 Content-Type: application/json
 
 [
-  "http://example.net",
+  "http://example.net/feed.rss",
   2,
   "http://invalid.example.com"
 ]
