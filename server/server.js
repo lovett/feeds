@@ -57,6 +57,7 @@ server.get('/', restify.plugins.serveStatic({
 
 server.get('/subscription', require('./routes/subscription-list'));
 server.post('/subscription', require('./routes/subscription-create'));
+server.put('/subscription', require('./routes/subscription-update'));
 server.del('/subscription', require('./routes/subscription-destroy'));
 
 server.get('/feed', require('./routes/feed-list'));

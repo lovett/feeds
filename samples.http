@@ -12,6 +12,15 @@ Content-Type: application/json
   {"url": "http://example.org/feed.rdf", "title": "Example Feed 2"}
 ]
 
+## Update
+PUT http://127.0.0.1:8081/subscription
+Content-Type: application/json
+
+[
+  {"userId": 1, "feedId": 1, "title": "Updated Subscription Title 1"},
+  {"userId": 1, "feedId": 2, "title": "Updated Subscription Title 2"}
+]
+
 ## Remove
 DELETE http://127.0.0.1:8081/subscription
 Content-Type: application/json

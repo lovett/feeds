@@ -23,10 +23,16 @@ emitter.on('fetch', require('./fetch/index'));
 // Add a URL to the a user's feed list
 emitter.on('feed:watch', require('./feed/watch'));
 
+// Add a URL to the a user's feed list
+emitter.on('feed:rewatch', require('./feed/rewatch'));
+
 // Remove a URL from a user's feed list
 emitter.on('feed:unwatch', require('./feed/unwatch'));
 
 // List a user's subscribed feeds
+emitter.on('feed:watched', require('./feed/watched'));
+
+// List all feeds
 emitter.on('feed:list', require('./feed/list'));
 
 // Add a feed without subscribing to it
