@@ -1,14 +1,38 @@
-module.exports = function (db, fields) {
-    'use strict';
+'use strict';
 
-    var self = this;
+module.exports = function (feeds, callback) {
+    callback = (typeof callback === 'function') ? callback : function() {};
 
-    if (fields.hasOwnProperty('url')) {
-        db.run('UPDATE feeds SET url=? WHERE id=?', [fields.url, fields.id], function (err) {
-            if (err) {
-                self.emit('log:error', 'Failed to update feed', {error: err, fields: fields});
-            }
-            self.emit('feed:update:done', fields);
+    const emitter = this;
+
+    const updatableFields = ['url', 'title', 'siteUrl'];
+
+    let updateCounter = 0;
+
+    emitter.db.serialize(() => {
+        emitter.db.run('BEGIN');
+
+        feeds.forEach((feed) => {
+            updatableFields.forEach((field) => {
+                if (feed.hasOwnProperty(field) === false) {
+                    return;
+                }
+
+                emitter.db.run(
+                    `UPDATE feeds SET ${field}=? WHERE id=?`,
+                    [feed[field], feed.id],
+                    function () {
+                        updateCounter += this.changes;
+                    }
+                );
+            });
         });
-    }
+
+        emitter.db.run('COMMIT', [], (err) => {
+            callback(err, {
+                fieldsUpdated: updateCounter
+            });
+        });
+
+    });
 };

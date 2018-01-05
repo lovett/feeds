@@ -29,8 +29,14 @@ emitter.on('feed:unwatch', require('./feed/unwatch'));
 // List a user's subscribed feeds
 emitter.on('feed:list', require('./feed/list'));
 
+// Add a feed without subscribing to it
+emitter.on('feed:add', require('./feed/add'));
+
 // Change a feed's URL
 emitter.on('feed:update', require('./feed/update'));
+
+// Delete a feed
+emitter.on('feed:purge', require('./feed/purge'));
 
 // Save an item found in a feed
 emitter.on('entry:store', require('./entry/store'));
