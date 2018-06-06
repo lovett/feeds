@@ -4,11 +4,11 @@ const dispatcher = require('../../dispatcher');
 const errors = require('restify-errors');
 
 module.exports = (req, res, next) => {
-    if (!req.params.length) {
+    if (!req.body.length) {
         return next(new errors.BadRequestError('Expected an array'));
     }
 
-    const feeds = req.params.filter((feed) => {
+    const feeds = req.body.filter((feed) => {
         return feed.hasOwnProperty('url');
     });
 

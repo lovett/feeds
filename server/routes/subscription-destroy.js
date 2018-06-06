@@ -4,16 +4,16 @@ const dispatcher = require('../../dispatcher');
 const errors = require('restify-errors');
 
 module.exports = (req, res, next) => {
-    if (!req.params.length) {
+    if (!req.body.length) {
         return next(new errors.BadRequestError('Expected an array'));
     }
 
     const subs = {
-        urls: req.params.filter((param) => {
+        urls: req.body.filter((param) => {
             return isNaN(param) && param.startsWith('http:');
         }),
 
-        ids: req.params.filter((param) => {
+        ids: req.body.filter((param) => {
             return isNaN(param) === false;
         })
     };

@@ -9,14 +9,14 @@ module.exports = (req, res, next) => {
     }
 
     const feeds = req.body.filter((feed) => {
-        return feed.hasOwnProperty('id');
+        return feed.hasOwnProperty('userId') && feed.hasOwnProperty('feedId');
     });
 
     if (feeds.length === 0) {
         return next(new errors.BadRequestError('Nothing to update'));
     }
 
-    dispatcher.emit('feed:update', feeds, (err, result) => {
+    dispatcher.emit('feed:rewatch', 1, feeds, (err, result) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }
