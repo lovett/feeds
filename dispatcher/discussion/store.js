@@ -21,10 +21,15 @@ module.exports = function (db, discussion) {
 
         if (row) {
             discussion.id = row.id;
-            db.run('UPDATE discussions SET tally=? WHERE id=?', [discussion.tally, discussion.id], discussionSaved);
+            db.run(
+                'UPDATE discussions SET tally=? WHERE id=?',
+                [discussion.tally, discussion.id], discussionSaved
+            );
         } else {
-            db.run('INSERT INTO discussions (entryId, tally, label, url) VALUES (?, ?, ?, ?)',
-                   [discussion.entryId, discussion.tally, discussion.label, discussion.url], discussionSaved);
+            db.run(
+                'INSERT INTO discussions (entryId, tally, label, url) VALUES (?, ?, ?, ?)',
+                [discussion.entryId, discussion.tally, discussion.label, discussion.url], discussionSaved
+            );
         }
     });
 };

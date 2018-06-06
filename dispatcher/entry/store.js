@@ -95,8 +95,10 @@ module.exports = function (db, entry) {
             entry.id = row.id;
             db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
         } else {
-            db.run('INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, createdUtcSeconds, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                   [entry.feedId, entry.fetchId, entry.url, entry.author, entry.normalizedUrl, entry.title, entry.createdUtcSeconds, entry.body, entry.extras], entrySaved);
+            db.run(
+                'INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, createdUtcSeconds, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [entry.feedId, entry.fetchId, entry.url, entry.author, entry.normalizedUrl, entry.title, entry.createdUtcSeconds, entry.body, entry.extras], entrySaved
+            );
         }
     });
 
