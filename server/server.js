@@ -10,9 +10,9 @@ const restify = require('restify');
  * Default values can be overridden by either environment variables or
  * argv.
  *
- * Environment variables should be prefixed with "HEADLINES_" but
- * command-line arguments should be lowercase and be prefixed with a
- * double dash.
+ * Environment variables should be uppercase and prefixed with
+ * "HEADLINES_" but command-line arguments should be lowercase and
+ * prefixed with a double dash.
  *
  * The default database path is the application root, which is the
  * parent directory of this file.
@@ -21,7 +21,7 @@ const config = {
     'DB': path.join(path.dirname(process.argv[1]), '../', 'headlines.sqlite'),
     'HOST': '0.0.0.0',
     'PORT': 8081,
-    'LOG': 'headlines-new.log'
+    'LOG': 'headlines.log'
 };
 
 Object.keys(config).forEach((key, _) => {
@@ -39,7 +39,6 @@ process.argv.forEach((arg, index) => {
         }
     }
 });
-
 
 /**
  * Web server
@@ -65,7 +64,6 @@ server.post('/feed', require('./routes/feed-create'));
 server.put('/feed', require('./routes/feed-update'));
 server.del('/feed', require('./routes/feed-destroy'));
 
-
 /**
  * Dispatcher
  */
@@ -78,13 +76,3 @@ dispatcher.once('startup:done', () => {
 });
 
 dispatcher.emit('startup', config['DB']);
-
-/**
- * Shutdown
- *
- * Nodemon sends the SIGUSR2 signal during restart. This handler is an
- * opportunity to perform cleanup.
- */
-process.once('SIGUSR2', function () {
-    process.kill(process.pid, 'SIGUSR2');
-});
