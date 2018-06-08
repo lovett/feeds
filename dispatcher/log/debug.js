@@ -1,5 +1,3 @@
-module.exports = function (message, fields) {
-    'use strict';
-
-    this.emit('log', 'debug', message, fields);
+module.exports = function (args) {
+    this.emit('log:write', [].concat('debug', args));
 };

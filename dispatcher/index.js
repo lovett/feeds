@@ -3,6 +3,22 @@
 const events = require('events');
 const emitter = new events.EventEmitter();
 
+emitter.setMaxListeners(2);
+
+emitter._loggedEvents = {};
+
+// Logging
+emitter.on('log:debug', require('./log/debug'));
+emitter.on('log:error', require('./log/error'));
+emitter.on('log:fatal', require('./log/fatal'));
+emitter.on('log:info', require('./log/info'));
+emitter.on('log:trace', require('./log/trace'));
+emitter.on('log:warn', require('./log/warn'));
+emitter.on('log:write', require('./log/write'));
+
+emitter.on('newListener', require('./log/register'));
+emitter.on('removeListener', require('./log/unregister'));
+
 // Database initialization
 emitter.once('startup', require('./startup'));
 
@@ -49,9 +65,5 @@ emitter.on('entry:store', require('./entry/store'));
 
 // Update the comment count for an entry
 emitter.on('discussion:store', require('./discussion/store'));
-
-emitter.on('test', function () {
-    console.log('hello world');
-});
 
 module.exports = emitter;
