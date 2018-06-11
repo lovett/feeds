@@ -1,6 +1,4 @@
 module.exports = function (event, listener) {
-    const emitter = this;
-
     if (event === 'removeListener') {
         return;
     }
@@ -10,7 +8,11 @@ module.exports = function (event, listener) {
     }
 
     const logWriter = (args) => {
-        emitter.emit('log:info', [event, args]);
+        let message = [`event:${event}`];
+        if (args) {
+            message.push(args);
+        }
+        console.log(message);
     };
 
     this._loggedEvents[event] = logWriter;

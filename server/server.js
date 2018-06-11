@@ -7,11 +7,11 @@ const restify = require('restify');
 /**
  * Configuration
  *
- * Default values can be overridden by either environment variables or
- * argv.
+ * The default values defined here can be overridden by either
+ * environment variables or command-line arguments.
  *
  * Environment variables should be uppercase and prefixed with
- * "HEADLINES_" but command-line arguments should be lowercase and
+ * "HEADLINES_". Command-line arguments should be lowercase and
  * prefixed with a double dash.
  *
  * The default database path is the application root, which is the
@@ -69,10 +69,8 @@ server.del('/feed', require('./routes/feed-destroy'));
  */
 dispatcher.once('startup:done', () => {
     server.listen(config.PORT, config.HOST, function() {
-        console.log(`${server.name} has started`);
-        console.log(`URL: ${server.url}`);
-        console.log(`DB:  ${config['DB']}`);
+        dispatcher.emit('log:info', `listening on ${server.url}`);
     });
 });
 
-dispatcher.emit('startup', config['DB']);
+dispatcher.emit('startup', config.DB);

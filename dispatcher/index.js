@@ -10,11 +10,8 @@ emitter._loggedEvents = {};
 // Logging
 emitter.on('log:debug', require('./log/debug'));
 emitter.on('log:error', require('./log/error'));
-emitter.on('log:fatal', require('./log/fatal'));
 emitter.on('log:info', require('./log/info'));
-emitter.on('log:trace', require('./log/trace'));
 emitter.on('log:warn', require('./log/warn'));
-emitter.on('log:write', require('./log/write'));
 
 emitter.on('newListener', require('./log/register'));
 emitter.on('removeListener', require('./log/unregister'));
