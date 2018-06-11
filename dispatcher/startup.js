@@ -1,14 +1,18 @@
 'use strict';
 
+// Open an SQLite database connection and establish the database
+// schema.
+
 const sqlite3 = require('sqlite3');
 
 module.exports = function (databasePath) {
-    var emitter = this;
+    const emitter = this;
 
     emitter.db = new sqlite3.Database(databasePath);
 
-    // A single string containing multiple queries which will be split by ';'.
-    // For the sake of readability both here and in the sqlite schema output.
+    // A single string containing multiple queries which will be split
+    // by ';' for the sake of readability both here and in the sqlite
+    // schema output.
     let schema = `
 PRAGMA foreign_keys=1;
 
@@ -125,7 +129,7 @@ CREATE TABLE IF NOT EXISTS userEntryFilters
   PRIMARY KEY (userId, entryId, filterId)
 );
 
-INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('test', 'test');
+INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('headlines', 'headlines');
 `;
 
     let schemaQueries = schema.split(';');
@@ -134,20 +138,15 @@ INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('test', 'test');
         while (schemaQueries.length > 0) {
             let query = schemaQueries.shift();
 
-            // Don't let a trailing semicolon interfere with
-            // identification of the last query.
-            if (query.trim().length === 0) {
-                query = '-- noop due to blank query';
-            }
-
-            if (schemaQueries.length > 0) {
+            if (query.trim().length) {
                 emitter.db.run(query);
-                continue;
             }
 
-            emitter.db.run(query, [], () => {
-                emitter.emit('startup:done');
-            });
+            if (schemaQueries.length === 0) {
+                emitter.db.run(query, [], () => {
+                    emitter.emit('startup:done');
+                });
+            }
         };
     });
 };
