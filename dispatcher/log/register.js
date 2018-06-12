@@ -7,11 +7,9 @@ module.exports = function (event, listener) {
         return;
     }
 
-    const logWriter = (args) => {
-        let message = [`event:${event}`];
-        if (args) {
-            message.push(args);
-        }
+    const logWriter = function () {
+        let argumentList = [].slice.call(arguments);
+        let message = [`event:${event}`].concat(argumentList);
         console.log(message);
     };
 

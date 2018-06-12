@@ -1,0 +1,6 @@
+--ignore-dir=coverage
+--ignore-dir=node_modules
+--ignore-file=is:package-lock.json
+--ignore-file=ext:log
+--ignore-file=ext:map
+--ignore-file=ext:sqlite

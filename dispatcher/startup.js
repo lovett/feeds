@@ -1,19 +1,25 @@
 'use strict';
 
-// Open an SQLite database connection and establish the database
-// schema.
-
 const sqlite3 = require('sqlite3');
 
-module.exports = function (databasePath) {
-    const emitter = this;
+/**
+ * Connect to an SQLite database and declare a schema.
+ *
+ * The dispatcher uses a single shared database connection.
+ *
+ * The schema is declared as a single string for the sake of
+ * readability both here and in SQLite.
+ */
+module.exports = function (database) {
+    const self = this;
 
-    emitter.db = new sqlite3.Database(databasePath);
+    if (database instanceof sqlite3.Database) {
+        self.db = database;
+    } else {
+        self.db = new sqlite3.Database(database);
+    }
 
-    // A single string containing multiple queries which will be split
-    // by ';' for the sake of readability both here and in the sqlite
-    // schema output.
-    let schema = `
+    const schema = `
 PRAGMA foreign_keys=1;
 
 CREATE TABLE IF NOT EXISTS feeds
@@ -21,7 +27,10 @@ CREATE TABLE IF NOT EXISTS feeds
   id INTEGER PRIMARY KEY,
   url TEXT NOT NULL,
   title TEXT DEFAULT NULL,
-  siteUrl TEXT DEFAULT NULL
+  description TEXT DEFAULT NULL,
+  siteUrl TEXT DEFAULT NULL,
+  updated DATETIME DEFAULT NULL,
+  nextFetch DATETIME DEFAULT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS feed_url_unique
@@ -36,7 +45,7 @@ CREATE TABLE IF NOT EXISTS entries
   normalizedUrl TEXT NOT NULL,
   title TEXT NOT NULL,
   author TEXT DEFAULT NULL,
-  createdUtcSeconds FLOAT DEFAULT 0,
+  created DATETIME DEFAULT CURRENT_TIMESTAMP,
   body TEXT DEFAULT NULL,
   extras TEXT DEFAULT NULL,
   FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE
@@ -130,21 +139,28 @@ CREATE TABLE IF NOT EXISTS userEntryFilters
 );
 
 INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('headlines', 'headlines');
+
+CREATE VIEW IF NOT EXISTS nextFeedToFetchView AS
+SELECT feeds.id, feeds.url
+FROM userFeeds JOIN feeds ON userFeeds.feedId=feeds.rowid
+WHERE feeds.nextFetch < CURRENT_TIMESTAMP OR feeds.nextFetch IS NULL
+ORDER BY feeds.nextFetch
+LIMIT 1
 `;
 
-    let schemaQueries = schema.split(';');
+    const schemaQueries = schema.split(';');
 
-    emitter.db.serialize(() => {
+    self.db.serialize(() => {
         while (schemaQueries.length > 0) {
             let query = schemaQueries.shift();
 
             if (query.trim().length) {
-                emitter.db.run(query);
+                self.db.run(query);
             }
 
             if (schemaQueries.length === 0) {
-                emitter.db.run(query, [], () => {
-                    emitter.emit('startup:done');
+                self.db.run(query, [], () => {
+                    self.emit('startup:done');
                 });
             }
         };

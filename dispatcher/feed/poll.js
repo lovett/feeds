@@ -1,49 +1,41 @@
-module.exports = function (db) {
-    'use strict';
+'use strict';
 
-    var nowSeconds, oneHourSeconds, self;
-    nowSeconds = new Date().getTime() / 1000;
-    oneHourSeconds = 60 * 60;
-    self = this;
+let timer = null;
+const timerMinutes = 10;
 
-    db.get('SELECT id, url, nextFetchUtcSeconds FROM feeds, userFeeds WHERE feeds.id=userFeeds.feedId ORDER BY nextFetchUtcSeconds ASC LIMIT 1', [], function (err, feed) {
+/**
+ * Repeatedly check the database for the next feed to be fetched.
+ *
+ * Feeds are fetched one-at-a-time in order to spread the work out.
+ */
+module.exports = function () {
+
+    const self = this;
+
+    self.db.get('SELECT id, url FROM nextFeedToFetchView', [], (err, row) => {
 
         if (err) {
-            self.emit('log:error', 'Feed select query failed', {error: err});
+            self.emit('log:error', 'Failed to query nextFeedToFetchView', err.message);
             self.emit('poll:done');
             return;
         }
 
-        if (!feed) {
-            self.emit('log:trace', 'Nothing to fetch at this time');
+        if (!row) {
+            self.emit('log:info', 'Nothing to fetch at this time.');
             self.emit('poll:done');
             return;
         }
 
-        // Use the most recent entry to decide how frequently to check the feed
-        db.get('SELECT createdUtcSeconds FROM entries WHERE feedId=? ORDER BY createdUtcSeconds DESC LIMIT 1', [feed.id], function (entryErr, entry) {
-            if (entryErr) {
-                self.emit('log:error', 'Entry select query failed', { error: entryErr});
-            }
+        self.emit('feed:reschedule', row.id);
 
-            if (entry && nowSeconds - entry.createdUtcSeconds >= (oneHourSeconds * 4)) {
-                feed.nextFetchUtcSeconds = nowSeconds + (oneHourSeconds * 24);
-            } else {
-                feed.nextFetchUtcSeconds = nowSeconds + oneHourSeconds;
-            }
-
-            db.run('UPDATE feeds SET nextFetchUtcSeconds=? WHERE id=?', [feed.nextFetchUtcSeconds, feed.id], function () {
-                self.emit('poll:done', {
-                    id: feed.id,
-                    url: feed.url,
-                    nextFetchUtcSeconds: feed.nextFetchUtcSeconds
-                });
-            });
-        });
-
-        self.emit('fetch', {
-            id: feed.id,
-            url: feed.url
-        });
+        self.emit('fetch', row.id, row.url);
+        self.emit('poll:done');
     });
+
+    if (!timer) {
+        self.emit('log:debug', `Polling every ${timerMinutes} minutes.`);
+        timer = setInterval(() => {
+            emitter.emit('feed:poll');
+        }, timerMinutes * 60 * 1000);
+    };
 };

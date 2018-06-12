@@ -1,19 +1,13 @@
-var entities, normalize;
+'use strict';
 
-entities = require('entities');
-normalize = require('../../util/normalize');
+const entities = require('entities');
+const normalize = require('../../util/normalize');
 
-/**
- * Store an entry after it has been processed
- * --------------------------------------------------------------------
- */
-module.exports = function (db, entry) {
-    'use strict';
-
-    var self = this;
+module.exports = function (entry) {
+    const self = this;
 
     if (!entry.url) {
-        self.emit('log:warn', 'Rejecting entry with no url', entry);
+        self.emit('log:warn', `Cannot store entry from ${entry.feedUrl} because it has no url`);
         return;
     }
 
@@ -23,9 +17,7 @@ module.exports = function (db, entry) {
 
     entry.normalizedUrl = normalize.url(entry.url);
 
-    if (!entry.author) {
-        entry.author = undefined;
-    } else {
+    if (entry.author) {
         entry.author = entities.decodeXML(entry.author);
     }
 
@@ -33,21 +25,13 @@ module.exports = function (db, entry) {
         entry.extras = JSON.stringify(entry.extras);
     }
 
-    if (!entry.hasOwnProperty('createdUtcSeconds')) {
-        if (entry.hasOwnProperty('created')) {
-            entry.createdUtcSeconds = new Date(entry.created).getTime() / 1000;
+    function afterStore(err) {
 
-            if (Number.isNaN(entry.createdUtcSeconds)) {
-                entry.createdUtcSeconds = undefined;
-            }
+        if (err) {
+            self.emit('log:error', `Failed to insert entry: ${err.message}`);
+            return;
         }
 
-        if (!entry.createdUtcSeconds) {
-            entry.createdUtcSeconds = new Date().getTime() / 1000;
-        }
-    }
-
-    function entrySaved() {
         if (this.lastID) {
             entry.id = this.lastID;
         }
@@ -55,52 +39,48 @@ module.exports = function (db, entry) {
         entry.changes = this.changes;
         entry.userIds = [];
 
-        if (entry.hasOwnProperty('discussion')) {
+        if (entry.discussion.url) {
             entry.discussion.entryId = entry.id;
-
-            self.emit('discussion', entry.discussion);
+            self.emit('discussion:store', entry.discussion);
         }
 
-        db.all('SELECT userId from userFeeds WHERE feedId=?', [entry.feedId], function (err, rows) {
-            if (err) {
-                self.emit('log:error', 'Failed to select user from userFeeds table', {error: err, entry: entry});
-                self.emit('entry:store:done', entry);
-                return;
-            }
-
-            entry.userIds = rows.map(function (row) {
-                return row.userId;
-            });
-
-            entry.userIds.forEach(function (userId) {
-                db.run('INSERT OR IGNORE INTO userEntries (userId, entryId) VALUES (?, ?)', [userId, entry.id], function (insertErr) {
-                    if (insertErr) {
-                        self.emit('log:error', 'Failed to insert into userEntries table', {error: insertErr, entry: entry});
-                    }
-                });
-            });
-
-            self.emit('entry:store:done', entry);
-            self.emit('filter:apply', db, entry);
-        });
+        self.emit('entry:assign', entry.id, entry.feedId);
+        self.emit('entry:store:done', entry);
     }
 
-    db.get('SELECT id FROM entries WHERE url=?', [entry.url], function (err, row) {
+    self.db.get('SELECT id, title FROM entries WHERE url=?', [entry.url], function (err, row) {
         if (err) {
-            self.emit('log:error', 'Failed to select from entries table', {error: err, url: entry.url});
+            self.emit('log:error', `Failed to select from entries table: ${err.message}`);
             return;
         }
 
         if (row) {
-            entry.id = row.id;
-            db.run('UPDATE entries SET title=? WHERE id=?', [entry.title], entrySaved);
-        } else {
-            db.run(
-                'INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, createdUtcSeconds, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [entry.feedId, entry.fetchId, entry.url, entry.author, entry.normalizedUrl, entry.title, entry.createdUtcSeconds, entry.body, entry.extras], entrySaved
-            );
+            if (row.title !== entry.title) {
+                self.db.run('UPDATE entries SET title=? WHERE id=?', [entry.title, row.id], function (err) {
+                    if (err) {
+                        self.emit('log:error', `Failed to update title for entry ${row.id}`);
+                        return;
+                    }
+                    self.emit('log:debug', `Updated title for ${entry.url}`);
+                });
+            }
+            return;
         }
+
+        self.db.run(
+            'INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, created, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                entry.feedId,
+                entry.fetchId,
+                entry.url,
+                entry.author,
+                entry.normalizedUrl,
+                entry.title,
+                entry.created,
+                entry.body,
+                entry.extras
+            ],
+            afterStore
+        );
     });
-
-
 };

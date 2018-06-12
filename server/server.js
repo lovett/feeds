@@ -70,6 +70,7 @@ server.del('/feed', require('./routes/feed-destroy'));
 dispatcher.once('startup:done', () => {
     server.listen(config.PORT, config.HOST, function() {
         dispatcher.emit('log:info', `listening on ${server.url}`);
+        dispatcher.emit('feed:poll');
     });
 });
 

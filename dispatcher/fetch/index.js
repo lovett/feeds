@@ -1,35 +1,31 @@
-var crypto, url;
+'use strict';
 
-crypto = require('crypto');
-url = require('url');
+const url = require('url');
 
 /**
- * Figure out how to fetch a feed
- * --------------------------------------------------------------------
+ * Delegate feed fetching to a site-specific handler.
+ *
  * Feeds from Reddit, StackExchange, and Hacker News are requested via
  * their respective APIs. All other feeds are requested directly.
  */
-module.exports = function (args) {
-    'use strict';
-
-    var fetchEvent, fetchId, host;
-    host = url.parse(args.url).host;
+module.exports = function (feedId, feedUrl) {
+    const self = this;
+    const host = url.parse(feedUrl).host;
 
     if (host.indexOf('reddit.com') > -1) {
-        fetchEvent = 'fetch:reddit';
-    } else if (host.indexOf('stackexchange.com') > -1) {
-        fetchEvent = 'fetch:stackexchange';
-    } else if (host === 'news.ycombinator.com') {
-        fetchEvent = 'fetch:hn';
-    } else {
-        fetchEvent = 'fetch:default';
+        self.emit('fetch:reddit', feedId, feedUrl);
+        return;
     }
 
-    fetchId = crypto.pseudoRandomBytes(10).toString('hex');
+    if (host.indexOf('stackexchange.com') > -1) {
+        self.emit('fetch:stackexchange', feedId, feedUrl);
+        return;
+    }
 
-    this.emit(fetchEvent, {
-        id: args.id,
-        fetchId: fetchId,
-        url: args.url
-    });
+    if (host === 'news.ycombinator.com') {
+        self.emit('fetch:hn', feedId, feedUrl);
+        return;
+    }
+
+    self.emit('fetch:default', feedId, feedUrl);
 };
