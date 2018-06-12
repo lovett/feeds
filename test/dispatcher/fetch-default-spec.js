@@ -23,62 +23,60 @@ describe('fetch:default', function() {
     });
 
     it('logs failure', function (done) {
-        var self = this;
-
         this.requestMock.reply(400, {});
 
-        self.emitter.on('log:warn', function (message, params) {
-            assert.strictEqual(params.response, 400);
+        this.emitter.once('log:warn', (message) => {
+            assert(message);
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
             url: this.feedUrl
-        });
+        };
+
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('handles absence of children in response', function (done) {
-        var self = this;
-
         this.requestMock.reply(200, { data: {} });
 
-        self.emitter.on('fetch:done', function (args) {
+        this.emitter.on('fetch:done', (args) => {
             assert(args.fetchId);
             assert.strictEqual(args.itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
-            url: self.feedUrl
-        });
+            url: this.feedUrl
+        };
+
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('identifies the entry container for atom feeds', function (done) {
-        var self = this;
-
         this.requestMock.reply(200, { feed: {
             entry: []
         } });
 
-        self.emitter.on('fetch:done', function (args) {
+        this.emitter.on('fetch:done', (args) => {
             assert.strictEqual(args.itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
-            url: self.feedUrl
-        });
+            url: this.feedUrl
+        };
+
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('identifies the entry container for rss feeds', function (done) {
-        var self = this;
-
         this.requestMock.reply(200, {
             rss: {
                 channel: {
@@ -87,42 +85,42 @@ describe('fetch:default', function() {
             }
         });
 
-        self.emitter.on('fetch:done', function (args) {
+        this.emitter.on('fetch:done', (args) => {
             assert.strictEqual(args.itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
-            url: self.feedUrl
-        });
+            url: this.feedUrl
+        };
+
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('identifies the entry container for rdf feeds', function (done) {
-        var self = this;
-
         this.requestMock.reply(200, {
             'rdf:RDF': {
                 item: []
             }
         });
 
-        self.emitter.on('fetch:done', function (args) {
+        this.emitter.on('fetch:done', (args) => {
             assert.strictEqual(args.itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
-            url: self.feedUrl
-        });
+            url: this.feedUrl
+        };
+
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('logs failure to identify item container', function (done) {
-        var self = this;
-
         this.requestMock.reply(200, {
             rss: {
                 foo: {
@@ -131,24 +129,23 @@ describe('fetch:default', function() {
             }
         });
 
-        self.emitter.on('log:warn', function (message, fields) {
-            assert.strictEqual(fields.url, self.feedUrl);
+        this.emitter.on('log:warn', (message) => {
+            assert(message);
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
-            url: self.feedUrl
-        });
+            url: this.feedUrl
+        };
 
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('triggers entry storage for atom feeds', function (done) {
-        var reply, self;
-        self = this;
-
-        reply = {
+        const self = this;
+        const reply = {
             feed: {
                 entry: [{
                     title: { _: 'the title', '$': {type: 'text'} },
@@ -197,7 +194,7 @@ describe('fetch:default', function() {
 
         this.requestMock.reply(200, reply);
 
-        self.emitter.on('entry', function (args) {
+        this.emitter.on('entry', function (args) {
             assert.strictEqual(args.feedId, self.feedId);
             assert.strictEqual(args.fetchId, self.fetchId);
             assert.strictEqual(args.title, reply.feed.entry[0].title._);
@@ -208,19 +205,18 @@ describe('fetch:default', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             id: this.feedId,
             fetchId: this.fetchId,
-            url: self.feedUrl
-        });
+            url: this.feedUrl
+        };
 
+        this.emitter.emit('fetch:default', feed);
     });
 
     it('picks up original link from feedburner feeds', function (done) {
-        var reply, self;
-        self = this;
-
-        reply = {
+        const self = this;
+        const reply = {
             feed: {
                 entry: [{
                     'feedburner:origLink': 'http://example.com/entry'
@@ -236,19 +232,19 @@ describe('fetch:default', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             id: this.feedId,
             fetchId: this.fetchId,
             url: self.feedUrl
-        });
+        };
 
+        self.emitter.emit('fetch:default', feed);
     });
 
     it('triggers entry storage for rss feeds', function (done) {
-        var reply, self;
-        self = this;
+        const self = this;
 
-        reply = {
+        const reply = {
             rss: {
                 channel: {
                     item: [
@@ -265,7 +261,7 @@ describe('fetch:default', function() {
             }
         };
 
-        this.requestMock.reply(200, reply);
+        self.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (args) {
             var replyItem = reply.rss.channel.item[0];
@@ -281,17 +277,19 @@ describe('fetch:default', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', {
-            id: this.feedId,
-            fetchId: this.fetchId,
+        const feed = {
+            id: self.feedId,
+            fetchId: self.fetchId,
             url: self.feedUrl
-        });
+        };
+
+        self.emitter.emit('fetch:default', feed);
     });
 
     it('handles items with no url', function (done) {
-        var self = this;
+        const self = this;
 
-        this.requestMock.reply(200, {
+        self.requestMock.reply(200, {
             rss: {
                 channel: {
                     item: [
@@ -306,18 +304,19 @@ describe('fetch:default', function() {
             done();
         });
 
-        self.emitter.emit('fetch:default', {
+        const feed = {
             feedId: this.feedId,
             fetchId: this.fetchId,
             url: self.feedUrl
-        });
+        };
+
+        self.emitter.emit('fetch:default', feed);
     });
 
     it('triggers entry storage for rdf feeds', function (done) {
-        var reply, self;
-        self = this;
+        const self = this;
 
-        reply = {
+        const reply = {
             'rdf:RDF': {
                 item: [
                     {
@@ -334,7 +333,7 @@ describe('fetch:default', function() {
             }
         };
 
-        this.requestMock.reply(200, reply);
+        self.requestMock.reply(200, reply);
 
         self.emitter.on('entry', function (args) {
             var firstItem = reply['rdf:RDF'].item[0];

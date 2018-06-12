@@ -1,10 +1,8 @@
-var assert, events, historyAdd, setup, sqlite3;
-
-sqlite3 = require('sqlite3').verbose();
-setup = require('../../dispatcher/setup');
-historyAdd = require('../../dispatcher/history/add.js');
-assert = require('assert');
-events = require('events');
+const sqlite3 = require('sqlite3').verbose();
+const startup = require('../../dispatcher/startup');
+const historyAdd = require('../../dispatcher/history/add.js');
+const assert = require('assert');
+const events = require('events');
 
 describe('history:add', function() {
     'use strict';
@@ -15,9 +13,9 @@ describe('history:add', function() {
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
-        this.emitter.on('setup', setup);
+        this.emitter.on('startup', startup);
         this.emitter.on('history:add', historyAdd);
-        this.emitter.on('setup:done', function () {
+        this.emitter.on('startup:done', function () {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
                 if (err) {
                     throw err;
@@ -27,7 +25,7 @@ describe('history:add', function() {
                 done();
             });
         });
-        this.emitter.emit('setup', this.db);
+        this.emitter.emit('startup', this.db);
     });
 
     afterEach(function () {

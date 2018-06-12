@@ -1,10 +1,8 @@
-var assert, events, filterRemove, setup, sqlite3;
-
-sqlite3 = require('sqlite3').verbose();
-setup = require('../../dispatcher/setup');
-filterRemove = require('../../dispatcher/filter/remove');
-assert = require('assert');
-events = require('events');
+const sqlite3 = require('sqlite3').verbose();
+const startup = require('../../dispatcher/startup');
+const filterRemove = require('../../dispatcher/filter/remove');
+const assert = require('assert');
+const events = require('events');
 
 describe('filter:remove', function() {
     'use strict';
@@ -15,10 +13,10 @@ describe('filter:remove', function() {
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('filter:remove', filterRemove);
-        this.emitter.on('setup', setup);
+        this.emitter.on('startup', startup);
         this.userId = 1;
 
-        this.emitter.on('setup:done', function () {
+        this.emitter.on('startup:done', function () {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
                 if (err) {
                     throw err;
@@ -43,7 +41,7 @@ describe('filter:remove', function() {
             });
         });
 
-        this.emitter.emit('setup', self.db);
+        this.emitter.emit('startup', self.db);
 
     });
 

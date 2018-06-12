@@ -8,7 +8,8 @@ dispatcher = require('../../dispatcher');
 sinon = require('sinon');
 os = require('os');
 
-describe('index', function() {
+// Temporarily inactive pending refactoring.
+xdescribe('index', function() {
     'use strict';
 
     beforeEach(function () {

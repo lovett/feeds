@@ -1,24 +1,22 @@
-var assert, discussionStore, events, setup, sqlite3;
-
-sqlite3 = require('sqlite3').verbose();
-setup = require('../../dispatcher/setup');
-discussionStore = require('../../dispatcher/discussion/store');
-assert = require('assert');
-events = require('events');
+const sqlite3 = require('sqlite3').verbose();
+const startup = require('../../dispatcher/startup');
+const discussionStore = require('../../dispatcher/discussion/store');
+const assert = require('assert');
+const events = require('events');
 
 describe('discussion:store', function() {
     'use strict';
 
     beforeEach(function (done) {
-        var self = this;
+        const self = this;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('discussion:store', discussionStore);
-        this.emitter.on('setup', setup);
+        this.emitter.on('startup', startup);
         this.entryUrl = 'http://example.com/entry.html';
 
-        this.emitter.on('setup:done', function () {
+        this.emitter.on('startup:done', function () {
             self.db.serialize(function () {
                 self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss']);
                 self.db.run('INSERT INTO entries (feedId, url, normalizedUrl, title) VALUES (?, ?, ?, ?)', [1, self.entryUrl, self.entryUrl, 'test entry']);
@@ -26,7 +24,7 @@ describe('discussion:store', function() {
             });
         });
 
-        this.emitter.emit('setup', self.db);
+        this.emitter.emit('startup', self.db);
 
     });
 
@@ -36,10 +34,8 @@ describe('discussion:store', function() {
     });
 
     it('adds a row to the discussions table', function (done) {
-        var discussion, self;
-
-        self = this;
-        discussion = {
+        const self = this;
+        const discussion = {
             entryId: 1,
             tally: 1,
             label: 'test',
@@ -61,10 +57,8 @@ describe('discussion:store', function() {
     });
 
     it('updates an existing row', function (done) {
-        var discussion, self;
-
-        self = this;
-        discussion = {
+        const self = this;
+        const discussion = {
             entryId: 1,
             tally: 1,
             label: 'test',
@@ -96,11 +90,9 @@ describe('discussion:store', function() {
     });
 
     it('logs insertion failure', function (done) {
-        var discussion, self;
+        const self = this;
 
-        self = this;
-
-        discussion = {
+        const discussion = {
             entryId: 1,
             tally: 1,
             label: 'test',

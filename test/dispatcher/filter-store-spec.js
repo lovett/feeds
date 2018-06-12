@@ -1,10 +1,8 @@
-var assert, events, filterStore, setup, sqlite3;
-
-sqlite3 = require('sqlite3').verbose();
-setup = require('../../dispatcher/setup');
-filterStore = require('../../dispatcher/filter/store');
-assert = require('assert');
-events = require('events');
+const sqlite3 = require('sqlite3').verbose();
+const startup = require('../../dispatcher/startup');
+const filterStore = require('../../dispatcher/filter/store');
+const assert = require('assert');
+const events = require('events');
 
 describe('filter:store', function() {
     'use strict';
@@ -15,10 +13,10 @@ describe('filter:store', function() {
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('filter:store', filterStore);
-        this.emitter.on('setup', setup);
+        this.emitter.on('startup', startup);
         this.userId = 1;
 
-        this.emitter.on('setup:done', function () {
+        this.emitter.on('startup:done', function () {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
                 if (err) {
                     throw err;
@@ -33,7 +31,7 @@ describe('filter:store', function() {
             });
         });
 
-        this.emitter.emit('setup', self.db);
+        this.emitter.emit('startup', self.db);
 
     });
 

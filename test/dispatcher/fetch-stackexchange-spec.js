@@ -6,7 +6,8 @@ assert = require('assert');
 events = require('events');
 fetchStackExchange = require('../../dispatcher/fetch/stackexchange');
 
-describe('fetch:stackexchange', function() {
+// Temporarily inactive pending refactoring.
+xdescribe('fetch:stackexchange', function() {
     'use strict';
 
     beforeEach(function (done) {
