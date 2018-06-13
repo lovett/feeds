@@ -9,8 +9,6 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "postinstall": "npm prune",
-    "server": "nodemon",
     "lint": "eslint dispatcher test Gruntfile.js",
     "hooks": "cp hooks/* .git/hooks/",
     "test": "mocha --bail --reporter min test/dispatcher",
