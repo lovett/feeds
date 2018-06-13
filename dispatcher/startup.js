@@ -64,8 +64,14 @@ CREATE TABLE IF NOT EXISTS discussions
   FOREIGN KEY (entryId) REFERENCES entries(id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS discussion_url
-ON discussions (url);
+CREATE UNIQUE INDEX IF NOT EXISTS discussion_unique
+ON discussions (entryId, label);
+
+CREATE INDEX IF NOT EXISTS discussion_label
+ON discussions (label);
+
+CREATE INDEX IF NOT EXISTS discussion_entry
+ON discussions (entryId);
 
 CREATE TABLE IF NOT EXISTS users
 (

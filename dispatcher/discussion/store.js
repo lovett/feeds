@@ -1,10 +1,27 @@
-module.exports = function (db, discussion) {
-    'use strict';
+'use strict';
 
-    var self = this;
+const normalize = require('../../util/normalize');
+const url = require('url');
 
-    function discussionSaved () {
-        if (!discussion.id) {
+module.exports = function (discussion) {
+    const self = this;
+
+    if (!discussion.url) {
+        self.emit('log:debug', 'Ignoring discussion with no url');
+        return;
+    }
+
+    if (!discussion.label) {
+        discussion.label = normalize.url(discussion.url, 'hostname');
+    }
+
+    function afterSave (err) {
+        if (err) {
+            self.emit('log:error', `Failed to save discussion: ${err.message}`);
+            return;
+        }
+
+        if (this.lastID) {
             discussion.id = this.lastID;
         }
 
@@ -13,23 +30,35 @@ module.exports = function (db, discussion) {
         self.emit('discussion:store:done', discussion);
     }
 
-    db.get('SELECT id FROM discussions WHERE url=?', [discussion.url], function (err, row) {
-        if (err) {
-            self.emit('log:error', 'Failed to select from discussions table', {error: err, url: discussion.url});
-            return;
-        }
+    self.db.get(
+        'SELECT id FROM discussions WHERE entryId=? AND label=?',
+        [discussion.entryId, discussion.label],
+        function (err, row) {
+            if (err) {
+                self.emit('log:error', `Failed to select discussion for entry ${discussion.entryId}: ${err.message}`);
+                return;
+            }
 
-        if (row) {
-            discussion.id = row.id;
-            db.run(
-                'UPDATE discussions SET tally=? WHERE id=?',
-                [discussion.tally, discussion.id], discussionSaved
-            );
-        } else {
-            db.run(
+            if (row && discussion.tally) {
+                discussion.id = row.id;
+                self.db.run(
+                    'UPDATE discussions SET tally=? WHERE id=?',
+                    [discussion.tally, discussion.id],
+                    afterSave
+                );
+                return;
+            }
+
+            self.db.run(
                 'INSERT INTO discussions (entryId, tally, label, url) VALUES (?, ?, ?, ?)',
-                [discussion.entryId, discussion.tally, discussion.label, discussion.url], discussionSaved
+                [
+                    discussion.entryId,
+                    discussion.tally,
+                    discussion.label,
+                    discussion.url
+                ],
+                afterSave
             );
         }
-    });
+    );
 };

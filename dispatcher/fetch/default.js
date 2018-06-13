@@ -31,7 +31,6 @@ module.exports = function (feedId, feedUrl) {
 
         if (item.comments) {
             entry.discussion.url = item.comments;
-            entry.discussion.label = url.parse(item.comments).hostname;
 
             if (item['slash:comments']) {
                 entry.discussion.tally = parseInt(item['slash:comments'], 10);
