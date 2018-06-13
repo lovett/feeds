@@ -1,23 +1,20 @@
+'use strict';
+
 // API Documentation: https://github.com/reddit/reddit/wiki
 
-var needle, url;
-
-needle = require('needle');
-url = require('url');
+const needle = require('needle');
+const url = require('url');
 
 /**
  * Fetch a Reddit feed
- * --------------------------------------------------------------------
  */
 module.exports = function (args) {
-    'use strict';
+    const self = this;
 
-    var jsonUrl, parsedUrl, self, subreddit;
-
-    self = this;
-    parsedUrl = url.parse(args.url);
-    subreddit = parsedUrl.path.split('/')[2];
-    jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
+    const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
+    const parsedUrl = url.parse(args.url);
+    const subreddit = parsedUrl.path.split('/')[2];
+    const jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
 
     function eachItem (child) {
         var entry, item;
@@ -25,7 +22,7 @@ module.exports = function (args) {
 
         entry = {
             feedId: args.id,
-            fetchId: args.fetchId,
+            fetchId: fetchId,
             title: item.title,
             url: item.url,
             createdUtcSeconds: item.created_utc,

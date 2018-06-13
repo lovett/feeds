@@ -1,9 +1,11 @@
+'use strict';
+
 // API documentation: https://github.com/HackerNews/API
 
 module.exports = function (hnFirebase, args) {
-    'use strict';
+    const self = this;
 
-    var self = this;
+    const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
 
     function onItem (snapshot) {
         var entry, item;
@@ -22,7 +24,7 @@ module.exports = function (hnFirebase, args) {
 
         entry = {
             feedId: args.id,
-            fetchId: args.fetchId,
+            fetchId: fetchId,
             title: item.title,
             createdUtcSeconds: item.time,
             url: item.url,

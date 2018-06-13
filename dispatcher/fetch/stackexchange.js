@@ -1,8 +1,9 @@
-// API Documentation: https://api.stackexchange.com/docs
-var needle, url;
+'use strict'
 
-needle = require('needle');
-url = require('url');
+// API Documentation: https://api.stackexchange.com/docs
+
+const needle = require('needle');
+const url = require('url');
 
 /**
  * Fetch a StackExchange feed using a custom filter
@@ -33,13 +34,12 @@ url = require('url');
  *
  */
 module.exports = function (args) {
-    'use strict';
+    const self = this;
 
-    var endpoint, parsedUrl, self;
+    const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
 
-    self = this;
-    parsedUrl = url.parse(args.url);
-    endpoint = url.format({
+    const parsedUrl = url.parse(args.url);
+    const endpoint = url.format({
         protocol: 'https',
         host: 'api.stackexchange.com',
         pathname: '/2.2/questions',
@@ -54,7 +54,7 @@ module.exports = function (args) {
     function eachItem (item) {
         var entry = {
             feedId: args.id,
-            fetchId: args.fetchId,
+            fetchId: fetchId,
             title: item.title,
             createdUtcSeconds: item.creation_date,
             url: item.link,
