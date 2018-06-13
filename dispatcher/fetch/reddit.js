@@ -1,70 +1,100 @@
 'use strict';
 
-// API Documentation: https://github.com/reddit/reddit/wiki
-
+const crypto = require('crypto');
 const needle = require('needle');
 const url = require('url');
 
 /**
  * Fetch a Reddit feed
  */
-module.exports = function (args) {
+module.exports = function (feedId, feedUrl) {
     const self = this;
 
+    const baseUrl = 'https://www.reddit.com';
     const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
-    const parsedUrl = url.parse(args.url);
+    const parsedUrl = url.parse(feedUrl);
     const subreddit = parsedUrl.path.split('/')[2];
-    const jsonUrl = 'https://www.reddit.com/r/' + subreddit + '/.json';
+    const jsonUrl = `${baseUrl}/r/${subreddit}/.json`;
 
-    function eachItem (child) {
-        var entry, item;
-        item = child.data;
+    function processItem (item) {
 
-        entry = {
-            feedId: args.id,
+        const data = item.data;
+
+        if (data.author.toLowerCase() === 'automoderator') {
+            self.emit('log:debug', 'Skipping automoderator item');
+            return;
+        }
+
+        if (data.stickied) {
+            self.emit('log:debug', 'Skipping stickied item');
+            return;
+        }
+
+        const entry = {
+            feedUrl: feedUrl,
+            feedId: feedId,
             fetchId: fetchId,
-            title: item.title,
-            url: item.url,
-            createdUtcSeconds: item.created_utc,
-            author: item.author,
-            body: item.selftext || undefined,
+            author: data.author,
+            title: data.title,
+            created: new Date(item.created_utc * 1000),
+            url: data.url,
+            body: data.selftext || null,
             extras: {
-                score: item.score,
-                keywords: item.link_flair_text || undefined
+                score: data.score,
+                keywords: data.link_flair_text || undefined
             },
             discussion: {
-                tally: item.num_comments,
-                label: parsedUrl.hostname,
-                url: 'https://' + parsedUrl.hostname + item.permalink
+                tally: data.num_comments,
+                label: data.subreddit_name_prefixed,
+                url: `${baseUrl}/${data.permalink}`
             }
         };
 
-        self.emit('entry', entry);
+        self.emit('entry:store', entry);
     }
 
-    function get (err, response) {
-        var itemCount = 0;
-
-        if (err || response.statusCode !== 200) {
-            self.emit('log:warn', 'Failed to fetch Reddit feed', {status: response.statusCode, url: jsonUrl, error: err});
+    needle.get(jsonUrl, (err, res) => {
+        if (err) {
+            self.emit('log:error', `Failed to fetch Reddit JSON: ${err.message}`);
+            self.emit(
+                'stats:fetch',
+                feedId,
+                fetchId,
+                res.statusCode,
+                0
+            );
+            return;
         }
 
-        if (response.body.data && response.body.data.children) {
-            itemCount = response.body.data.children.length;
-            response.body.data.children.forEach(eachItem);
+        if (!res.body.data.children) {
+            self.emit('log:warning', 'Reddit JSON feed has no children');
+            self.emit(
+                'stats:fetch',
+                feedId,
+                fetchId,
+                res.statusCode,
+                0
+            );
+            return;
         }
 
-        self.emit('fetch:done', {
-            id: args.id,
-            fetchId: args.fetchId,
-            url: jsonUrl,
-            status: response.statusCode,
-            itemCount: itemCount,
-            headers: response.headers
+        const newestDate = res.body.data.children.reduce((acc, entry) => {
+            if (entry.created_utc > acc) {
+                acc = entry.created_utc;
+            }
+            return acc;
+        }, 0);
+
+        const firstEntry = res.body.data.children[0].data;
+
+        self.emit('feed:update', feedId, {
+            title: `Reddit ${firstEntry.subreddit}`,
+            link: `${baseUrl}/${firstEntry.subreddit_name_prefixed}`,
+            xmlurl: `${baseUrl}/${firstEntry.subreddit_name_prefixed}/.rss`,
+            date: new Date(newestDate * 1000)
         });
-    }
 
 
-
-    needle.get(jsonUrl, get);
+        res.body.data.children.forEach(processItem);
+    });
 };
