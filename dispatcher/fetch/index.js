@@ -23,7 +23,7 @@ module.exports = function (feedId, feedUrl) {
     }
 
     if (host === 'news.ycombinator.com') {
-        self.emit('fetch:hn', feedId, feedUrl);
+        self.emit('fetch:hackernews', feedId, feedUrl);
         return;
     }
 

@@ -47,7 +47,7 @@ emitter.on('feed:reschedule', require('./feed/reschedule'));
 // Fetching
 emitter.on('fetch', require('./fetch/index'));
 emitter.on('fetch:default', require('./fetch/default'));
-emitter.on('fetch:hn', require('./fetch/hn'));
+emitter.on('fetch:hackernews', require('./fetch/hackernews'));
 emitter.on('fetch:reddit', require('./fetch/reddit'));
 emitter.on('fetch:stackexchange', require('./fetch/stackexchange'));
 
