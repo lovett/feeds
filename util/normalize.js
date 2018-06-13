@@ -11,8 +11,12 @@ module.exports = {
      *
      * Normalized URLs should not be used as replacements. They are
      * only for comparison.
+     *
+     * The segment parameter is for cases where only a piece of the
+     * URL is needed. It can be any of the fields on the object
+     * returned by url.parse().
      */
-    url: function (inputUrl) {
+    url: function (inputUrl, segment) {
         var cleaned, parsedUrl, result;
 
         // pre-parse cleanup
@@ -37,12 +41,20 @@ module.exports = {
             parsedUrl.hostname = parsedUrl.hostname.replace(/^www\./, '');
         }
 
+        if (parsedUrl.host) {
+            parsedUrl.host = parsedUrl.host.replace(/^www\./, '');
+        }
+
         // remove selected querystring vars
         Object.keys(parsedUrl.query).forEach(function (key) {
             if (key.indexOf('utm_') === 0 || !parsedUrl.query[key]) {
                 delete parsedUrl.query[key];
             }
         });
+
+        if (segment && parsedUrl.hasOwnProperty(segment)) {
+            return parsedUrl[segment];
+        }
 
         // convert back into a string
         result = url.format(parsedUrl);
