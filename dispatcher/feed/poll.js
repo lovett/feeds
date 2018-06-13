@@ -35,7 +35,7 @@ module.exports = function () {
     if (!timer) {
         self.emit('log:debug', `Polling every ${timerMinutes} minutes.`);
         timer = setInterval(() => {
-            emitter.emit('feed:poll');
+            self.emit('feed:poll');
         }, timerMinutes * 60 * 1000);
     };
 };

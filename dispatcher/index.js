@@ -51,8 +51,8 @@ emitter.on('fetch:hn', require('./fetch/hn'));
 emitter.on('fetch:reddit', require('./fetch/reddit'));
 emitter.on('fetch:stackexchange', require('./fetch/stackexchange'));
 
-// History
-emitter.on('history:add', require('./history/add'));
+// Stats
+emitter.on('stats:fetch', require('./stats/fetch'));
 
 // Entries
 emitter.on('entry:store', require('./entry/store'));

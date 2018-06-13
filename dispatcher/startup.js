@@ -102,26 +102,27 @@ CREATE TABLE IF NOT EXISTS userEntries (
   PRIMARY KEY (userId, entryId)
 );
 
-CREATE TABLE IF NOT EXISTS history
+CREATE TABLE IF NOT EXISTS fetchStats
 (
   id INTEGER PRIMARY KEY,
   created DEFAULT CURRENT_TIMESTAMP,
   fetchid TEXT,
   feedId INTEGER NOT NULL,
-  type TEXT NOT NULL,
-  status INTEGER DEFAULT 0,
-  items INTEGER DEFAULT 0,
+  httpStatus INTEGER DEFAULT 0,
+  itemCount INTEGER DEFAULT 0,
   FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS history_fetchid
-ON history(fetchid);
+CREATE UNIQUE INDEX IF NOT EXISTS fetchStats_fetchid
+ON fetchStats(fetchid);
 
-CREATE INDEX IF NOT EXISTS history_type
-ON history(type);
+CREATE INDEX IF NOT EXISTS fetchStats_feedId
+ON fetchStats(feedId);
 
-CREATE INDEX IF NOT EXISTS history_feedId
-ON history(feedId);
+CREATE TRIGGER IF NOT EXISTS fetchStats_cleanup
+AFTER INSERT ON fetchStats BEGIN
+DELETE FROM fetchStats WHERE created < datetime('now', '-90 day', 'utc');
+END;
 
 CREATE TABLE IF NOT EXISTS filters (
   id INTEGER PRIMARY KEY,
@@ -154,21 +155,26 @@ ORDER BY feeds.nextFetch
 LIMIT 1
 `;
 
-    const schemaQueries = schema.split(';');
-
     self.db.serialize(() => {
-        while (schemaQueries.length > 0) {
-            let query = schemaQueries.shift();
+        self.db.run('BEGIN TRANSACTION');
 
-            if (query.trim().length) {
-                self.db.run(query);
-            }
-
-            if (schemaQueries.length === 0) {
-                self.db.run(query, [], () => {
-                    self.emit('startup:done');
+        const queries = schema.split(';\n\n');
+        queries.forEach((query) => {
+            if (query.trim()) {
+                self.db.run(query, (err) => {
+                    if (err) {
+                        self.emit('log:error', err.message);
+                    }
                 });
             }
-        };
+        });
+
+        self.db.run('COMMIT', [], (err) => {
+            if (err) {
+                self.emit('log:error', err.message);
+            }
+
+            self.emit('startup:done');
+        });
     });
 };

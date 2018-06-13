@@ -10,7 +10,11 @@ module.exports = function (feedId, feedUrl) {
 
     const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
 
+    let itemCount = 0;
+
     function captureEntry(item) {
+        itemCount++;
+
         let entry = {
             feedUrl: feedUrl,
             feedId: feedId,
@@ -47,7 +51,10 @@ module.exports = function (feedId, feedUrl) {
     const parser = new FeedParser();
     parser.on('error', function (err) {
         if (err) {
-            self.emit('log:error', `Error parsing ${feedUrl}: ${err.message}`);
+            self.emit(
+                'log:error',
+                `Error parsing ${feedUrl}: ${err.message}`
+            );
         }
     });
 
@@ -77,7 +84,18 @@ module.exports = function (feedId, feedUrl) {
 
     stream.on('done', function (err) {
         if (err) {
-            self.emit('log:error', `Error fetching ${feedUrl}: ${err.message}`);
+            self.emit(
+                'log:error',
+                `Error fetching ${feedUrl}: ${err.message}`
+            );
         }
+
+        self.emit(
+            'stats:fetch',
+            feedId,
+            fetchId,
+            this.request.res.statusCode,
+            itemCount
+        );
     });
 };
