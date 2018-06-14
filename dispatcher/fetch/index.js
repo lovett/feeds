@@ -3,10 +3,10 @@
 const url = require('url');
 
 /**
- * Delegate feed fetching to a site-specific handler.
+ * Delegate feed fetching to take advantage of site-specific APIs.
  *
- * Feeds from Reddit, StackExchange, and Hacker News are requested via
- * their respective APIs. All other feeds are requested directly.
+ * Some sites offer custom APIs that provide more information than
+ * is available from the feed alone.
  */
 module.exports = function (feedId, feedUrl) {
     const self = this;
@@ -14,11 +14,6 @@ module.exports = function (feedId, feedUrl) {
 
     if (host.indexOf('reddit.com') > -1) {
         self.emit('fetch:reddit', feedId, feedUrl);
-        return;
-    }
-
-    if (host.indexOf('stackexchange.com') > -1) {
-        self.emit('fetch:stackexchange', feedId, feedUrl);
         return;
     }
 
