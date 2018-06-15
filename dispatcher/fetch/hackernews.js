@@ -38,7 +38,7 @@ module.exports = function (feedId, feedUrl) {
                 discussion: {
                     url: 'https://news.ycombinator.com/item?id=' + item.id,
                     label: 'news.ycombinator.com',
-                    tally: item.descendants
+                    commentCount: item.descendants
                 },
                 body: item.text
             };

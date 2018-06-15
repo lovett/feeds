@@ -1,17 +1,17 @@
 'use strict';
 
 /**
- * Record the details of a feed fetch.
+ * Record the fetch id and HTTP status of a feed fetch.
  *
- * Knowing the HTTP status code and item count over time
- * makes it easier to identify problems and track liveliness.
+ * Knowing this makes it possible to track a feed's liveliness over
+ * time.
  */
-module.exports = function (feedId, fetchid, httpStatus, itemCount) {
+module.exports = function (feedId, fetchid, httpStatus) {
     var self = this;
 
     self.db.run(
-        'INSERT INTO fetchStats (feedId, fetchid, httpStatus, itemCount) VALUES (?, ?, ?, ?)',
-        [feedId, fetchid, httpStatus, itemCount],
+        'INSERT INTO fetchStats (feedId, fetchid, httpStatus) VALUES (?, ?, ?)',
+        [feedId, fetchid, httpStatus],
         function (err) {
             var changes, lastID;
 

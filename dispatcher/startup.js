@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS entries
   feedId INTEGER NOT NULL,
   fetchid TEXT,
   url TEXT NOT NULL,
-  normalizedUrl TEXT NOT NULL,
+  guid TEXT NOT NULL,
   title TEXT NOT NULL,
   author TEXT DEFAULT NULL,
   created DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -51,16 +51,16 @@ CREATE TABLE IF NOT EXISTS entries
   FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS entry_url_unique
-ON entries (normalizedUrl);
+CREATE UNIQUE INDEX IF NOT EXISTS entry_guid_unique
+ON entries (guid);
 
 CREATE TABLE IF NOT EXISTS discussions
 (
   id INTEGER PRIMARY KEY,
   entryId INTEGER NOT NULL,
-  tally INTEGER DEFAULT 0,
   label TEXT NOT NULL,
-  url TEXT NOT NULL,
+  url TEXT DEFAULT NULL,
+  commentCount INTEGER DEFAULT NULL,
   FOREIGN KEY (entryId) REFERENCES entries(id) ON DELETE CASCADE
 );
 
@@ -109,7 +109,6 @@ CREATE TABLE IF NOT EXISTS fetchStats
   fetchid TEXT,
   feedId INTEGER NOT NULL,
   httpStatus INTEGER DEFAULT 0,
-  itemCount INTEGER DEFAULT 0,
   FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE
 );
 

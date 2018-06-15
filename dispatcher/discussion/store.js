@@ -3,16 +3,12 @@
 const normalize = require('../../util/normalize');
 const url = require('url');
 
-module.exports = function (discussion) {
+module.exports = function (entryId, discussion) {
     const self = this;
 
-    if (!discussion.url) {
-        self.emit('log:debug', 'Ignoring discussion with no url');
-        return;
-    }
-
     if (!discussion.label) {
-        discussion.label = normalize.url(discussion.url, 'hostname');
+        self.emit('log:warning', 'Ignoring discussion with no label');
+        return;
     }
 
     function afterSave (err) {
@@ -32,28 +28,27 @@ module.exports = function (discussion) {
 
     self.db.get(
         'SELECT id FROM discussions WHERE entryId=? AND label=?',
-        [discussion.entryId, discussion.label],
+        [entryId, discussion.label],
         function (err, row) {
             if (err) {
                 self.emit('log:error', `Failed to select discussion for entry ${discussion.entryId}: ${err.message}`);
                 return;
             }
 
-            if (row && discussion.tally) {
-                discussion.id = row.id;
+            if (row && discussion.commentCount) {
                 self.db.run(
-                    'UPDATE discussions SET tally=? WHERE id=?',
-                    [discussion.tally, discussion.id],
+                    'UPDATE discussions SET commentCount=? WHERE id=?',
+                    [discussion.commentCount, row.id],
                     afterSave
                 );
                 return;
             }
 
             self.db.run(
-                'INSERT INTO discussions (entryId, tally, label, url) VALUES (?, ?, ?, ?)',
+                'INSERT INTO discussions (entryId, commentCount, label, url) VALUES (?, ?, ?, ?)',
                 [
-                    discussion.entryId,
-                    discussion.tally,
+                    entryId,
+                    discussion.commentCount,
                     discussion.label,
                     discussion.url
                 ],

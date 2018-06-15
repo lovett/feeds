@@ -2,7 +2,6 @@
 
 const crypto = require('crypto');
 const needle = require('needle');
-const url = require('url');
 const FeedParser = require('feedparser');
 
 module.exports = function (feedId, feedUrl) {
@@ -10,11 +9,9 @@ module.exports = function (feedId, feedUrl) {
 
     const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
 
-    let itemCount = 0;
+    let guids = [];
 
     function captureEntry(item) {
-        itemCount++;
-
         let entry = {
             feedUrl: feedUrl,
             feedId: feedId,
@@ -22,22 +19,30 @@ module.exports = function (feedId, feedUrl) {
             author: item.author,
             title: item.title,
             created: item.pubdate,
+            guid: item.guid,
             url: (item.origlink || item.link),
             extras: {
                 keywords: item.categories
             },
             discussion: {
                 url: null,
-                label: null,
-                tally: null
+                label: 'self',
+                commentCount: null
             }
         };
+
+        if (item.guid) {
+            guids.push(item.guid);
+        }
 
         if (item.comments) {
             entry.discussion.url = item.comments;
 
             if (item['slash:comments']) {
-                entry.discussion.tally = parseInt(item['slash:comments'], 10);
+                entry.discussion.commentCount = parseInt(
+                    item['slash:comments'],
+                    10
+                );
             }
         }
 
@@ -59,18 +64,11 @@ module.exports = function (feedId, feedUrl) {
     });
 
     parser.on('readable', function () {
-        self.emit('feed:update', feedId, {
-            title: this.meta.title,
-            description: this.meta.description,
-            link: this.meta.link,
-            xmlurl: this.meta.xmlurl,
-            date: this.meta.date,
-        });
-
         let item = null;
         while (item = this.read()) {
             captureEntry(item);
         }
+
     });
 
     const stream = needle.get(feedUrl, {
@@ -82,6 +80,16 @@ module.exports = function (feedId, feedUrl) {
 
     stream.pipe(parser);
 
+    stream.on('meta', function (meta) {
+        self.emit('feed:update', feedId, {
+            title: meta.title,
+            description: meta.description,
+            link: meta.link,
+            xmlurl: meta.xmlurl,
+            date: meta.date,
+        });
+    });
+
     stream.on('done', function (err) {
         if (err) {
             self.emit(
@@ -90,12 +98,23 @@ module.exports = function (feedId, feedUrl) {
             );
         }
 
+        if (guids) {
+            setTimeout(() => {
+                self.emit('discussion:recount', feedUrl, guids);
+            }, 5000);
+        }
+
+
+        let statusCode = 0;
+        if (this.request && this.request.res) {
+            statusCode = this.request.res.statusCode;
+        }
+
         self.emit(
             'stats:fetch',
             feedId,
             fetchId,
-            this.request.res.statusCode,
-            itemCount
+            statusCode
         );
     });
 };

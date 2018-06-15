@@ -44,7 +44,7 @@ module.exports = function (feedId, feedUrl) {
                 keywords: data.link_flair_text || undefined
             },
             discussion: {
-                tally: data.num_comments,
+                commentCount: data.num_comments,
                 label: data.subreddit_name_prefixed,
                 url: `${baseUrl}/${data.permalink}`
             }

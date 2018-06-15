@@ -15,7 +15,9 @@ module.exports = function (entry) {
 
     entry.url = entities.decodeXML(entry.url);
 
-    entry.normalizedUrl = normalize.url(entry.url);
+    if (!entry.guid) {
+        entry.guid = normalize.url(entry.url);
+    }
 
     if (entry.author) {
         entry.author = entities.decodeXML(entry.author);
@@ -33,18 +35,11 @@ module.exports = function (entry) {
         }
 
         if (this.lastID) {
-            entry.id = this.lastID;
+            self.emit('entry:assign', this.lastID, entry.feedId);
+
+            self.emit('discussion:store', this.lastID, entry.discussion);
         }
 
-        entry.changes = this.changes;
-        entry.userIds = [];
-
-        if (entry.discussion.url) {
-            entry.discussion.entryId = entry.id;
-            self.emit('discussion:store', entry.discussion);
-        }
-
-        self.emit('entry:assign', entry.id, entry.feedId);
         self.emit('entry:store:done', entry);
     }
 
@@ -68,13 +63,13 @@ module.exports = function (entry) {
         }
 
         self.db.run(
-            'INSERT INTO entries (feedId, fetchid, url, author, normalizedUrl, title, created, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO entries (feedId, fetchid, url, author, guid, title, created, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 entry.feedId,
                 entry.fetchId,
                 entry.url,
                 entry.author,
-                entry.normalizedUrl,
+                entry.guid,
                 entry.title,
                 entry.created,
                 entry.body,
