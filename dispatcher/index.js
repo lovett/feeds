@@ -32,6 +32,9 @@ emitter.on('removeListener', require('./log/unregister'));
 // Startup
 emitter.once('startup', require('./startup'));
 
+// Schema creation and upgrade
+emitter.on('schema', require('./schema'));
+
 // Feeds
 emitter.on('feed:poll', require('./feed/poll'));
 emitter.on('feed:watch', require('./feed/watch'));
