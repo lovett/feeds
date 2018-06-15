@@ -63,6 +63,20 @@ module.exports = function (feedId, feedUrl) {
         }
     });
 
+    parser.on('meta', function (meta) {
+        self.emit(
+            'feed:update',
+            feedId,
+            {
+                description: meta.description,
+                siteUrl: meta.link,
+                title: meta.title,
+                updated: meta.date,
+                url: meta.xmlurl
+            }
+        );
+    });
+
     parser.on('readable', function () {
         let item = null;
         while (item = this.read()) {
@@ -79,16 +93,6 @@ module.exports = function (feedId, feedUrl) {
     });
 
     stream.pipe(parser);
-
-    stream.on('meta', function (meta) {
-        self.emit('feed:update', feedId, {
-            title: meta.title,
-            description: meta.description,
-            link: meta.link,
-            xmlurl: meta.xmlurl,
-            date: meta.date,
-        });
-    });
 
     stream.on('done', function (err) {
         if (err) {

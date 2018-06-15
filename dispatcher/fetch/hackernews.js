@@ -48,7 +48,13 @@ module.exports = function (feedId, feedUrl) {
         }
 
         if (itemCounter === itemLimit) {
-            self.emit('feed:update', feedId, {date: new Date()});
+            self.emit(
+                'feed:update',
+                feedId,
+                {
+                    updated: new Date()
+                }
+            );
             firebaseDb.goOffline();
         }
     }

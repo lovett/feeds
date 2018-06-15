@@ -37,26 +37,26 @@ module.exports = function (feedId, meta, callback) {
             );
         }
 
-        if (meta.link) {
+        if (meta.siteUrl) {
             self.db.run(
                 'UPDATE feeds SET siteUrl=? WHERE id=?',
-                [meta.link, feedId],
+                [meta.siteUrl, feedId],
                 afterUpdate
             );
         }
 
-        if (meta.xmlurl) {
+        if (meta.url) {
             self.db.run(
                 'UPDATE feeds SET url=? WHERE id=?',
-                [meta.xmlurl, feedId],
+                [meta.url, feedId],
                 afterUpdate
             );
         }
 
-        if (meta.date) {
+        if (meta.updated) {
             self.db.run(
                 'UPDATE feeds SET updated=? WHERE id=?',
-                [meta.date, feedId],
+                [meta.updated, feedId],
                 afterUpdate
             );
         }

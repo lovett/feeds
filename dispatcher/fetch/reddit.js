@@ -87,12 +87,16 @@ module.exports = function (feedId, feedUrl) {
 
         const firstEntry = res.body.data.children[0].data;
 
-        self.emit('feed:update', feedId, {
-            title: `Reddit ${firstEntry.subreddit}`,
-            link: `${baseUrl}/${firstEntry.subreddit_name_prefixed}`,
-            xmlurl: `${baseUrl}/${firstEntry.subreddit_name_prefixed}/.rss`,
-            date: new Date(newestDate * 1000)
-        });
+        self.emit(
+            'feed:update',
+            feedId,
+            {
+                siteUrl: `${baseUrl}/${firstEntry.subreddit_name_prefixed}`,
+                title: `Reddit ${firstEntry.subreddit}`,
+                updated: new Date(newestDate * 1000),
+                url: `${baseUrl}/${firstEntry.subreddit_name_prefixed}/.rss`
+            }
+        );
 
 
         res.body.data.children.forEach(processItem);
