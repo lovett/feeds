@@ -1,28 +1,38 @@
-module.exports = function (db, filter) {
-    'use strict';
+'use strict';
 
-    var self = this;
+module.exports = function (userId, filter) {
+
+    const self = this;
 
     if (filter.id) {
-        db.run('UPDATE filters SET value=?, weight=?, feedId=? WHERE id=?', [filter.value, filter.weight, filter.feedId, filter.id], function (err) {
-            if (err) {
-                self.emit('log:error', 'Failed to update filter', { error: err, filter: filter});
-                filter.updated = false;
-            } else {
-                filter.updated = true;
+        db.run(
+            'UPDATE filters SET value=?, weight=?, feedId=? WHERE id=?',
+            [filter.value, filter.weight, filter.feedId, filter.id],
+            (err) => {
+                if (err) {
+                    self.emit(
+                        'log:error',
+                        `Failed to update filter: ${err.message}`
+                    );
+                }
+                self.emit('filter:store:done', filter);
             }
+        );
 
-            self.emit('filter:store:done', filter);
-        });
-    } else {
-        db.run('INSERT INTO filters (userId, feedId, value, weight) VALUES (?, ?, ?, ?)', [filter.userId, filter.feedId, filter.value, filter.weight], function (err) {
+        return;
+    }
+
+    db.run(
+        'INSERT INTO filters (userId, feedId, value, weight) VALUES (?, ?, ?, ?)',
+        [userId, filter.feedId, filter.value, filter.weight],
+        (err) => {
             if (err) {
-                self.emit('log:error', 'Failed to insert filter', {error: err, filter: filter});
-                filter.id = null;
-            } else {
-                filter.id = this.lastID;
+                self.emit(
+                    'log:error',
+                    `Failed to insert filter: ${err.message}`
+                );
             }
             self.emit('filter:store:done', filter);
-        });
-    }
+        }
+    );
 };
