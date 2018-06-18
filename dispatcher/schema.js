@@ -4,11 +4,13 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Load SQL statements from an external file until the database schema
- * is up-to-date.
+ * Load SQL statements from an external file until the schema is
+ * up-to-date.
  *
- * The schema is considered up-to-date when the requested version cannot be
- * paired with a file in the schema directory at the application root.
+ * The schema is considered up-to-date once the requested version can
+ * no longer be paired with an external file.
+ *
+ * SQL files are kept in the schema folder at the project root.
  *
  * Versions are expected to increment by whole numbers.
 */

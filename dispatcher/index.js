@@ -46,6 +46,7 @@ emitter.on('feed:add', require('./feed/add'));
 emitter.on('feed:update', require('./feed/update'));
 emitter.on('feed:purge', require('./feed/purge'));
 emitter.on('feed:reschedule', require('./feed/reschedule'));
+emitter.on('feed:assess', require('./feed/assess'));
 
 // Fetching
 emitter.on('fetch', require('./fetch/index'));

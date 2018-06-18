@@ -20,6 +20,10 @@ module.exports = function (feedId, fetchid, httpStatus) {
                 return;
             }
 
+            if (httpStatus !== 200) {
+                self.emit('feed:assess', feedId);
+            }
+
             self.emit('stats:fetch:done');
         }
     );

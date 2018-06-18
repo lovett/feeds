@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS feeds
   siteUrl TEXT DEFAULT NULL,
   created DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated DATETIME DEFAULT NULL,
+  abandonned DATETIME DEFAULT NULL,
   nextFetch DATETIME DEFAULT NULL
 );
 
@@ -95,11 +96,6 @@ ON fetchStats(fetchid);
 CREATE INDEX IF NOT EXISTS fetchStats_feedId
 ON fetchStats(feedId);
 
-CREATE TRIGGER IF NOT EXISTS fetchStats_cleanup
-AFTER INSERT ON fetchStats BEGIN
-DELETE FROM fetchStats WHERE created < datetime('now', '-90 day', 'utc');
-END;
-
 CREATE TABLE IF NOT EXISTS filters (
   id INTEGER PRIMARY KEY,
   userId INTEGER NOT NULL,
@@ -131,8 +127,14 @@ INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('headlines', 'headl
 CREATE VIEW IF NOT EXISTS nextFeedToFetchView AS
 SELECT feeds.id, feeds.url
 FROM userFeeds JOIN feeds ON userFeeds.feedId=feeds.rowid
-WHERE feeds.nextFetch < CURRENT_TIMESTAMP OR feeds.nextFetch IS NULL
+WHERE (feeds.nextFetch < CURRENT_TIMESTAMP OR feeds.nextFetch IS NULL)
+AND feeds.abandonned IS NULL
 ORDER BY feeds.nextFetch
 LIMIT 1;
+
+CREATE TRIGGER IF NOT EXISTS fetchStats_cleanup
+AFTER INSERT ON fetchStats BEGIN
+DELETE FROM fetchStats WHERE created < datetime('now', '-90 day', 'utc');
+END;
 
 INSERT INTO versions (schemaVersion) VALUES (1);
