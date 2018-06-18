@@ -8,12 +8,7 @@
     "url": "http://github.com/lovett/headlines.git"
   },
   "main": "server/index.js",
-  "scripts": {
-    "lint": "eslint dispatcher test Gruntfile.js",
-    "hooks": "cp hooks/* .git/hooks/",
-    "test": "mocha --bail --reporter min test/dispatcher",
-    "coverage": "istanbul cover --dir coverage/dispatcher _mocha -- -R min test/dispatcher"
-  },
+  "scripts": {}
   "author": "",
   "license": "ISC",
   "devDependencies": {

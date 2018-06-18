@@ -31,3 +31,16 @@ server: dummy
 resetdb: dummy
 	rm headlines.sqlite
 	touch server/server.js
+
+#
+# Run the test suite.
+#
+test: dummy
+	mocha --bail --reporter min test/dispatcher
+	istanbul cover --dir coverage/dispatcher _mocha -- -R min test/dispatcher
+
+#
+# Check for coding style violations.
+#
+lint: dummy
+	eslint dispatcher test Gruntfile.js
