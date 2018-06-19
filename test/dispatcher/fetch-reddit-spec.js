@@ -1,14 +1,11 @@
-var assert, events, fetchReddit, nock;
+'use strict';
 
-nock = require('nock');
-assert = require('assert');
-events = require('events');
-fetchReddit = require('../../dispatcher/fetch/reddit');
+const nock = require('nock');
+const assert = require('assert');
+const events = require('events');
+const fetchReddit = require('../../dispatcher/fetch/reddit');
 
-// Temporarily inactive pending refactoring.
-xdescribe('fetch:reddit', function() {
-    'use strict';
-
+describe('fetch:reddit', function() {
     beforeEach(function (done) {
         this.feedId = 1;
         this.fetchId = 'fetch';
@@ -24,105 +21,163 @@ xdescribe('fetch:reddit', function() {
         this.emitter.httpClient = null;
     });
 
-    it('normalizes the feed URL to JSON over HTTPS', function (done) {
-        var self;
+    it('normalizes the feed URL to RSS over HTTPS', function (done) {
+        const self = this;
 
-        self = this;
+        self.requestMock.reply(200, {
+            data: {
+                children: [
+                    {
+                        data: {
+                            title: 'test',
+                            subreddit_name_prefixed: 'r/javascript'
+                        }
+                    }
+                ]
+            }
+        });
 
-        this.requestMock.reply(200, {});
-
-        self.emitter.on('fetch:done', function (args) {
-            assert.strictEqual(args.url, 'https://www.reddit.com/r/javascript/.json');
-            assert.strictEqual(args.status, 200);
+        self.emitter.on('feed:update', (feedId, meta) => {
+            assert.strictEqual(meta.url, 'https://www.reddit.com/r/javascript/.rss');
             done();
         });
 
-        self.emitter.emit('fetch:reddit', {
-            id: this.feedId,
-            fetchId: this.fetchId,
-            url: this.feedUrl
-        });
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
     });
 
-    it('logs failure', function (done) {
-        var self;
+    it('handles error response', function (done) {
+        const self = this;
 
-        self = this;
+        self.requestMock.reply(400, {});
 
-        this.requestMock.reply(400, {});
-
-        self.emitter.on('log:warn', function (message, fields) {
-            assert.strictEqual(fields.status, 400);
+        self.emitter.on('stats:fetch', (feedId, fetchId, statusCode, itemCount) => {
+            assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:reddit', {
-            id: this.feedId,
-            fetchId: this.fetchId,
-            url: this.feedUrl
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
+    });
+
+    it('handles malformed  response', function (done) {
+        const self = this;
+
+        self.emitter.on('stats:fetch', (feedId, fetchId, statusCode, itemCount) => {
+            assert.strictEqual(itemCount, 0);
+            done();
         });
+
+        self.emitter.emit('fetch:reddit', self.feedId, 'invalid-url');
     });
 
     it('handles absence of children in response', function (done) {
-        var self;
+        const self = this;
 
-        self = this;
+        self.requestMock.reply(200, {
+            data: {}
+        });
 
-        this.requestMock.reply(200, { data: {} });
-
-        self.emitter.on('fetch:done', function (args) {
-            assert.strictEqual(args.itemCount, 0);
+        self.emitter.on('stats:fetch', function (feedId, fetchId, statusCode, itemCount) {
+            assert.strictEqual(itemCount, 0);
             done();
         });
 
-        self.emitter.emit('fetch:reddit', {
-            id: this.feedId,
-            fetchId: this.fetchId,
-            url: this.feedUrl
-        });
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
     });
 
     it('triggers entry storage', function (done) {
-        var self;
-
-        self = this;
+        const self = this;
 
         this.requestMock.reply(200, {
             data: {
-                children: [{
+                'children': [{
                     'data': {
                         'num_comments': 3,
                         'permalink': 'the permalink',
-                        'created': 1436999356.0,
                         'author': 'the author',
                         'url': 'the url',
                         'title': 'the title',
-                        'created_utc': 1436970556.0,
+                        'created_utc': 1,
                         'selftext': 'the body',
                         'score': 1234,
                         'link_flair_text': 'keyword1 keyword2'
+                    },
+                    'data': {
+                        'num_comments': 4,
+                        'permalink': 'the second permalink',
+                        'author': 'the second author',
+                        'url': 'the second url',
+                        'title': 'the second title',
+                        'created_utc': 2,
+                        'selftext': 'the second body',
+                        'score': 1234,
+                        'link_flair_text': 'keyword3 keyword4'
+                    }
+
+                }]
+            }
+        });
+
+        self.emitter.on('entry:store', function (entry) {
+            assert.strictEqual(entry.feedId, self.feedId);
+            assert(entry.fetchId);
+            assert.strictEqual(entry.url, 'the second url');
+            assert.strictEqual(entry.author, 'the second author');
+            assert.strictEqual(entry.body, 'the second body');
+            assert.strictEqual(entry.extras.score, 1234);
+            assert.strictEqual(entry.extras.keywords, 'keyword3 keyword4');
+            assert.strictEqual(entry.discussion.commentCount, 4);
+            done();
+        });
+
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
+    });
+
+    it('skips automoderator entries', function (done) {
+        const self = this;
+
+        this.requestMock.reply(200, {
+            data: {
+                'children': [{
+                    'data': {
+                        'author': 'automoderator',
                     }
                 }]
             }
         });
 
-        self.emitter.on('entry', function (args) {
-            assert.strictEqual(args.feedId, self.feedId);
-            assert.strictEqual(args.fetchId, self.fetchId);
-            assert.strictEqual(args.url, 'the url');
-            assert.strictEqual(args.author, 'the author');
-            assert.strictEqual(args.body, 'the body');
-            assert.strictEqual(args.extras.score, 1234);
-            assert.strictEqual(args.extras.keywords, 'keyword1 keyword2');
-            assert.strictEqual(args.discussion.tally, 3);
+        self.emitter.on('entry:store', () => {
+            throw new Error('entry:store should not have been called');
+        });
+
+        self.emitter.on('fetch:done', function (entry) {
             done();
         });
 
-        self.emitter.emit('fetch:reddit', {
-            id: this.feedId,
-            fetchId: this.fetchId,
-            url: this.feedUrl
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
+    });
+
+    it('skips stickied entries', function (done) {
+        const self = this;
+
+        this.requestMock.reply(200, {
+            'data': {
+                'children': [{
+                    'data': {
+                        'stickied': true
+                    }
+                }]
+            }
         });
+
+        self.emitter.on('entry:store', () => {
+            throw new Error('entry:store should not have been called');
+        });
+
+        self.emitter.on('fetch:done', function (entry) {
+            done();
+        });
+
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
     });
 
 });

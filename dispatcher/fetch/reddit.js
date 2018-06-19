@@ -16,17 +16,23 @@ module.exports = function (feedId, feedUrl) {
     const subreddit = parsedUrl.path.split('/')[2];
     const jsonUrl = `${baseUrl}/r/${subreddit}/.json`;
 
-    function processItem (item) {
+    function processItem (item, isLast) {
 
         const data = item.data;
 
-        if (data.author.toLowerCase() === 'automoderator') {
+        if (data.author && data.author.toLowerCase() === 'automoderator') {
             self.emit('log:debug', 'Skipping automoderator item');
+            if (isLast) {
+                self.emit('fetch:done');
+            }
             return;
         }
 
         if (data.stickied) {
             self.emit('log:debug', 'Skipping stickied item');
+            if (isLast) {
+                self.emit('fetch:done');
+            }
             return;
         }
 
@@ -51,6 +57,10 @@ module.exports = function (feedId, feedUrl) {
         };
 
         self.emit('entry:store', entry);
+
+        if (isLast) {
+            self.emit('fetch:done');
+        }
     }
 
     needle.get(jsonUrl, (err, res) => {
@@ -60,13 +70,13 @@ module.exports = function (feedId, feedUrl) {
                 'stats:fetch',
                 feedId,
                 fetchId,
-                res.statusCode,
+                0,
                 0
             );
             return;
         }
 
-        if (!res.body.data.children) {
+        if (!res.body.data || !res.body.data.children || res.body.data.children.length < 1) {
             self.emit('log:warning', 'Reddit JSON feed has no children');
             self.emit(
                 'stats:fetch',
@@ -79,13 +89,21 @@ module.exports = function (feedId, feedUrl) {
         }
 
         const newestDate = res.body.data.children.reduce((acc, entry) => {
-            if (entry.created_utc > acc) {
-                acc = entry.created_utc;
+            if (entry.data.created_utc > acc) {
+                acc = entry.data.created_utc;
             }
             return acc;
         }, 0);
 
         const firstEntry = res.body.data.children[0].data;
+
+        self.emit(
+            'stats:fetch',
+            feedId,
+            fetchId,
+            res.statusCode,
+            res.body.data.children.length
+        );
 
         self.emit(
             'feed:update',
@@ -98,7 +116,9 @@ module.exports = function (feedId, feedUrl) {
             }
         );
 
-
-        res.body.data.children.forEach(processItem);
+        for (let i=0; i < res.body.data.children.length; i++) {
+            let isLast = i === res.body.data.children.length - 1;
+            processItem(res.body.data.children[i], isLast);
+        }
     });
 };
