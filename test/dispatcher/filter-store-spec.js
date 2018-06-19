@@ -1,35 +1,43 @@
+'use strict';
+
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
+const schema = require('../../dispatcher/schema');
 const filterStore = require('../../dispatcher/filter/store');
 const assert = require('assert');
 const events = require('events');
 
-// Temporarily disabled
-xdescribe('filter:store', function() {
-    'use strict';
+describe('filter:store', function() {
 
     beforeEach(function (done) {
-        var self = this;
+        const self = this;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('filter:store', filterStore);
         this.emitter.on('startup', startup);
-        this.userId = 1;
+        this.emitter.on('schema', schema);
 
-        this.emitter.on('startup:done', function () {
-            self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
-                if (err) {
-                    throw err;
+        this.emitter.on('schema:done', () => {
+            self.db.run(
+                'INSERT INTO feeds (url) VALUES (?)',
+                ['http://example.com/feed.rss'],
+                (err) => {
+                    if (err) {
+                        throw err;
+                    }
+
+                    self.feedId = this.lastID;
+
+                    self.db.run(
+                        'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
+                        function () {
+                            self.userId = this.lastID;
+                            done();
+                        }
+                    );
                 }
-
-                self.feedId = this.lastID;
-
-                self.db.run('INSERT INTO users (username, passwordHash) VALUES ("test", "test")', function () {
-                    self.userId = this.lastID;
-                    done();
-                });
-            });
+            );
         });
 
         this.emitter.emit('startup', self.db);
@@ -42,130 +50,105 @@ xdescribe('filter:store', function() {
     });
 
     it('adds a feed-specific filter', function (done) {
-        var filter, self;
+        const self = this;
 
-        self = this;
-        filter = {
+        const filter = {
             feedId: self.feedId,
-            userId: self.userId,
             value: 'test'
         };
 
-        self.emitter.on('filter:store:done', function (args) {
-            assert.strictEqual(args.feedId, filter.feedId);
-            assert.strictEqual(args.userId, filter.userId);
-            assert.strictEqual(args.value, filter.value);
-            assert(args.id);
+        self.emitter.on('filter:store:done', (filter) => {
+            assert.strictEqual(filter.id, 1);
 
             self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
-                assert.strictEqual(err, null);
+                if (err) {
+                    throw err;
+                }
                 assert.strictEqual(row.count, 1);
                 done();
             });
         });
 
-        self.emitter.emit('filter:store', self.db, filter);
+        self.emitter.emit('filter:store', self.userId, filter);
     });
 
     it('adds a global filter', function (done) {
-        var filter, self;
-
-        self = this;
-        filter = {
-            userId: self.userId,
+        const self = this;
+        const filter = {
             value: 'test'
         };
 
-        self.emitter.on('filter:store:done', function (args) {
-            assert.strictEqual(args.feedId, undefined);
-            assert.strictEqual(args.userId, filter.userId);
-            assert.strictEqual(args.value, filter.value);
-            assert(args.id);
+        self.emitter.on('filter:store:done', function (filter) {
+            assert.strictEqual(filter.id, 1);
 
-            self.db.get('SELECT feedId FROM filters', function (err, row) {
-                assert.strictEqual(err, null);
-                assert.strictEqual(row.feedId, null);
+            self.db.get('SELECT count(*) as count FROM filters', function (err, row) {
+                if (err) {
+                    throw err;
+                }
+                assert.strictEqual(row.count, 1);
                 done();
             });
         });
 
-        self.emitter.emit('filter:store', self.db, filter);
+        self.emitter.emit('filter:store', self.userId, filter);
     });
 
     it('handles insertion failure', function (done) {
-        var filter, self;
-
-        self = this;
-        filter = {
+        const self = this;
+        const filter = {
             feedId: self.feedId,
             userId: self.userId,
             value: 'test'
         };
 
-        self.emitter.on('log:error', function (message, args) {
-            assert(message);
-            assert(args);
-            done();
-        });
-
-        self.db.exec('DROP TABLE FEEDS', function (err) {
+        self.db.exec('DROP TABLE filters', function (err) {
             if (err) {
                 throw err;
             }
 
-            self.emitter.emit('filter:store', self.db, filter);
+            self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
+                assert.strictEqual(insertedFilter, undefined);
+                done();
+            });
         });
     });
 
     it('updates an existing row', function (done) {
-        var filter, self;
-
-        self = this;
-        filter = {
+        const self = this;
+        const filter = {
             feedId: self.feedId,
             userId: self.userId,
             value: 'test'
         };
 
-        self.emitter.once('filter:store:done', function (insertedFilter) {
+        self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
             insertedFilter.value = 'newvalue';
 
-            self.emitter.once('filter:store:done', function (updatedFilter) {
-                assert.strictEqual(updatedFilter.updated, true);
+            self.emitter.emit('filter:store', self.userId, insertedFilter, (updatedFilter) => {
+                assert.strictEqual(updatedFilter.value, insertedFilter.value);
                 done();
             });
-
-            self.emitter.emit('filter:store', self.db, insertedFilter);
         });
-
-        self.emitter.emit('filter:store', self.db, filter);
     });
 
     it('handles failure to update an existing row', function (done) {
-        var filter, self;
-
-        self = this;
-        filter = {
+        const self = this;
+        const filter = {
             feedId: self.feedId,
-            userId: self.userId,
             value: 'test'
         };
 
-        self.emitter.once('filter:store:done', function (insertedFilter) {
-            self.db.exec('DROP TABLE filters', function (err) {
+        self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
+            self.db.run('DROP TABLE filters', function (err) {
                 if (err) {
                     throw err;
                 }
 
-                self.emitter.once('filter:store:done', function (updatedFilter) {
-                    assert.strictEqual(updatedFilter.updated, false);
+                self.emitter.emit('filter:store', self.userId, insertedFilter, (updatedFilter) => {
+                    assert.strictEqual(updatedFilter, undefined);
                     done();
                 });
-
-                self.emitter.emit('filter:store', self.db, insertedFilter);
             });
         });
-
-        self.emitter.emit('filter:store', self.db, filter);
     });
 });

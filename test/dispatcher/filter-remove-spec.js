@@ -1,23 +1,26 @@
+'use strict';
+
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
+const schema = require('../../dispatcher/schema');
 const filterRemove = require('../../dispatcher/filter/remove');
 const assert = require('assert');
 const events = require('events');
 
-// Temporarily disabled
-xdescribe('filter:remove', function() {
-    'use strict';
+describe('filter:remove', function() {
 
     beforeEach(function (done) {
-        var self = this;
+        const self = this;
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('filter:remove', filterRemove);
         this.emitter.on('startup', startup);
+        this.emitter.on('schema', schema);
         this.userId = 1;
+        this.filterId = 1;
 
-        this.emitter.on('startup:done', function () {
+        this.emitter.on('schema:done', function () {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
                 if (err) {
                     throw err;
@@ -32,18 +35,21 @@ xdescribe('filter:remove', function() {
 
                     self.userId = this.lastID;
 
-                    self.db.run('INSERT INTO filters (userId, feedId, value) VALUES (?, ?, ?)', [self.userId, self.feedId, 'test'], function (filterErr) {
-                        if (filterErr) {
-                            throw filterErr;
+                    self.db.run(
+                        'INSERT INTO filters (userId, feedId, value) VALUES (?, ?, ?)',
+                        [self.userId, self.feedId, 'test'],
+                        (err) => {
+                            if (err) {
+                                throw filterErr;
+                            }
+                            done();
                         }
-                        done();
-                    });
+                    );
                 });
             });
         });
 
-        this.emitter.emit('startup', self.db);
-
+        self.emitter.emit('startup', self.db);
     });
 
     afterEach(function () {
@@ -51,46 +57,45 @@ xdescribe('filter:remove', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('deletes a row from the filters table', function (done) {
-        var filter, self;
+    it('deletes a filter', function (done) {
+        const self = this;
 
-        self = this;
-        filter = {
-            id: 1,
-            feedId: self.feedId,
-            userId: self.userId,
-            value: 'test'
-        };
-
-        self.emitter.on('filter:remove:done', function (args) {
-            assert.strictEqual(args.feedId, filter.feedId);
-            assert.strictEqual(args.userId, filter.userId);
-            assert.strictEqual(args.id, filter.id);
-            assert.strictEqual(args.removed, true);
+        self.emitter.on('filter:remove:done', function (filterId) {
+            assert.strictEqual(filterId, self.filterId);
 
             self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
-                assert.strictEqual(err, null);
+                if (err) {
+                    throw err;
+                }
                 assert.strictEqual(row.count, 0);
                 done();
             });
         });
 
-        self.emitter.emit('filter:remove', self.db, filter);
+        self.emitter.emit('filter:remove', self.filterId, self.userId);
+    });
+
+    it('deletes a filter - callback', function (done) {
+        const self = this;
+
+        self.emitter.emit('filter:remove', self.filterId, self.userId, (filterId) => {
+            assert.strictEqual(filterId, self.filterId);
+
+            self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
+                if (err) {
+                    throw err;
+                }
+                assert.strictEqual(row.count, 0);
+                done();
+            });
+        });
     });
 
     it('handles deletion failure', function (done) {
-        var filter, self;
+        const self = this;
 
-        self = this;
-        filter = {
-            id: 1,
-            feedId: self.feedId,
-            userId: self.userId,
-            value: 'test'
-        };
-
-        self.emitter.on('filter:remove:done', function (args) {
-            assert.strictEqual(args.removed, false);
+        self.emitter.on('filter:remove:done', function (filterId) {
+            assert.strictEqual(filterId, null);
             done();
         });
 
@@ -99,21 +104,44 @@ xdescribe('filter:remove', function() {
                 throw err;
             }
 
-            self.emitter.emit('filter:remove', self.db, filter);
+            self.emitter.emit('filter:remove', self.filterId, self.userId);
         });
     });
 
-    it('rejects a filter without an id', function (done) {
-        var filter, self;
+    it('handles deletion failure - callback', function (done) {
+        const self = this;
 
-        self = this;
-        filter = {};
+        self.db.exec('DROP TABLE filters', function (err) {
+            if (err) {
+                throw err;
+            }
 
-        self.emitter.on('filter:remove:done', function (args) {
-            assert.strictEqual(args.removed, false);
+            self.emitter.emit('filter:remove', self.filterId, self.userId, (filterId) => {
+                assert.strictEqual(filterId, null);
+                done();
+            });
+        });
+    });
+
+
+    it('rejects an invalid id', function (done) {
+        const self = this;
+
+        self.emitter.on('filter:remove:done', function (filterId) {
+            assert.strictEqual(filterId, null);
             done();
         });
 
-        self.emitter.emit('filter:remove', self.db, filter);
+        self.emitter.emit('filter:remove', null, self.userId);
     });
+
+    it('rejects an invalid id - callback', function (done) {
+        const self = this;
+
+        self.emitter.emit('filter:remove', null, self.userId, (filterId) => {
+            assert.strictEqual(filterId, null);
+            done();
+        });
+    });
+
 });
