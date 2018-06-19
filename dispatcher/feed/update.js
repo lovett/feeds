@@ -14,13 +14,15 @@ module.exports = function (feedId, meta, callback) {
     function afterUpdate(err) {
         if (err) {
             self.emit('log:error', `Failed to update feed ${feedId} metadata: ${err.message}`);
+            return;
         }
-        updateCounter += this.changes;
+
+        if (this.changes) {
+            updateCounter += this.changes;
+        }
     };
 
     self.db.serialize(() => {
-        self.db.run('BEGIN TRANSACTION');
-
         if (meta.title) {
             self.db.run(
                 'UPDATE feeds SET title=? WHERE id=?',
@@ -53,24 +55,10 @@ module.exports = function (feedId, meta, callback) {
             );
         }
 
-        if (meta.updated) {
-            self.db.run(
-                'UPDATE feeds SET updated=? WHERE id=?',
-                [meta.updated, feedId],
-                afterUpdate
-            );
+        self.emit('feed:update:done', feedId);
+
+        if (callback) {
+            callback(updateCounter);
         }
-
-        self.db.run('COMMIT', [], (err) => {
-            if (err) {
-                self.emit('log:error', `Failed to commit feed ${feedId} metadata updates: ${err.message}`);
-            }
-
-            if (callback) {
-                callback(updateCounter);
-            }
-
-            self.emit('feed:update:done', feedId);
-        });
     });
 };

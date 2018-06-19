@@ -8,23 +8,23 @@ module.exports = function (entryId, discussion) {
 
     if (!discussion.label) {
         self.emit('log:warning', 'Ignoring discussion with no label');
+        self.emit('discussion:store:done', null);
         return;
     }
 
-    function afterSave (err) {
+    const afterSave = function (err) {
         if (err) {
             self.emit('log:error', `Failed to save discussion: ${err.message}`);
+            self.emit('discussion:store:done', null);
             return;
         }
 
-        if (this.lastID) {
-            discussion.id = this.lastID;
-        }
+        discussion.id = this.lastID;
 
         discussion.changes = this.changes;
 
         self.emit('discussion:store:done', discussion);
-    }
+    };
 
     self.db.get(
         'SELECT id FROM discussions WHERE entryId=? AND label=?',
@@ -32,6 +32,7 @@ module.exports = function (entryId, discussion) {
         function (err, row) {
             if (err) {
                 self.emit('log:error', `Failed to select discussion for entry ${discussion.entryId}: ${err.message}`);
+                self.emit('discussion:store:done', null);
                 return;
             }
 

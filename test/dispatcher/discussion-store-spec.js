@@ -1,11 +1,13 @@
+'use strict';
+
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
+const schema = require('../../dispatcher/schema');
 const discussionStore = require('../../dispatcher/discussion/store');
 const assert = require('assert');
 const events = require('events');
 
 describe('discussion:store', function() {
-    'use strict';
 
     beforeEach(function (done) {
         const self = this;
@@ -14,18 +16,24 @@ describe('discussion:store', function() {
         this.emitter.unlisten = function () {};
         this.emitter.on('discussion:store', discussionStore);
         this.emitter.on('startup', startup);
+        this.emitter.on('schema', schema);
         this.entryUrl = 'http://example.com/entry.html';
 
-        this.emitter.on('startup:done', function () {
+        this.emitter.once('schema:done', () => {
             self.db.serialize(function () {
-                self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss']);
-                self.db.run('INSERT INTO entries (feedId, url, normalizedUrl, title) VALUES (?, ?, ?, ?)', [1, self.entryUrl, self.entryUrl, 'test entry']);
+                self.db.run(
+                    'INSERT INTO feeds (url) VALUES (?)',
+                    ['http://example.com/feed.rss']
+                );
+                self.db.run(
+                    'INSERT INTO entries (feedId, url, guid, title) VALUES (?, ?, ?, ?)',
+                    [1, self.entryUrl, self.entryUrl, 'test entry']
+                );
                 done();
             });
         });
 
-        this.emitter.emit('startup', self.db);
-
+        this.emitter.emit('startup', this.db);
     });
 
     afterEach(function () {
@@ -35,14 +43,14 @@ describe('discussion:store', function() {
 
     it('adds a row to the discussions table', function (done) {
         const self = this;
+        const entryId = 1;
         const discussion = {
-            entryId: 1,
-            tally: 1,
+            commentCount: 1,
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.on('discussion:store:done', function (savedDiscussion) {
+        self.emitter.once('discussion:store:done', (savedDiscussion) => {
             assert.strictEqual(savedDiscussion.changes, 1);
             assert.strictEqual(savedDiscussion.id, 1);
 
@@ -53,40 +61,75 @@ describe('discussion:store', function() {
             });
         });
 
-        self.emitter.emit('discussion:store', self.db, discussion);
+        self.emitter.emit('discussion:store', entryId, discussion);
     });
 
-    it('updates an existing row', function (done) {
+    it('requires the label field', function (done) {
         const self = this;
+        const entryId = 1;
         const discussion = {
-            entryId: 1,
-            tally: 1,
+            commentCount: 3,
+            url: 'http://example.com/discussion.html'
+        };
+
+        self.emitter.once('discussion:store:done', (savedDiscussion) => {
+            assert.strictEqual(savedDiscussion, null);
+            done();
+        });
+
+        self.emitter.emit('discussion:store', entryId, discussion);
+
+    });
+
+    it('requires a valid entry', function (done) {
+        const self = this;
+        const entryId = 666;
+        const discussion = {
+            commentCount: 3,
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.once('discussion:store:done', function (args) {
-            assert.strictEqual(args.changes, 1);
-            assert.strictEqual(args.id, 1);
+        self.emitter.once('discussion:store:done', (savedDiscussion) => {
+            assert.strictEqual(savedDiscussion, null);
+            done();
+        });
 
-            self.emitter.once('discussion:store:done', function (args2) {
-                assert.strictEqual(args2.changes, 1);
-                assert.strictEqual(args2.id, 1);
+        self.emitter.emit('discussion:store', entryId, discussion);
 
-                self.db.get('SELECT tally FROM discussions LIMIT 1', function (err, row) {
+    });
+
+
+    it('updates an existing row', function (done) {
+        const self = this;
+        const entryId = 1;
+        const discussion = {
+            commentCount: 1,
+            label: 'test',
+            url: 'http://example.com/discussion.html'
+        };
+
+        self.emitter.once('discussion:store:done', (savedDiscussion) => {
+            assert.strictEqual(savedDiscussion.changes, 1);
+            assert.strictEqual(savedDiscussion.id, 1);
+
+            savedDiscussion.commentCount = 100;
+
+            self.emitter.once('discussion:store:done', (savedDiscussion2) => {
+                assert.strictEqual(savedDiscussion2.changes, 1);
+                assert.strictEqual(savedDiscussion2.id, 1);
+
+                self.db.get('SELECT commentCount FROM discussions LIMIT 1', function (err, row) {
                     assert.strictEqual(err, null);
-                    assert.strictEqual(row.tally, discussion.tally);
+                    assert.strictEqual(savedDiscussion2.commentCount, savedDiscussion.commentCount);
                     done();
                 });
             });
 
-            discussion.tally = 100;
-            self.emitter.emit('discussion:store', self.db, discussion);
-
+            self.emitter.emit('discussion:store', entryId, discussion);
         });
 
-        self.emitter.emit('discussion:store', self.db, discussion);
-
+        self.emitter.emit('discussion:store', entryId, discussion);
     });
 
     it('logs insertion failure', function (done) {

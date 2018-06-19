@@ -4,7 +4,8 @@ const filterRemove = require('../../dispatcher/filter/remove');
 const assert = require('assert');
 const events = require('events');
 
-describe('filter:remove', function() {
+// Temporarily disabled
+xdescribe('filter:remove', function() {
     'use strict';
 
     beforeEach(function (done) {

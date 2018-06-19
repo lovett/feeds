@@ -16,11 +16,11 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('Nothing to update'));
     }
 
-    dispatcher.emit('feed:update', feeds, (err, result) => {
-        if (err) {
-            return next(new errors.InternalServerError(err.message));
-        }
-        res.send(result);
+    dispatcher.emit('feed:update', feeds, (updateCount) => {
+        res.send({
+            fieldsUpdated: updateCount
+        });
+
         next();
     });
 };

@@ -18,7 +18,7 @@ module.exports = function(version) {
     const self = this;
 
     const sqlPath = path.join(
-        path.dirname(process.argv[1]),
+        __dirname,
         '../',
         'schema',
         `${version.toString().padStart(3, 0)}.sql`

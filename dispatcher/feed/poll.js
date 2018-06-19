@@ -8,7 +8,7 @@ const timerMinutes = 10;
  *
  * Feeds are fetched one-at-a-time in order to spread the work out.
  */
-module.exports = function () {
+module.exports = function (once) {
 
     const self = this;
 
@@ -16,23 +16,23 @@ module.exports = function () {
 
         if (err) {
             self.emit('log:error', 'Failed to query nextFeedToFetchView', err.message);
-            self.emit('poll:done');
+            self.emit('poll:done', null);
             return;
         }
 
         if (!row) {
             self.emit('log:info', 'Nothing to fetch at this time.');
-            self.emit('poll:done');
+            self.emit('poll:done', null);
             return;
         }
 
         self.emit('feed:reschedule', row.id);
 
         self.emit('fetch', row.id, row.url);
-        self.emit('poll:done');
+        self.emit('poll:done', row.id);
     });
 
-    if (!timer) {
+    if (!timer && !once) {
         self.emit('log:debug', `Polling every ${timerMinutes} minutes.`);
         timer = setInterval(() => {
             self.emit('feed:poll');

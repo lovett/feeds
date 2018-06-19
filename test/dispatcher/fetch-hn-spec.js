@@ -1,9 +1,8 @@
-var MockFirebase, assert, events, fetchHn;
+var assert, events, fetchHn;
 
-MockFirebase = require('mockfirebase').MockFirebase;
 assert = require('assert');
 events = require('events');
-fetchHn = require('../../dispatcher/fetch/hn');
+fetchHn = require('../../dispatcher/fetch/hackernews');
 
 // Temporarily inactive pending refactoring.
 xdescribe('fetch:hn', function() {
@@ -13,12 +12,9 @@ xdescribe('fetch:hn', function() {
         this.feedUrl = 'http://example.com/feed';
         this.feedId = 1;
         this.fetchId = 'fetch';
-        this.hnFirebase = new MockFirebase('https://hacker-news.firebaseio.com/v0/');
-        this.hnTopStories = this.hnFirebase.child('/topstories');
         this.hnTopStories.limitToFirst = function () {
             return this;
         };
-        this.hnItem = this.hnFirebase.child('/item');
         this.emitter = new events.EventEmitter();
         this.emitter.on('fetch:hn', fetchHn);
         done();

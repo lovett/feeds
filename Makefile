@@ -37,7 +37,12 @@ resetdb: dummy
 #
 test: dummy
 	mocha --bail --reporter min test/dispatcher
-	istanbul cover --dir coverage/dispatcher _mocha -- -R min test/dispatcher
+
+#
+# Generate a test coverage report.
+#
+coverage: dummy
+	nyc --reporter=html mocha --bail --reporter min test/dispatcher
 
 #
 # Check for coding style violations.

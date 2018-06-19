@@ -4,7 +4,8 @@ const watch = require('../../dispatcher/feed/watch');
 const assert = require('assert');
 const events = require('events');
 
-describe('feed:watch', function() {
+// Temporarily disabled
+xdescribe('feed:watch', function() {
     'use strict';
 
     beforeEach(function (done) {

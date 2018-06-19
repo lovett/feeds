@@ -143,4 +143,11 @@ AFTER INSERT ON fetchStats BEGIN
 DELETE FROM fetchStats WHERE created < datetime('now', '-90 day', 'utc');
 END;
 
+CREATE TRIGGER IF NOT EXISTS feed_updated
+AFTER UPDATE OF url, title, description, siteUrl ON feeds
+FOR EACH ROW
+BEGIN
+UPDATE feeds SET updated=datetime('now') WHERE rowid=NEW.rowid;
+END;
+
 INSERT INTO versions (schemaVersion) VALUES (1);

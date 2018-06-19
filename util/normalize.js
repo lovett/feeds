@@ -41,13 +41,10 @@ module.exports = {
             parsedUrl.hostname = parsedUrl.hostname.replace(/^www\./, '');
         }
 
-        if (parsedUrl.host) {
-            parsedUrl.host = parsedUrl.host.replace(/^www\./, '');
-        }
-
         // remove selected querystring vars
+        delete parsedUrl.search;
         Object.keys(parsedUrl.query).forEach(function (key) {
-            if (key.indexOf('utm_') === 0 || !parsedUrl.query[key]) {
+            if (key.indexOf('utm_') === 0) {
                 delete parsedUrl.query[key];
             }
         });

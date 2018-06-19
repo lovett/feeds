@@ -32,6 +32,7 @@ module.exports = function (database) {
 
                 if (!row) {
                     self.emit('schema', 1);
+                    self.emit('startup:done');
                     return;
                 }
 
@@ -41,16 +42,11 @@ module.exports = function (database) {
                         return;
                     }
 
-                    self.emit(
-                        'schema',
-                        parseInt(row['schemaVersion'], 10) + 1
-                    );
+                    self.emit('schema', parseInt(row['schemaVersion'], 10) + 1);
+
+                    self.emit('startup:done');
                 });
             }
         );
-    });
-
-    self.once('schema:done', () => {
-        self.emit('startup:done');
     });
 };

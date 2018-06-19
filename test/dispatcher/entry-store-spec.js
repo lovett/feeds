@@ -1,49 +1,62 @@
+'use strict';
+
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
+const schema = require('../../dispatcher/schema');
 const entryStore = require('../../dispatcher/entry/store');
 const assert = require('assert');
 const events = require('events');
 
 describe('entry:store', function() {
-    'use strict';
 
     beforeEach(function (done) {
-        var self = this;
-        this.fetchId = 'fetch';
+        const self = this;
+        this.fetchId = 'testfetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('entry:store', entryStore);
         this.emitter.on('startup', startup);
+        this.emitter.on('schema', schema);
 
-        this.emitter.on('startup:done', function () {
-            self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
-                if (err) {
-                    throw err;
-                }
-
-                self.feedId = this.lastID;
-
-                self.db.run('INSERT INTO users (username, passwordHash) VALUES ("test", "test")', function (userErr) {
-                    if (userErr) {
-                        throw userErr;
+        this.emitter.on('schema:done', () => {
+            self.db.run(
+                'INSERT INTO feeds (url) VALUES (?)',
+                ['http://example.com/feed.rss'],
+                function (err) {
+                    if (err) {
+                        throw err;
                     }
 
-                    self.userId = this.lastID;
+                    self.feedId = this.lastID;
 
-                    self.db.run('INSERT INTO userFeeds (userId, feedId) VALUES(?, ?)', [self.userId, self.feedId], function (userFeedErr) {
-                        if (userFeedErr) {
-                            throw userFeedErr;
+
+                    self.db.run(
+                        'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
+                        [],
+                        function (userErr) {
+                            if (userErr) {
+                                throw userErr;
+                            }
+                            self.userId = this.lastID;
+
+                            self.db.run(
+                                'INSERT INTO userFeeds (userId, feedId) VALUES(?, ?)',
+                                [self.userId, self.feedId],
+                                function (userFeedErr) {
+                                    if (userFeedErr) {
+                                        throw userFeedErr;
+                                    }
+                                    done();
+                                }
+                            );
                         }
-
-                        done();
-                    });
-                });
-            });
+                    );
+                }
+            );
         });
 
         this.emitter.emit('startup', self.db);
-
     });
 
     afterEach(function () {
@@ -52,13 +65,10 @@ describe('entry:store', function() {
     });
 
     it('adds a row to the entries table', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
+        const self = this;
+        const entry = {
             title: 'the title',
             author: 'H&#229;kon',
-            createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html',
             feedId: self.feedId,
             fetchId: self.fetchId,
@@ -69,30 +79,27 @@ describe('entry:store', function() {
             }
         };
 
-        self.emitter.on('entry:store:done', function (args) {
-            assert.strictEqual(args.changes, 1);
-            assert.strictEqual(args.id, 1);
-            assert.strictEqual(args.userIds[0], self.userId);
-            assert.strictEqual(args.author, 'Håkon');
-            assert.strictEqual(args.fetchId, self.fetchId);
-            assert.strictEqual(args.body, entry.body);
-            assert.strictEqual(typeof args.extras, 'string');
+        self.emitter.on('entry:store:done', (savedEntry) => {
+            assert.strictEqual(savedEntry.changes, 1);
+            assert.strictEqual(savedEntry.id, 1);
+            assert.strictEqual(savedEntry.author, 'Håkon');
+            assert.strictEqual(savedEntry.fetchId, self.fetchId);
+            assert.strictEqual(savedEntry.body, entry.body);
+            assert.strictEqual(typeof savedEntry.extras, 'string');
 
-            self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
+            self.db.get('SELECT COUNT(*) as count FROM entries', (err, row) => {
                 assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
                 done();
             });
         });
 
-        self.emitter.emit('entry:store', self.db, entry);
+        self.emitter.emit('entry:store', entry);
     });
 
     it('normalizes the url', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
+        const self = this;
+        const entry = {
             title: 'the title',
             createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html#whatever',
@@ -100,25 +107,24 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.on('entry:store:done', function (args) {
-            assert.strictEqual(args.changes, 1);
-            assert.strictEqual(args.id, 1);
-            assert(args.normalizedUrl);
-            assert(args.fetchId, self.fetchId);
-            assert(args.url);
-            assert.notStrictEqual(args.normalizedUrl, args.url);
+        self.emitter.on('entry:store:done', function (savedEntry) {
+            assert.strictEqual(savedEntry.changes, 1);
+            assert.strictEqual(savedEntry.id, 1);
+            assert(savedEntry.guid);
+            assert(savedEntry.fetchId, self.fetchId);
+            assert(savedEntry.url);
+            assert.notStrictEqual(savedEntry.normalizedUrl, savedEntry.url);
             done();
         });
 
-        self.emitter.emit('entry:store', self.db, entry);
+        self.emitter.emit('entry:store', entry);
 
     });
 
     it('blocks duplicate urls', function (done) {
-        var entry, self;
+        const self = this;
 
-        self = this;
-        entry = {
+        const entry = {
             title: 'the title',
             createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html',
@@ -126,37 +132,36 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.emit('entry:store', self.db, entry);
+        self.emitter.once('entry:store:done', (savedEntry) => {
+            assert.strictEqual(savedEntry.changes, 1);
+            assert.strictEqual(savedEntry.id, 1);
 
-        self.emitter.once('entry:store:done', function (args) {
-            assert.strictEqual(args.changes, 1);
-            assert.strictEqual(args.id, 1);
-            self.emitter.once('entry:store:done', function (args2) {
-                assert.strictEqual(args2.changes, 0);
-                assert.strictEqual(args2.id, 1);
+            self.emitter.once('entry:store:done', (savedEntry2) => {
+                assert.strictEqual(savedEntry2.changes, 0);
+                assert.strictEqual(savedEntry2.id, 1);
 
-                self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
+                self.db.get('SELECT COUNT(*) as count FROM entries', (err, row) => {
                     assert.strictEqual(err, null);
                     assert.strictEqual(row.count, 1);
                     done();
                 });
             });
-            self.emitter.emit('entry:store', self.db, entry);
+
+            self.emitter.emit('entry:store', entry);
         });
+
+        self.emitter.emit('entry:store', entry);
     });
 
     it('requires entry url', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
+        const self = this;
+        const entry = {
             feedId: self.feedId,
             fetchId: self.fetchId
         };
 
-        self.emitter.on('log:warn', function (message, fields) {
+        self.emitter.on('log:warn', function (message) {
             assert(message);
-            assert(fields);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 if (err) {
@@ -167,24 +172,21 @@ describe('entry:store', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, entry);
+        self.emitter.emit('entry:store', entry);
     });
 
     it('logs failure to select from entries table', function (done) {
-        var entry, self;
+        const self = this;
 
-        self = this;
-
-        entry = {
+        const entry = {
             title: 'the title',
             url: 'http://example.com',
             feedId: self.feedId,
             fetchId: self.fetchId
         };
 
-        self.emitter.on('log:error', function (message, fields) {
+        self.emitter.on('log:error', function (message) {
             assert(message);
-            assert(fields);
             done();
         });
 
@@ -193,22 +195,20 @@ describe('entry:store', function() {
                 throw err;
             }
 
-            self.emitter.emit('entry:store', self.db, entry);
+            self.emitter.emit('entry:store', entry);
         });
     });
 
     it('requires valid feed ID', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
+        const self = this;
+        const entry = {
             url: 'http://example.com',
             feedId: 999,
             fetchId: self.fetchId
         };
 
-        self.emitter.on('entry:store:done', function (args) {
-            assert.strictEqual(args.changes, undefined);
+        self.emitter.on('entry:store:done', function (savedEntry) {
+            assert.strictEqual(savedEntry, null);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 if (err) {
@@ -219,14 +219,12 @@ describe('entry:store', function() {
             });
         });
 
-        self.emitter.emit('entry:store', self.db, entry);
+        self.emitter.emit('entry:store', entry);
     });
 
     it('emits discussion event', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
+        const self = this;
+        const entry = {
             url: 'http://example.com',
             title: 'the title',
             discussion: {
@@ -236,20 +234,17 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.on('discussion', function (args) {
-            assert.strictEqual(args.foo, entry.discussion.foo);
+        self.emitter.on('discussion:store', function (id, discussion) {
+            assert.strictEqual(discussion.foo, entry.discussion.foo);
             done();
         });
 
-        self.emitter.emit('entry:store', self.db, entry);
+        self.emitter.emit('entry:store', entry);
     });
 
-
     it('parses non-numeric creation date', function (done) {
-        var entries, self;
-
-        self = this;
-        entries = [
+        const self = this;
+        const entries = [
             {title: 'title1', url: 'http://example.com/entry1.html', created: 'Sun, 19 Jul 2015 06:51:17 -0500'},
             {title: 'title2', url: 'http://example.com/entry2.html', created: '2015-03-30T11:07:01.441-07:00'},
             {title: 'title3', url: 'http://example.com/entry3.html', created: '2015-06-15T00:00:00Z'},
@@ -257,91 +252,28 @@ describe('entry:store', function() {
             {title: 'title5', url: 'http://example.com/entry5.html'}
         ];
 
-        entries.forEach(function (entry, index) {
+        self.emitter.on('entry:store:done', (savedEntry) => {
+            assert.strictEqual(savedEntry.changes, 1);
+            assert(savedEntry.created);
+            assert(new Date(savedEntry.created));
+            if (savedEntry.title === entries[entries.length - 1].title) {
+                done();
+            }
+        });
+
+        for (let i=0; i < entries.length; i++) {
+            let entry = entries[i];
+            let isLast = (i === entries.length - 1);
+
             entry.feedId = self.feedId;
             entry.fetchId = self.fetchId;
-            self.emitter.once('entry:store:done', function (args) {
-                assert.strictEqual(args.changes, 1);
-                assert(args.id, index + 1);
-                assert(args.createdUtcSeconds);
-
-                if (entry === entries[entries.length - 1]) {
-                    done();
-                }
-            });
-
-            self.emitter.emit('entry:store', self.db, entry);
-        });
-    });
-
-    it('handles failure to select from userFeeds table', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
-            title: 'the title',
-            createdUtc: new Date().getTime(),
-            url: 'http://example.com/entry1.html',
-            feedId: self.feedId,
-            fetchId: self.fetchId
+            self.emitter.emit('entry:store', entry);
         };
-
-        self.emitter.on('log:error', function (message, fields) {
-            assert.strictEqual(fields.entry.userIds.length, 0);
-            done();
-        });
-
-        self.db.run('DROP TABLE userFeeds', function (err) {
-            if (err) {
-                throw err;
-            }
-
-            self.emitter.emit('entry:store', self.db, entry);
-        });
-    });
-
-    it('handles multiple saves of the same entry', function (done) {
-        var entry, inserts, self;
-
-        self = this;
-        entry = {
-            title: 'multi save title',
-            createdUtc: new Date().getTime(),
-            url: 'http://example.com/entry1.html',
-            feedId: self.feedId,
-            fetchId: self.fetchId,
-            body: 'the body'
-        };
-        inserts = 0;
-
-        self.emitter.on('log:error', function (message, fields) {
-            done(message);
-        });
-
-        self.emitter.on('entry:store:done', function (args) {
-            inserts += 1;
-
-            self.db.get('SELECT COUNT(*) as count FROM userEntries', function (err, row) {
-                assert.strictEqual(err, null);
-                assert.strictEqual(row.count, 1);
-
-                if (inserts < 3) {
-                    self.emitter.emit('entry:store', self.db, entry);
-                } else {
-                    done();
-                }
-            });
-
-        });
-
-        self.emitter.emit('entry:store', self.db, entry);
     });
 
     it('handles failure to insert into userEntries table', function (done) {
-        var entry, self;
-
-        self = this;
-        entry = {
+        const self = this;
+        const entry = {
             title: 'the title',
             createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html',
@@ -350,13 +282,50 @@ describe('entry:store', function() {
             body: 'the body'
         };
 
-        self.emitter.on('log:error', function (message, fields) {
+        self.emitter.on('log:error', function (message) {
+            assert(message);
             done();
         });
 
         self.db.exec('DROP TABLE userEntries', function () {
-            self.emitter.emit('entry:store', self.db, entry);
+            self.emitter.emit('entry:store', entry);
             done();
         });
     });
+
+    it('updates the title field of an existing entry', function (done) {
+        const self = this;
+        const entry = {
+            title: 'the title',
+            createdUtc: new Date().getTime(),
+            url: 'http://example.com/entry1.html',
+            feedId: self.feedId,
+            fetchId: self.fetchId,
+            body: 'the body'
+        };
+
+        self.emitter.once('entry:store:done', (savedEntry) => {
+            assert.strictEqual(savedEntry.id, 1);
+            assert.strictEqual(savedEntry.changes, 1);
+            savedEntry.title = 'updated title';
+
+            self.emitter.once('entry:store:done', (updatedEntry) => {
+                self.db.get('SELECT title FROM entries', function (err, row) {
+                    assert.strictEqual(row.title, savedEntry.title);
+                    done();
+                });
+            });
+
+            self.emitter.emit('entry:store', savedEntry);
+
+            self.db.get('SELECT COUNT(*) as count FROM entries', (err, row) => {
+                assert.strictEqual(err, null);
+                assert.strictEqual(row.count, 1);
+                done();
+            });
+        });
+
+        self.emitter.emit('entry:store', entry);
+    });
+
 });

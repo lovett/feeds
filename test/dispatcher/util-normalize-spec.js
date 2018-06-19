@@ -35,26 +35,20 @@ describe('util/normalize', function () {
             assert.strictEqual(result, 'example.com/www.');
         });
 
-        it('removes the anchor', function () {
+        it('preserves the anchor', function () {
             let input = 'http://example.com/#anchor';
             let result = normalize.url(input);
-            assert.strictEqual(result, 'example.com');
+            assert.strictEqual(result, 'example.com/#anchor');
 
             input = 'http://example.com/%23encoded';
             result = normalize.url(input);
-            assert.strictEqual(result, 'example.com');
+            assert.strictEqual(result, 'example.com/#encoded');
         });
 
         it('preserves the querystring', function () {
             let input = 'http://example.com/?id=1';
             let result = normalize.url(input);
             assert.strictEqual(result, 'example.com/?id=1');
-        });
-
-        it('removes bare querystring variables', function () {
-            let input = 'http://example.com/?test';
-            let result = normalize.url(input);
-            assert.strictEqual(result, 'example.com');
         });
 
         it('removes the trailing slash', function () {
@@ -69,6 +63,13 @@ describe('util/normalize', function () {
             assert.strictEqual(result, 'example.com');
         });
 
+        it('removes empty anchor', function () {
+            let input = 'http://example.com/#';
+            let result = normalize.url(input);
+            assert.strictEqual(result, 'example.com');
+        });
+
+
         it('removes multiple utm_ querystring parameters', function () {
             let input = 'http://example.com/?utm_campaign=example&utm_medium=whatever&utm_source=something';
             let result = normalize.url(input);
@@ -80,5 +81,12 @@ describe('util/normalize', function () {
             let result = normalize.url(input);
             assert.strictEqual(result, 'example.com');
         });
+
+        it('returns the value of a single segment', function () {
+            let input = 'http://example.com/?utm_whatever=example';
+            let result = normalize.url(input, 'hostname');
+            assert.strictEqual(result, 'example.com');
+        });
+
     });
 });
