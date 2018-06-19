@@ -3,19 +3,28 @@
 /**
  * Advance a feed's nextFetch field by 1 hour.
  */
-module.exports = function (feedId) {
+module.exports = function (feedId, hours, callback) {
     const self = this;
 
+    hours = parseInt(hours, 10);
+
+    if (!hours || hours < 1) {
+        hours = 1;
+    }
+
     self.db.get(
-        'UPDATE feeds SET nextFetch=datetime("now", "+1 hour") WHERE id=?',
+        `UPDATE feeds SET nextFetch=datetime("now", "+${hours} hour") WHERE id=?`,
         [feedId],
-        function (err) {
+        (err) => {
             if (err) {
                 self.emit('log:error', `Failed to reschedule feed: ${err.message}`);
-                return;
+                feedId = null;
             }
 
             self.emit('feed:reschedule:done', feedId);
+            if (callback) {
+                callback(feedId);
+            }
         }
     );
 };
