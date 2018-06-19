@@ -59,7 +59,6 @@ server.post('/subscription', require('./routes/subscription-create'));
 server.put('/subscription', require('./routes/subscription-update'));
 server.del('/subscription', require('./routes/subscription-destroy'));
 
-server.get('/feed', require('./routes/feed-list'));
 server.post('/feed', require('./routes/feed-create'));
 server.put('/feed', require('./routes/feed-update'));
 server.del('/feed', require('./routes/feed-destroy'));

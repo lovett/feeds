@@ -41,7 +41,6 @@ emitter.on('feed:watch', require('./feed/watch'));
 emitter.on('feed:rewatch', require('./feed/rewatch'));
 emitter.on('feed:unwatch', require('./feed/unwatch'));
 emitter.on('feed:watched', require('./feed/watched'));
-emitter.on('feed:list', require('./feed/list'));
 emitter.on('feed:add', require('./feed/add'));
 emitter.on('feed:update', require('./feed/update'));
 emitter.on('feed:purge', require('./feed/purge'));
