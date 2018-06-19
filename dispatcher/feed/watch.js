@@ -10,7 +10,6 @@ module.exports = function (userId, feeds, callback) {
 
     let addCounter = 0;
     let subscribeCounter = 0;
-    let titleCounter = 0;
 
     self.db.serialize(() => {
         self.db.run('BEGIN TRANSACTION');
@@ -49,28 +48,25 @@ module.exports = function (userId, feeds, callback) {
                             self.emit('log:error', `Failed to update feed title: ${err.message}`);
                             return;
                         }
-                        titleCounter += this.changes;
                     }
                 );
             }
         });
 
         self.db.run('COMMIT', [], (err) => {
-            if (err) {
-                self.emit('log:error', `Failed to commit feed transaction: ${err.message}`);
-                return;
-            }
+            const summary = {
+                feedsAdded: addCounter,
+                subscriptionsCreated: subscribeCounter
+            };
 
             if (addCounter > 0 && subscribeCounter > 0) {
                 self.emit('feed:poll');
             }
 
+            self.emit('feed:watch:done', summary);
+
             if (callback) {
-                callback(err, {
-                    feedsAdded: addCounter,
-                    subscriptionsCreated: subscribeCounter,
-                    titlesSet: titleCounter
-                });
+                callback(summary);
             }
         });
     });

@@ -1,12 +1,13 @@
+'use strict';
+
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
+const schema = require('../../dispatcher/schema');
 const watch = require('../../dispatcher/feed/watch');
 const assert = require('assert');
 const events = require('events');
 
-// Temporarily disabled
-xdescribe('feed:watch', function() {
-    'use strict';
+describe('feed:watch', function() {
 
     beforeEach(function (done) {
         const self = this;
@@ -15,13 +16,18 @@ xdescribe('feed:watch', function() {
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('startup', startup);
+        this.emitter.on('schema', schema);
         this.emitter.on('feed:watch', watch);
-        this.emitter.on('startup:done', function () {
-            self.db.run('INSERT INTO users (username, passwordHash) VALUES ("test", "test")', function () {
-                self.userId = this.lastID;
-                done();
-            });
+        this.emitter.on('schema:done', function () {
+            self.db.run(
+                'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
+                function () {
+                    self.userId = this.lastID;
+                    done();
+                }
+            );
         });
+
         this.emitter.emit('startup', this.db);
     });
 
@@ -33,44 +39,70 @@ xdescribe('feed:watch', function() {
     it('adds rows to the feed and userFeeds tables', function (done) {
         const self = this;
 
-        self.emitter.emit('feed:watch', self.userId, [{url: self.feedUrl}], (err, result) => {
-            assert.strictEqual(err, null);
-            assert.strictEqual(result.feedsAdded, 1);
+        self.emitter.emit(
+            'feed:watch',
+            self.userId,
+            [{url: self.feedUrl, title: 'test'}],
+            (summary) => {
+                assert.strictEqual(summary.feedsAdded, 1);
+                assert.strictEqual(summary.subscriptionsCreated, 1);
 
-            self.db.get('SELECT COUNT(*) as count FROM feeds, userFeeds WHERE feeds.id=userFeeds.feedId', function (dbErr, row) {
-                if (dbErr) {
-                    throw dbErr;
-                }
-                assert.strictEqual(row.count, 1);
-                done();
-            });
-        });
+                self.db.get(
+                    'SELECT COUNT(*) as count FROM feeds, userFeeds WHERE feeds.id=userFeeds.feedId',
+                    function (err, row) {
+                        if (err) {
+                            throw err;
+                        }
+                        assert.strictEqual(row.count, 1);
+                        done();
+                    }
+                );
+            }
+        );
     });
 
     it('prevents duplicates', function (done) {
         const self = this;
 
-        self.db.run('INSERT INTO feeds (url) VALUES (?)', [self.feedUrl], function () {
-            self.emitter.emit('feed:watch', self.userId, [{ url: self.feedUrl}], (err, result) => {
-                assert.strictEqual(err, null);
-                assert.strictEqual(result.feedsAdded, 0);
+        self.db.run(
+            'INSERT INTO feeds (url) VALUES (?)',
+            [self.feedUrl],
+            function (err) {
 
-                self.db.get('SELECT COUNT(*) as count FROM feeds', function (dbErr, row) {
-                    if (dbErr) {
-                        throw dbErr;
+                if (err) {
+                    throw err;
+                }
+
+                self.emitter.emit(
+                    'feed:watch',
+                    self.userId,
+                    [{ url: self.feedUrl}],
+                    (result) => {
+                        assert.strictEqual(result.feedsAdded, 0);
+                        assert.strictEqual(result.subscriptionsCreated, 1);
+
+                        self.db.get(
+                            'SELECT COUNT(*) as count FROM feeds',
+                            (err, row) => {
+                                if (err) {
+                                    throw err;
+                                }
+                                assert.strictEqual(row.count, 1);
+                                done();
+                            }
+                        );
                     }
-                    assert.strictEqual(row.count, 1);
-                    done();
-                });
-            });
-        });
+                );
+            }
+        );
     });
 
-    it('logs feed insert failure', function (done) {
+    it('handles insert failure', function (done) {
         const self = this;
 
-        self.emitter.on('log:error', function (message) {
-            assert(message);
+        self.emitter.on('feed:watch:done', (summary) => {
+            assert.strictEqual(summary.feedsAdded, 0);
+            assert.strictEqual(summary.subscriptionsCreated, 0);
             done();
         });
 
@@ -78,7 +110,11 @@ xdescribe('feed:watch', function() {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('feed:watch', self.userId, [{url: self.feedUrl}]);
+            self.emitter.emit(
+                'feed:watch',
+                self.userId,
+                [{url: self.feedUrl, title: 'test'}]
+            );
         });
     });
 });
