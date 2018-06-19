@@ -9,7 +9,7 @@ const sqlite3 = require('sqlite3');
  * definition and upgrade is handled elsewhere, but this is where
  * SQLite pragmas are set.
  */
-module.exports = function (database) {
+module.exports = function (database, callback) {
     const self = this;
 
     if (database instanceof sqlite3.Database) {
@@ -23,30 +23,38 @@ module.exports = function (database) {
 
         self.db.get(
             'SELECT name FROM sqlite_master WHERE type="table" AND name="versions"',
-            [],
-            (err, row) => {
-                if (err) {
-                    self.emit('log:error', `Test for existence of versions table failed: ${err.message}`);
-                    return;
-                }
+            (_, row) => {
+                // Skipping error check here for lack of a way to check it.
+                // If sqlite_master can't be queried, something is deeply broken.
 
                 if (!row) {
                     self.emit('schema', 1);
                     self.emit('startup:done');
+                    if (callback) {
+                        callback(self.db, 0);
+                    }
                     return;
                 }
 
-                self.db.get('SELECT schemaVersion FROM versions', [], (err, row) => {
+                self.db.get('SELECT schemaVersion FROM versions', (err, row) => {
                     if (err) {
                         self.emit('log:error', `Determination of schema version failed: ${err.message}`);
+                        self.emit('startup:done');
+                        callback(self.db, undefined);
                         return;
                     }
 
-                    self.emit('schema', parseInt(row['schemaVersion'], 10) + 1);
+                    const currentVersion = parseInt(row.schemaVersion, 10);
+                    self.emit('schema', currentVersion + 1);
 
                     self.emit('startup:done');
+                    if (callback) {
+                        callback(self.db, currentVersion);
+                    }
                 });
             }
         );
     });
+
+    return self.db;
 };

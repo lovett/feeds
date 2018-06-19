@@ -30,11 +30,9 @@ module.exports = function(version) {
             return;
         }
 
-        fs.readFile(sqlPath, 'utf8', (err, data) => {
-            if (err) {
-                self.emit('log:error', `Failed to read ${sqlPath}: ${err.message}`);
-                return;
-            }
+        fs.readFile(sqlPath, 'utf8', (_, data) => {
+            // Skipping error check because it will be handled during
+            // exec call.
 
             self.db.exec(data, (err) => {
                 if (err) {
