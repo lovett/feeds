@@ -15,8 +15,8 @@ outdated: dummy
 #
 # Install NPM packages quietly.
 #
-packages: export NPM_CONFIG_PROGRESS = false
-packages:
+setup: export NPM_CONFIG_PROGRESS = false
+setup:
 	npm install
 
 #
