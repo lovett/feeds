@@ -66,7 +66,7 @@ module.exports = function (userId, feeds, callback) {
             self.emit('feed:watch:done', summary);
 
             if (callback) {
-                callback(summary);
+                callback(err, summary);
             }
         });
     });
