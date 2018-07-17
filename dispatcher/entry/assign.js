@@ -18,8 +18,8 @@ module.exports = function (entryId, feedId) {
             const isLast = (i === rows.length - 1);
 
             self.db.run(
-                'INSERT OR IGNORE INTO userEntries (userId, entryId) VALUES (?, ?)',
-                [row.userId, entryId],
+                'INSERT OR IGNORE INTO userEntries (feedId, userId, entryId) VALUES (?, ?, ?)',
+                [feedId, row.userId, entryId],
                 (err) => {
                     if (err) {
                         self.emit(
