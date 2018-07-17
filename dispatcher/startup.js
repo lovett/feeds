@@ -21,6 +21,13 @@ module.exports = function (database, callback) {
     self.db.serialize(() => {
         self.db.run('PRAGMA foreign_keys=1');
 
+        self.once('schema:done', function () {
+            self.emit('startup:done');
+            if (callback) {
+                callback(self.db, 0);
+            }
+        });
+
         self.db.get(
             'SELECT name FROM sqlite_master WHERE type="table" AND name="versions"',
             (_, row) => {
@@ -29,10 +36,6 @@ module.exports = function (database, callback) {
 
                 if (!row) {
                     self.emit('schema', 1);
-                    self.emit('startup:done');
-                    if (callback) {
-                        callback(self.db, 0);
-                    }
                     return;
                 }
 
@@ -46,11 +49,6 @@ module.exports = function (database, callback) {
 
                     const currentVersion = parseInt(row.schemaVersion, 10);
                     self.emit('schema', currentVersion + 1);
-
-                    self.emit('startup:done');
-                    if (callback) {
-                        callback(self.db, currentVersion);
-                    }
                 });
             }
         );
