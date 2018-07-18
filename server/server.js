@@ -49,19 +49,21 @@ const server = restify.createServer({
 
 server.use(restify.plugins.bodyParser());
 
-server.get('/', restify.plugins.serveStatic({
-    directory: './static',
-    default: 'index.html'
-}));
-
 server.get('/subscription', require('./routes/subscription-list'));
 server.post('/subscription', require('./routes/subscription-create'));
 server.put('/subscription', require('./routes/subscription-update'));
 server.del('/subscription', require('./routes/subscription-destroy'));
 
+server.get('/feed/:feedId', require('./routes/feed-entries'));
 server.post('/feed', require('./routes/feed-create'));
 server.put('/feed', require('./routes/feed-update'));
 server.del('/feed', require('./routes/feed-destroy'));
+
+server.get('*', restify.plugins.serveStatic({
+    directory: './server/static',
+    default: 'index.html',
+    maxAge: 1
+}));
 
 /**
  * Dispatcher
