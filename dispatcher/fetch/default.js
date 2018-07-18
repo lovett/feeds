@@ -37,13 +37,13 @@ module.exports = function (feedId, feedUrl) {
 
         if (item.comments) {
             entry.discussion.url = item.comments;
+        }
 
-            if (item['slash:comments']) {
-                entry.discussion.commentCount = parseInt(
-                    item['slash:comments'],
-                    10
-                );
-            }
+        if (item['slash:comments'] && item['slash:comments']['#']) {
+            entry.discussion.commentCount = parseInt(
+                item['slash:comments']['#'],
+                10
+            );
         }
 
         if (item['slash:section']) {
