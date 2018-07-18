@@ -46,6 +46,7 @@ emitter.on('feed:update', require('./feed/update'));
 emitter.on('feed:purge', require('./feed/purge'));
 emitter.on('feed:reschedule', require('./feed/reschedule'));
 emitter.on('feed:assess', require('./feed/assess'));
+emitter.on('feed:entries', require('./feed/entries'));
 
 // Fetching
 emitter.on('fetch', require('./fetch/index'));
@@ -63,6 +64,7 @@ emitter.on('entry:assign', require('./entry/assign'));
 // Discussions
 emitter.on('discussion:store', require('./discussion/store'));
 emitter.on('discussion:recount', require('./discussion/recount'));
+emitter.on('discussion:list', require('./discussion/list'));
 
 // Filtering
 emitter.on('filter:apply', require('./filter/apply'));
