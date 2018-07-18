@@ -82,6 +82,12 @@ CREATE TABLE IF NOT EXISTS userEntries (
   PRIMARY KEY (userId, entryId)
 );
 
+CREATE INDEX IF NOT EXISTS userEntries_userId
+ON userEntries (userId);
+
+CREATE INDEX IF NOT EXISTS userEntries_feedId
+ON userEntries (feedId);
+
 CREATE TABLE IF NOT EXISTS fetchStats
 (
   id INTEGER PRIMARY KEY,
