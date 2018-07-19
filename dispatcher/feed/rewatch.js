@@ -20,7 +20,7 @@ module.exports = function (userId, feeds, callback) {
 
                 emitter.db.run(
                     `UPDATE userFeeds SET ${field}=? WHERE userId=? AND feedId=?`,
-                    [feed[field], userId, feed.feedId],
+                    [feed[field], userId, feed.id],
                     function (err) {
                         updateCounter += this.changes;
                     }

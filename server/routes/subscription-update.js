@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
     }
 
     const feeds = req.body.filter((feed) => {
-        return feed.hasOwnProperty('userId') && feed.hasOwnProperty('feedId');
+        return feed.hasOwnProperty('id');
     });
 
     if (feeds.length === 0) {
