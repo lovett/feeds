@@ -1,5 +1,6 @@
 {
   "verbose": false,
+  "ignore": ["server/static"],
   "watch": ["server", "dispatcher"],
   "exec": "node server/server.js"
 }
