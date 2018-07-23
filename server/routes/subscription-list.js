@@ -9,7 +9,34 @@ module.exports = (req, res, next) => {
             return next(new errors.InternalServerError(err.message));
         }
 
-        res.send(result);
+        res.send({
+            meta: {
+                labels: {
+                    group: 'Subscriptions',
+                    edit: 'Edit Subscriptions',
+                    create: 'Add Subscription',
+                    cancelAdd: 'Cancel Add',
+                    cancelEdit: 'Cancel Edit',
+                    viewSite: 'View Site',
+                    empty: 'No Subscriptions'
+                },
+
+                template: {
+                    url: null,
+                    title: null,
+                    id: null
+                },
+
+                fields: [
+                    {name: 'url', title: 'URL', type: 'text', create: true, update: false, required: true},
+                    {name: 'title', title: 'Title', type: 'text', create: true, update: true, required: false},
+                    {name: 'id', title: null, type: 'hidden', create: false, update: false, required: false}
+                ]
+            },
+            data: {
+                feeds: result
+            }
+        });
         next();
     });
 };
