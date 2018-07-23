@@ -101,7 +101,8 @@ const SubscriptionList = {
         node = m('p', m('a', {
             href: '#',
             hidden: SubscriptionViewModel.adding,
-            onclick: () => {
+            onclick: (e) => {
+                e.preventDefault();
                 SubscriptionViewModel.adding = true;
             }
         }, Subscription.getLabel('create')));
@@ -111,7 +112,8 @@ const SubscriptionList = {
         node = m('p', m('a', {
             href: '#',
             hidden: !SubscriptionViewModel.adding,
-            onclick: () => {
+            onclick: (e) => {
+                e.preventDefault();
                 SubscriptionViewModel.adding = false;
             }
         }, Subscription.getLabel('cancelAdd')));
@@ -129,7 +131,8 @@ const SubscriptionList = {
             node = m('p', m('a', {
                 href: '#',
                 hidden: SubscriptionViewModel.editing,
-                onclick: () => {
+                onclick: (e) => {
+                    e.preventDefault();
                     SubscriptionViewModel.editing = true;
                 }
             }, Subscription.getLabel('edit')));
@@ -139,7 +142,8 @@ const SubscriptionList = {
             node = m('p', m('a', {
                 href: '#',
                 hidden: !SubscriptionViewModel.editing,
-                onclick: () => {
+                onclick: (e) => {
+                    e.preventDefault();
                     SubscriptionViewModel.editing = false;
                 }
             }, Subscription.getLabel('cancelEdit')));
@@ -195,16 +199,29 @@ const SubscriptionListItem = {
     }
 };
 
+
+const EntryViewModel = {
+    entryList: []
+};
+
 const Entries = {
-    list: [],
+    labels: [],
+
+    getLabel: function (key) {
+        return Entries.labels[key];
+    },
 
     load: (feedId) => {
         return m.request({
             method: 'GET',
             url: '/feed/' + feedId,
             withCredentials: true
-        }).then((data) => {
-            Entries.list = data;
+        }).then((res) => {
+            const data = res.data;
+            const meta = res.meta;
+
+            EntryViewModel.entryList = data.entries;
+            this.labels = meta.labels;
         });
     }
 };
@@ -215,9 +232,17 @@ const EntryList = {
     },
 
     view: function (vnode) {
-        return m('ul#entry-list', Entries.list.map(function (entry) {
+        let nodes = [];
+
+        let node = m('header', Entries.getLabel('group'));
+        nodes.push(node);
+
+        node = m('ul#entry-list', EntryViewModel.entryList.map(function (entry) {
             return m(EntryListItem, entry);
         }));
+        nodes.push(node);
+
+        return nodes;
     }
 };
 
@@ -229,10 +254,15 @@ const EntryListItem = {
             'rel': 'external noopener noreferrer'
         };
 
-        return m('li', [
-            m('a', linkAttrs, vnode.attrs.title),
-            m(DiscussionList, { discussions: vnode.attrs.discussions})
-        ]);
+        let children = [
+            m('a', linkAttrs, vnode.attrs.title)
+        ];
+
+        if (vnode.attrs.discussion) {
+            children.push(m(DiscussionList, { discussions: vnode.attrs.discussions}));
+        }
+
+        return m('li', children);
     }
 };
 
@@ -337,37 +367,24 @@ const FeedForm = {
     }
 };
 
-const FeedView = {
-    view: function (vnode) {
-        return [
-            m(SubscriptionList),
-            m(EntryList, vnode.attrs)
-        ];
-    }
-};
-
 const Layout = {
     view: function(vnode) {
-        return m('#app', [
-            vnode.children
-        ]);
+        let sections = [m('section', m(SubscriptionList))];
+        return m('#app', sections.concat(vnode.children));
     }
 };
 
 m.route(document.body, '/', {
     '/': {
         render: () => {
-            return m(Layout, [
-                m('section', m(SubscriptionList))
-            ]);
+            return m(Layout, []);
         }
     },
 
     '/feed/:key': {
         render: (vnode) => {
             return m(Layout, [
-                m('section', m(SubscriptionList)),
-                m('section', m(FeedView, vnode.attrs))
+                m('section', m(EntryList, vnode.attrs))
             ]);
         }
     }

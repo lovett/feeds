@@ -18,7 +18,7 @@ module.exports = (req, res, next) => {
                     cancelAdd: 'Cancel Add',
                     cancelEdit: 'Cancel Edit',
                     viewSite: 'View Site',
-                    empty: 'No Subscriptions'
+                    empty: 'No Subscriptions',
                 },
 
                 template: {

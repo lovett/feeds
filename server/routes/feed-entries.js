@@ -38,7 +38,22 @@ module.exports = (req, res, next) => {
                 return accumulator;
             }, []);
 
-            res.send(entriesWithDiscussions);
+
+            res.send({
+                meta: {
+                    labels: {
+                        group: 'Entries',
+                    },
+
+                    template: {},
+
+                    fields: [],
+                },
+
+                data: {
+                    entries: entriesWithDiscussions
+                }
+            });
             next();
         });
     });
