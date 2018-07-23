@@ -183,13 +183,13 @@ const SubscriptionListItem = {
         }
 
         return m('li', [
-            m('a', {
+            m('a.feed', {
                 href: `/feed/${sub.id}`,
                 title: sub.url,
                 oncreate: m.route.link
             }, sub.title),
-            m('br'),
-            m('a', {
+            m('span.entry-count', sub.entryCount),
+            m('a.site', {
                 href: sub.siteUrl,
                 hidden: !sub.siteUrl,
                 target: '_blank',
@@ -369,7 +369,7 @@ const FeedForm = {
 
 const Layout = {
     view: function(vnode) {
-        let sections = [m('section', m(SubscriptionList))];
+        let sections = [m('section#subscriptions', m(SubscriptionList))];
         return m('#app', sections.concat(vnode.children));
     }
 };
