@@ -1,27 +1,24 @@
 const SubscriptionViewModel = {
     adding: false,
     editing: false,
-    newFeed: {}
-};
-
-const Subscription = {
-    endpoint: '/subscription',
-
+    newFeed: {},
     feeds: [],
-
     labels: {},
-
     fields: [],
-
     template: {},
 
     getLabel: function (key) {
-        return Subscription.labels[key];
+        return this.labels[key];
     },
 
     hasFeeds: function () {
         return this.feeds.length > 0;
     },
+
+};
+
+const Subscription = {
+    endpoint: '/subscription',
 
     load: function () {
         return m.request({
@@ -31,10 +28,10 @@ const Subscription = {
         }).then((res) => {
             const data = res.data;
             const meta = res.meta;
-            this.feeds = data.feeds;
-            this.labels = meta.labels;
-            this.fields = meta.fields;
-            this.template = meta.template;
+            SubscriptionViewModel.feeds = data.feeds;
+            SubscriptionViewModel.labels = meta.labels;
+            SubscriptionViewModel.fields = meta.fields;
+            SubscriptionViewModel.template = meta.template;
             SubscriptionViewModel.newFeed = Object.assign({}, meta.template);
         });
     },
@@ -70,7 +67,7 @@ const Subscription = {
             data: [feed.id],
             withCredentials: true
         }).then((res) => {
-            this.feeds = this.feeds.reduce((accumulator, item) => {
+            SubscriptionViewModel.feeds = SubscriptionViewModel.feeds.reduce((accumulator, item) => {
                 if (item !== feed) {
                     accumulator.push(item);
                 }
@@ -94,7 +91,7 @@ const SubscriptionList = {
         let node = null, nodes = [];
 
         // heading
-        node = m('header', Subscription.getLabel('group'));
+        node = m('header', SubscriptionViewModel.getLabel('group'));
         nodes.push(node);
 
         // add link
@@ -105,7 +102,7 @@ const SubscriptionList = {
                 e.preventDefault();
                 SubscriptionViewModel.adding = true;
             }
-        }, Subscription.getLabel('create')));
+        }, SubscriptionViewModel.getLabel('create')));
         nodes.push(node);
 
         // cancel add
@@ -116,7 +113,7 @@ const SubscriptionList = {
                 e.preventDefault();
                 SubscriptionViewModel.adding = false;
             }
-        }, Subscription.getLabel('cancelAdd')));
+        }, SubscriptionViewModel.getLabel('cancelAdd')));
         nodes.push(node);
 
         // add form
@@ -127,7 +124,7 @@ const SubscriptionList = {
         nodes.push(node);
 
         // edit link
-        if (Subscription.hasFeeds()) {
+        if (SubscriptionViewModel.hasFeeds()) {
             node = m('p', m('a', {
                 href: '#',
                 hidden: SubscriptionViewModel.editing,
@@ -135,7 +132,7 @@ const SubscriptionList = {
                     e.preventDefault();
                     SubscriptionViewModel.editing = true;
                 }
-            }, Subscription.getLabel('edit')));
+            }, SubscriptionViewModel.getLabel('edit')));
             nodes.push(node);
 
             // cancel edit
@@ -146,16 +143,16 @@ const SubscriptionList = {
                     e.preventDefault();
                     SubscriptionViewModel.editing = false;
                 }
-            }, Subscription.getLabel('cancelEdit')));
+            }, SubscriptionViewModel.getLabel('cancelEdit')));
             nodes.push(node);
         } else {
-            node = m('p', Subscription.getLabel('empty'));
+            node = m('p', SubscriptionViewModel.getLabel('empty'));
             nodes.push(node);
         }
 
 
         // feed list
-        node = m('ul', Subscription.feeds.map((feed) => {
+        node = m('ul', SubscriptionViewModel.feeds.map((feed) => {
             return m('li', m(SubscriptionListItem, {
                 editing: SubscriptionViewModel.editing,
                 subscription: feed
@@ -194,33 +191,33 @@ const SubscriptionListItem = {
                 hidden: !sub.siteUrl,
                 target: '_blank',
                 rel: 'external noopener noreferrer'
-            }, Subscription.getLabel('viewSite'))
+            }, SubscriptionViewModel.getLabel('viewSite'))
         ]);
     }
 };
 
 
-const EntryViewModel = {
-    entryList: []
+const FeedViewModel = {
+    entries: [],
+    labels: [],
+    getLabel: function (key) {
+        return this.labels[key];
+    }
 };
 
-const Entries = {
-    labels: [],
+const Feed = {
+    endpoint: '/feed',
 
-    getLabel: function (key) {
-        return Entries.labels[key];
-    },
-
-    load: (feedId) => {
+    load: function (feedId) {
         return m.request({
             method: 'GET',
-            url: '/feed/' + feedId,
+            url: `${this.endpoint}/${feedId}`,
             withCredentials: true
         }).then((res) => {
             const data = res.data;
             const meta = res.meta;
 
-            EntryViewModel.entryList = data.entries;
+            FeedViewModel.entries = data.entries;
             this.labels = meta.labels;
         });
     }
@@ -228,16 +225,16 @@ const Entries = {
 
 const EntryList = {
     oninit: function (vnode) {
-        Entries.load(vnode.attrs.key);
+        Feed.load(vnode.attrs.key);
     },
 
     view: function (vnode) {
         let nodes = [];
 
-        let node = m('header', Entries.getLabel('group'));
+        let node = m('header', FeedViewModel.getLabel('group'));
         nodes.push(node);
 
-        node = m('ul#entry-list', EntryViewModel.entryList.map(function (entry) {
+        node = m('ul', FeedViewModel.entries.map(function (entry) {
             return m(EntryListItem, entry);
         }));
         nodes.push(node);
@@ -255,7 +252,7 @@ const EntryListItem = {
         };
 
         let children = [
-            m('a', linkAttrs, vnode.attrs.title)
+            m('a.entry', linkAttrs, vnode.attrs.title)
         ];
 
         if (vnode.attrs.discussion) {
@@ -303,7 +300,7 @@ const FormFieldGroup = {
 
 const FeedForm = {
     view: function (vnode) {
-        let fields = Subscription.fields.reduce((accumulator, field) => {
+        let fields = SubscriptionViewModel.fields.reduce((accumulator, field) => {
             if (SubscriptionViewModel.adding && field.create === false) {
                 return accumulator;
             }
@@ -384,7 +381,7 @@ m.route(document.body, '/', {
     '/feed/:key': {
         render: (vnode) => {
             return m(Layout, [
-                m('section', m(EntryList, vnode.attrs))
+                m('section#entries', m(EntryList, vnode.attrs))
             ]);
         }
     }
