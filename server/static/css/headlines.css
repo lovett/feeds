@@ -1,3 +1,101 @@
-BODY {
+a {
+    text-decoration: none;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     background-color: #ececec;
+    margin: 0;
+}
+
+button {
+    text-transform: capitalize;
+    padding: .5em;
+    font-size: .85em;
+    border-radius: .25em;
+    border: 1px solid black;
+}
+
+button:hover {
+    cursor: pointer;
+    background-color: green;
+    color: #fff;
+}
+
+input[type=text] {
+    width: 100%;
+    padding: .5em;
+    box-sizing: border-box;
+}
+
+label {
+    display: block;
+    text-transform: uppercase;
+    font-size: .85em;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+}
+
+#app {
+    display: grid;
+    grid-template-columns: 23% 2% 75%;
+}
+
+section > * {
+    padding: .5em 0 .5em .5em;
+}
+
+section > [hidden] {
+    padding: 0;
+}
+
+section > header {
+    background-color: #000;
+    color: white;
+}
+
+#subscriptions {
+    position: fixed;
+    grid-column-start: 1;
+    grid-column-end: 2;
+}
+
+#subscriptions .actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+#entries {
+    grid-column-start: 3;
+    grid-column-end: 3;
+}
+
+#entries li {
+    margin-bottom: 1em;
+}
+
+.feeds li {
+    display: flex;
+    justify-content: space-between;
+    flex-flow: row wrap;
+}
+
+.feeds .entry-count {
+    text-align: right;
+    width: 20%;
+}
+
+.feeds .active {
+    font-weight: bold;
+}
+
+.field {
+    margin-bottom: 1em;
+}
+
+.field:last-of-type {
+    margin-bottom: 0;
 }
