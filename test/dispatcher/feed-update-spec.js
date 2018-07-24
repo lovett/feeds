@@ -140,7 +140,7 @@ describe('feed:update', function() {
     it('handles transaction commit error', function (done) {
         const self = this;
         const feedId = 1;
-        const  feedMeta = {'url': 'http://example.com/feed.rss'};
+        const feedMeta = {'url': 'http://example.com/feed.rss'};
 
         self.db.run('DROP TABLE feeds', function (err) {
             self.emitter.emit(
