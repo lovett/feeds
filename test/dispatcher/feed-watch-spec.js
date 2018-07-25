@@ -43,7 +43,8 @@ describe('feed:watch', function() {
             'feed:watch',
             self.userId,
             [{url: self.feedUrl, title: 'test'}],
-            (summary) => {
+            (err, summary) => {
+                assert.strictEqual(err, null);
                 assert.strictEqual(summary.feedsAdded, 1);
                 assert.strictEqual(summary.subscriptionsCreated, 1);
 
@@ -77,9 +78,10 @@ describe('feed:watch', function() {
                     'feed:watch',
                     self.userId,
                     [{ url: self.feedUrl}],
-                    (result) => {
-                        assert.strictEqual(result.feedsAdded, 0);
-                        assert.strictEqual(result.subscriptionsCreated, 1);
+                    (err, summary) => {
+                        assert.strictEqual(err, null);
+                        assert.strictEqual(summary.feedsAdded, 0);
+                        assert.strictEqual(summary.subscriptionsCreated, 1);
 
                         self.db.get(
                             'SELECT COUNT(*) as count FROM feeds',
