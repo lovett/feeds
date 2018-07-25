@@ -104,6 +104,7 @@ const SubscriptionList = {
             onclick: (e) => {
                 e.preventDefault();
                 SubscriptionViewModel.adding = true;
+                SubscriptionViewModel.editing = false;
             }
         }, SubscriptionViewModel.getLabel('create'));
         actions.push(node);
@@ -127,6 +128,7 @@ const SubscriptionList = {
                 onclick: (e) => {
                     e.preventDefault();
                     SubscriptionViewModel.editing = true;
+                    SubscriptionViewModel.adding = false;
                 }
             }, SubscriptionViewModel.getLabel('edit'));
             actions.push(node);
