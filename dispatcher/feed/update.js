@@ -87,6 +87,12 @@ module.exports = function (feedId, meta, callback) {
                         );
 
                         self.db.run(
+                            'UPDATE userFeeds SET feedId=? WHERE feedId=?',
+                            [row.id, feedId],
+                            afterUpdate
+                        );
+
+                        self.db.run(
                             'DELETE FROM feeds WHERE id=?',
                             [feedId],
                             afterUpdate
