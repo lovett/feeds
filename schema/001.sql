@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS feeds
   created DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated DATETIME DEFAULT NULL,
   abandonned DATETIME DEFAULT NULL,
-  nextFetch DATETIME DEFAULT NULL
+  nextFetch DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS feed_url_unique
@@ -135,7 +135,7 @@ INSERT OR IGNORE INTO users (username, passwordHash) VALUES ('headlines', 'headl
 CREATE VIEW IF NOT EXISTS nextFeedToFetchView AS
 SELECT feeds.id, feeds.url
 FROM userFeeds JOIN feeds ON userFeeds.feedId=feeds.rowid
-WHERE (feeds.nextFetch < CURRENT_TIMESTAMP OR feeds.nextFetch IS NULL)
+WHERE (feeds.nextFetch <= CURRENT_TIMESTAMP)
 AND feeds.abandonned IS NULL
 ORDER BY feeds.nextFetch
 LIMIT 1;
