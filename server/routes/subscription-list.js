@@ -19,6 +19,11 @@ module.exports = (req, res, next) => {
                     cancelEdit: 'Cancel Edit',
                     viewSite: 'View Site',
                     empty: 'No Subscriptions',
+                    checked: 'Checked',
+                    day: ['day', 'days'],
+                    hour: ['hour', 'hours'],
+                    minute: ['minute', 'minutes'],
+                    ago: '$1 ago'
                 },
 
                 template: {

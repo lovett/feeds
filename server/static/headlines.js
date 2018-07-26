@@ -8,6 +8,7 @@ const SubscriptionViewModel = {
     labels: {},
     fields: [],
     template: {},
+    timestamps: {},
 
     getLabel: function (key) {
         return this.labels[key];
@@ -17,6 +18,19 @@ const SubscriptionViewModel = {
         return this.feeds.length > 0;
     },
 
+    /**
+     * Update the last-checked-on value of each feed.
+     *
+     * Caller is responsible for calling m.redraw().
+     */
+    refreshTimestamps: function () {
+        this.timestamps = this.feeds.reduce((accumulator, feed) => {
+            const labelTemplate = this.getLabel('ago');
+            accumulator[feed.id] = Util.reldate(feed.fetched, labelTemplate);
+            return accumulator;
+        }, {});
+    },
+
     poll: function () {
         const pollInterval = 3000;
 
@@ -24,6 +38,10 @@ const SubscriptionViewModel = {
 
         const callback = () => {
             const now = (new Date()).getTime();
+
+            // Timestamp refresh.
+            this.refreshTimestamps();
+            m.redraw();
 
             // Fetch if it's the first time.
             if (!Subscription.fetchedOn) {
@@ -235,6 +253,14 @@ const SubscriptionListItem = {
             return vnode.state.asForm(vnode);
         }
 
+        let checked = SubscriptionViewModel.timestamps[sub.id];
+
+        if (checked) {
+            checked = `${SubscriptionViewModel.getLabel('checked')} ${checked}`;
+        } else {
+            checked = '';
+        }
+
         return m('li', {
             class: (sub.id === SubscriptionViewModel.activeId ? 'active' : '')
         }, [
@@ -246,12 +272,54 @@ const SubscriptionListItem = {
             }, sub.title),
             m('span.entry-count', sub.entryCount),
             m('.meta', [
-                m('span.next-fetch', `Next fetch: ${sub.nextFetch}`)
+                m('span.fetched', `${checked}`)
             ])
         ]);
     }
 };
 
+/**
+ * Miscellaneous helpers and utility functions.
+ */
+const Util = {
+
+    /**
+     * Calculate a human-readable relative timestamp between the
+     * current time and a unix timestamp in the past.
+     */
+    reldate: function (seconds, labelTemplate) {
+        const delta = (new Date()).getTime()/1000 - seconds;
+
+        // A list of tuples. The first item in the tuple
+        // is a unit of time in seconds (day, minute hour, etc).
+        // The second item in the tuple is another tuple with the
+        // singular and plural label for the time unit.
+        const intervals = [
+            [60 * 60 * 24, SubscriptionViewModel.getLabel('day')],
+            [60 * 60, SubscriptionViewModel.getLabel('hour')],
+            [60, SubscriptionViewModel.getLabel('minute')]
+        ];
+
+        const values = intervals.reduce((accumulator, interval) => {
+            const value = Math.floor(accumulator[0] / interval[0]);
+            accumulator[0] = accumulator[0] % interval[0];
+
+            if (value === 0) {
+                return accumulator;
+            }
+
+            if (value === 1) {
+                accumulator[1].push(`${value} ${interval[1][0]}`);
+            } else {
+                accumulator[1].push(`${value} ${interval[1][1]}`);
+            }
+
+            return accumulator;
+        }, [delta, []]).pop();
+
+        return labelTemplate.replace('$1', values.join(', '));
+    }
+};
 
 const FeedViewModel = {
     entries: [],
