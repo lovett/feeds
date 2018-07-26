@@ -1,73 +1,51 @@
 'use strict';
 
 /**
- * Associate one or more feeds with a user, making it eligible for polling.
+ * Subscribe a user to one or more feeds.
  *
- * The feed will be added if it doesn't already exist.
+ * Subscription causes a feed to become eligible for polling.
+ *
+ * Polling is requested immediately after subscription creation to
+ * minimize delay of the initial fetch.
+ *
  */
-module.exports = function (userId, feeds, callback) {
+module.exports = function (userId, feedIds, callback) {
     const self = this;
 
-    let addCounter = 0;
-    let subscribeCounter = 0;
+    function done (err, ids) {
+        self.emit('feed:watch:done', err, ids);
+        if (callback) {
+            callback(err, ids);
+        }
+    }
+
+    if (feedIds.length === 0) {
+        done(new Error('no feed ids given'), []);
+        return;
+    }
 
     self.db.serialize(() => {
         self.db.run('BEGIN TRANSACTION');
 
-        feeds.forEach((feed) => {
+        feedIds.forEach((feedId) => {
             self.db.run(
-                'INSERT OR IGNORE INTO feeds (url) VALUES (?)',
-                [feed.url],
-                function (err) {
-                    if (err) {
-                        self.emit('log:error', `Failed insert into feeds table: ${err.message}`);
-                        return;
-                    }
-                    addCounter += this.changes;
-                }
-            );
-
-            self.db.run(
-                'INSERT OR IGNORE INTO userFeeds (userId, feedId) VALUES (?, (SELECT id FROM feeds WHERE url=?))',
-                [userId, feed.url],
-                function (err) {
+                'INSERT OR IGNORE INTO userFeeds (userId, feedId) VALUES (?, ?)',
+                [userId, feedId],
+                (err) => {
                     if (err) {
                         self.emit('log:error', `Failed to insert into userFeeds table: ${err.message}`);
                         return;
                     }
-                    subscribeCounter += this.changes;
                 }
             );
-
-            if (feed.title) {
-                self.db.run(
-                    'UPDATE userFeeds SET title=? WHERE userId=? AND feedId=(SELECT id FROM feeds WHERE url=?)',
-                    [feed.title, userId, feed.url],
-                    function (err) {
-                        if (err) {
-                            self.emit('log:error', `Failed to update feed title: ${err.message}`);
-                            return;
-                        }
-                    }
-                );
-            }
         });
 
         self.db.run('COMMIT', [], (err) => {
-            const summary = {
-                feedsAdded: addCounter,
-                subscriptionsCreated: subscribeCounter
-            };
-
-            if (addCounter > 0 && subscribeCounter > 0) {
-                self.emit('feed:poll');
+            if (feedIds.length > 0) {
+                self.emit('feed:poll', true);
             }
 
-            self.emit('feed:watch:done', summary);
-
-            if (callback) {
-                callback(err, summary);
-            }
+            done(err, feedIds);
         });
     });
 };

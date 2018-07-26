@@ -3,50 +3,80 @@
 const url = require('url');
 
 module.exports = function (feeds, callback) {
-    callback = (typeof callback === 'function') ? callback : function() {};
+    const self = this;
 
-    const emitter = this;
+    let feedIds = [];
 
-    let addCounter = 0;
-    let titleCounter = 0;
+    const done = (err, feeds) => {
+        self.emit('feed:add:done', err, feeds);
+        if (callback) {
+            callback(err, feeds);
+        }
+    };
 
-    emitter.db.serialize(() => {
-        emitter.db.run('BEGIN');
+    self.db.serialize(() => {
+        self.db.run('BEGIN');
 
         feeds.forEach((feed) => {
-            emitter.db.run(
+            self.db.run(
                 'INSERT OR IGNORE INTO feeds (url) VALUES (?)',
                 [feed.url],
-                function () {
-                    addCounter += this.changes;
+                (err) => {
+                    if (err) {
+                        done(err, []);
+                    }
                 }
             );
 
-            if (feed.title) {
-                emitter.db.run(
-                    'UPDATE feeds SET title=? WHERE id=(SELECT id FROM feeds WHERE url=?)',
-                    [feed.title, feed.url],
-                    function () {
-                        titleCounter += this.changes;
+            self.db.get(
+                'SELECT id FROM feeds WHERE url=?',
+                [feed.url],
+                (err, row) => {
+                    if (err) {
+                        done(err, []);
+                        return;
                     }
-                );
-            } else {
-                const paredUrl = url.parse(feed.url);
 
-                emitter.db.run(
-                    'UPDATE feeds SET title=? WHERE id=(SELECT id FROM feeds WHERE url=?) AND title IS NULL',
-                    [parsedUrl.hostname],
-                    function () {
-                        titleCounter += this.changes;
+                    feedIds.push(row.id);
+
+                    if (feed.title) {
+                        self.db.run(
+                            'UPDATE feeds SET title=? WHERE id=?',
+                            [feed.title, row.id],
+                            (err) => {
+                                if (err) {
+                                    done(err, []);
+                                }
+                            }
+                        );
                     }
-                );
-            }
+
+                    if (!feed.title) {
+                        const parsedUrl = url.parse(feed.url);
+
+                        self.db.run(
+                            'UPDATE feeds SET title=? WHERE id=? AND title IS NULL',
+                            [parsedUrl.hostname, row.id],
+                            (err) => {
+                                if (err) {
+                                    done(err, []);
+                                }
+                            }
+                        );
+                    }
+                }
+            );
         });
 
-        emitter.db.run('COMMIT', [], (err) => {
-            callback(err, {
-                feedsAdded: addCounter,
-                titlesSet: titleCounter
+        self.db.run('COMMIT', [], (err) => {
+            if (err) {
+                self.emit('log:error', `Failed to add feed: ${err.message}`);
+                done(err, []);
+                return;
+            }
+
+            self.emit('feed:get', feedIds, (err, feeds) => {
+                done(err, feeds);
             });
         });
     });
