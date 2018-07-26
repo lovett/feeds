@@ -1,6 +1,7 @@
 const SubscriptionViewModel = {
     adding: false,
     editing: false,
+    fetching: false,
     newFeed: {},
     activeId: 0,
     feeds: [],
@@ -16,15 +17,62 @@ const SubscriptionViewModel = {
         return this.feeds.length > 0;
     },
 
+    poll: function () {
+        const pollInterval = 3000;
+
+        const lag = 10000;
+
+        const callback = () => {
+            const now = (new Date()).getTime();
+
+            // Fetch if it's the first time.
+            if (!Subscription.fetchedOn) {
+                Subscription.load();
+                return;
+            }
+
+            // Don't fetch too aggressively.
+            if (now < Subscription.fetchedOn.getTime() + pollInterval) {
+                return;
+            }
+
+            // Fetch if a feed has passed its nextFetch date.
+            const stale = this.feeds.some((feed) => {
+                return now > (feed.nextFetch * 1000) + lag;
+            });
+
+            if (stale) {
+                Subscription.load();
+            }
+
+            // Fetch if a feed is newly-created, but has no entries.
+            const newWithoutEntries = this.feeds.some((feed) => {
+                const ageMs = Math.abs(now - feed.created * 1000);
+                return feed.entryCount === 0 && ageMs < lag;
+            });
+
+            if (newWithoutEntries) {
+                Subscription.load();
+                return;
+            }
+        };
+
+        callback();
+        setInterval(callback, pollInterval);
+    }
 };
 
 const Subscription = {
     endpoint: '/subscription',
 
+    fetchedOn: null,
+
     load: function () {
+        const now = new Date();
+        SubscriptionViewModel.fetching = true;
         return m.request({
             method: 'GET',
-            url: this.endpoint,
+            url: this.endpoint + '?' + now.getTime(),
             withCredentials: true,
         }).then((res) => {
             const data = res.data;
@@ -34,6 +82,8 @@ const Subscription = {
             SubscriptionViewModel.fields = meta.fields;
             SubscriptionViewModel.template = meta.template;
             SubscriptionViewModel.newFeed = Object.assign({}, meta.template);
+            SubscriptionViewModel.fetching = false;
+            this.fetchedOn = new Date();
         });
     },
 
@@ -194,7 +244,10 @@ const SubscriptionListItem = {
 
                 oncreate: m.route.link
             }, sub.title),
-            m('span.entry-count', sub.entryCount)
+            m('span.entry-count', sub.entryCount),
+            m('.meta', [
+                m('span.next-fetch', `Next fetch: ${sub.nextFetch}`)
+            ])
         ]);
     }
 };
@@ -387,3 +440,5 @@ m.route(document.body, '/', {
         }
     }
 });
+
+SubscriptionViewModel.poll();
