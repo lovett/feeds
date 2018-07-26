@@ -6,10 +6,13 @@ module.exports = function (userId, callback) {
     const emitter = this;
 
     emitter.db.all(
-        `SELECT coalesce(u.title, f.title) as title, f.id, f.url, f.siteUrl, count(ue.entryId) as entryCount
+        `SELECT coalesce(u.title, f.title) as title, f.id, f.url, f.siteUrl,
+         count(ue.entryId) as entryCount,
+         CAST(strftime('%s', f.created) AS INTEGER) as created,
+         CAST(strftime('%s', f.nextFetch) AS INTEGER) as nextFetch
          FROM userFeeds u JOIN feeds f ON u.feedId=f.id
-         LEFT JOIN userEntries ue ON u.feedId=ue.feedId
-         WHERE u.userId=? AND ue.read=0
+         LEFT JOIN userEntries ue ON u.feedId=ue.feedId AND ue.read=0
+         WHERE u.userId=?
          GROUP BY u.feedId
          `,
         [userId],
