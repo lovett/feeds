@@ -149,11 +149,9 @@ describe('fetch:reddit', function() {
             throw new Error('entry:store should not have been called');
         });
 
-        self.emitter.on('fetch:done', function (entry) {
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl, () => {
             done();
         });
-
-        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
     });
 
     it('skips stickied entries', function (done) {
@@ -173,11 +171,9 @@ describe('fetch:reddit', function() {
             throw new Error('entry:store should not have been called');
         });
 
-        self.emitter.on('fetch:done', function (entry) {
+        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl, () => {
             done();
         });
-
-        self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl);
     });
 
 });

@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const needle = require('needle');
 const FeedParser = require('feedparser');
 
-module.exports = function (feedId, feedUrl) {
+module.exports = function (feedId, feedUrl, callback) {
     const self = this;
 
     const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
@@ -120,5 +120,9 @@ module.exports = function (feedId, feedUrl) {
             fetchId,
             statusCode
         );
+
+        if (callback) {
+            callback();
+        }
     });
 };

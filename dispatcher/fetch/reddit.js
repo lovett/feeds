@@ -7,7 +7,7 @@ const url = require('url');
 /**
  * Fetch a Reddit feed
  */
-module.exports = function (feedId, feedUrl) {
+module.exports = function (feedId, feedUrl, callback) {
     const self = this;
 
     const baseUrl = 'https://www.reddit.com';
@@ -22,16 +22,16 @@ module.exports = function (feedId, feedUrl) {
 
         if (data.author && data.author.toLowerCase() === 'automoderator') {
             self.emit('log:debug', 'Skipping automoderator item');
-            if (isLast) {
-                self.emit('fetch:done');
+            if (isLast && callback) {
+                callback();
             }
             return;
         }
 
         if (data.stickied) {
             self.emit('log:debug', 'Skipping stickied item');
-            if (isLast) {
-                self.emit('fetch:done');
+            if (isLast && callback) {
+                callback();
             }
             return;
         }
@@ -58,8 +58,8 @@ module.exports = function (feedId, feedUrl) {
 
         self.emit('entry:store', entry);
 
-        if (isLast) {
-            self.emit('fetch:done');
+        if (isLast && callback) {
+            callback();
         }
     }
 

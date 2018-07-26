@@ -23,8 +23,6 @@ module.exports = function (feedId, fetchid, httpStatus) {
             if (httpStatus !== 200) {
                 self.emit('feed:assess', feedId);
             }
-
-            self.emit('stats:fetch:done');
         }
     );
 };
