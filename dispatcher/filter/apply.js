@@ -101,7 +101,6 @@ module.exports = function (entryId, userIds) {
             }
 
             if (rows.length == 0) {
-                self.emit('log:debug', 'No filters to apply');
                 return;
             }
 
