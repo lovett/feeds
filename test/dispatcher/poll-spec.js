@@ -20,7 +20,7 @@ describe('poll', function() {
         this.emitter.on('poll', poll);
         this.emitter.on('schema', schema);
 
-        this.emitter.on('schema:done', function () {
+        this.emitter.emit('startup', self.db, () => {
             self.db.run(
                 'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
                 function (err) {
@@ -32,7 +32,6 @@ describe('poll', function() {
                 }
             );
         });
-        self.emitter.emit('startup', self.db);
     });
 
     afterEach(function () {

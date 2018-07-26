@@ -19,7 +19,7 @@ describe('discussion:store', function() {
         this.emitter.on('schema', schema);
         this.entryUrl = 'http://example.com/entry.html';
 
-        this.emitter.once('schema:done', () => {
+        this.emitter.emit('startup', this.db, () => {
             self.db.serialize(function () {
                 self.db.run(
                     'INSERT INTO feeds (url) VALUES (?)',
@@ -32,8 +32,6 @@ describe('discussion:store', function() {
                 done();
             });
         });
-
-        this.emitter.emit('startup', this.db);
     });
 
     afterEach(function () {

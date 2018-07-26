@@ -19,7 +19,7 @@ describe('entry:store', function() {
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
 
-        this.emitter.on('schema:done', () => {
+        this.emitter.emit('startup', self.db, () => {
             self.db.run(
                 'INSERT INTO feeds (url) VALUES (?)',
                 ['http://example.com/feed.rss'],
@@ -29,7 +29,6 @@ describe('entry:store', function() {
                     }
 
                     self.feedId = this.lastID;
-
 
                     self.db.run(
                         'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
@@ -56,7 +55,6 @@ describe('entry:store', function() {
             );
         });
 
-        this.emitter.emit('startup', self.db);
     });
 
     afterEach(function () {

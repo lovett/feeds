@@ -20,7 +20,7 @@ describe('filter:remove', function() {
         this.userId = 1;
         this.filterId = 1;
 
-        this.emitter.on('schema:done', function () {
+        this.emitter.emit('startup', this.db, () => {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
                 if (err) {
                     throw err;
@@ -48,8 +48,6 @@ describe('filter:remove', function() {
                 });
             });
         });
-
-        self.emitter.emit('startup', self.db);
     });
 
     afterEach(function () {

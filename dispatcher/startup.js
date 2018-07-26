@@ -3,11 +3,11 @@
 const sqlite3 = require('sqlite3');
 
 /**
- * Connect to an SQLite database and declare a schema.
+ * Connect to an SQLite database and update the schema.
  *
- * The dispatcher uses a single shared database connection. Schema
- * definition and upgrade is handled elsewhere, but this is where
- * SQLite pragmas are set.
+ * There is a single database connection shared by all dispatcher
+ * modules. Although schema changes are performed elsehwere, this
+ * is where SQLite pragmas are set.
  */
 module.exports = function (database, callback) {
     const self = this;
@@ -21,13 +21,6 @@ module.exports = function (database, callback) {
     self.db.serialize(() => {
         self.db.run('PRAGMA foreign_keys=1');
 
-        self.once('schema:done', function () {
-            self.emit('startup:done');
-            if (callback) {
-                callback(self.db, 0);
-            }
-        });
-
         self.db.get(
             'SELECT name FROM sqlite_master WHERE type="table" AND name="versions"',
             (_, row) => {
@@ -35,24 +28,21 @@ module.exports = function (database, callback) {
                 // If sqlite_master can't be queried, something is deeply broken.
 
                 if (!row) {
-                    self.emit('schema', 1);
+                    self.emit('schema', 1, callback);
                     return;
                 }
 
                 self.db.get('SELECT schemaVersion FROM versions', (err, row) => {
                     if (err) {
                         self.emit('log:error', `Determination of schema version failed: ${err.message}`);
-                        self.emit('startup:done');
-                        callback(self.db, undefined);
+                        callback();
                         return;
                     }
 
                     const currentVersion = parseInt(row.schemaVersion, 10);
-                    self.emit('schema', currentVersion + 1);
+                    self.emit('schema', currentVersion + 1, callback);
                 });
             }
         );
     });
-
-    return self.db;
 };

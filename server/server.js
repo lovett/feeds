@@ -68,11 +68,9 @@ server.get('*', restify.plugins.serveStatic({
 /**
  * Dispatcher
  */
-dispatcher.once('startup:done', () => {
+dispatcher.emit('startup', config.DB, () => {
     server.listen(config.PORT, config.HOST, function() {
         dispatcher.emit('log:info', `listening on ${server.url}`);
         dispatcher.emit('feed:poll');
     });
 });
-
-dispatcher.emit('startup', config.DB);

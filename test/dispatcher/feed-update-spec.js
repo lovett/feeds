@@ -19,7 +19,7 @@ describe('feed:update', function() {
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
 
-        this.emitter.on('schema:done', () => {
+        this.emitter.emit('startup', self.db, () => {
             self.db.serialize(function () {
                 self.db.run(
                     'INSERT INTO feeds (url) VALUES (?)',
@@ -34,8 +34,6 @@ describe('feed:update', function() {
                 );
             });
         });
-
-        this.emitter.emit('startup', self.db);
     });
 
     afterEach(function () {

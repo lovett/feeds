@@ -14,7 +14,7 @@ const path = require('path');
  *
  * Versions are expected to increment by whole numbers.
 */
-module.exports = function(version) {
+module.exports = function(version, callback) {
     const self = this;
 
     const sqlPath = path.join(
@@ -26,22 +26,19 @@ module.exports = function(version) {
 
     fs.stat(sqlPath, (err) => {
         if (err) {
-            self.emit('schema:done');
+            // The schema is up-to-date.
+            callback();
             return;
         }
 
         fs.readFile(sqlPath, 'utf8', (_, data) => {
-            // Skipping error check because it will be handled during
-            // exec call.
-
             self.db.exec(data, (err) => {
                 if (err) {
                     self.emit('log:error', `Failed to load schema file: ${err.message}`);
                     return;
                 }
+                self.emit('schema', version + 1, callback);
             });
-
-            self.emit('schema', version + 1);
         });
     });
 };
