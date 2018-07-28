@@ -3,7 +3,7 @@ const SubscriptionViewModel = {
     editing: false,
     fetching: false,
     newFeed: {},
-    activeId: 0,
+    activeId: null,
     feeds: [],
     labels: {},
     fields: [],
@@ -25,7 +25,7 @@ const SubscriptionViewModel = {
      */
     refreshTimestamps: function () {
         this.timestamps = this.feeds.reduce((accumulator, feed) => {
-            const labelTemplate = this.getLabel('ago');
+            const labelTemplate = this.getLabel('checkedAgo');
             accumulator[feed.id] = Util.reldate(feed.fetched, labelTemplate);
             return accumulator;
         }, {});
@@ -165,6 +165,12 @@ const SubscriptionList = {
 
         let actions = [];
 
+        node = m('a.overview', {
+            href: '/',
+            oncreate: m.route.link,
+        }, SubscriptionViewModel.getLabel('overview'));
+        actions.push(node);
+
         // add link
         node = m('a.add', {
             href: '#',
@@ -255,11 +261,7 @@ const SubscriptionListItem = {
 
         let checked = SubscriptionViewModel.timestamps[sub.id];
 
-        if (checked) {
-            checked = `${SubscriptionViewModel.getLabel('checked')} ${checked}`;
-        } else {
-            checked = '';
-        }
+        let next = Util.reldate(sub.nextFetch, SubscriptionViewModel.getLabel('checkedNext'));
 
         return m('li', {
             class: (sub.id === SubscriptionViewModel.activeId ? 'active' : '')
@@ -272,7 +274,8 @@ const SubscriptionListItem = {
             }, sub.title),
             m('span.entry-count', sub.entryCount),
             m('.meta', [
-                m('span.fetched', `${checked}`)
+                m('p.fetched', checked),
+                m('p.next', next)
             ])
         ]);
     }
@@ -288,7 +291,7 @@ const Util = {
      * current time and a unix timestamp in the past.
      */
     reldate: function (seconds, labelTemplate) {
-        const delta = (new Date()).getTime()/1000 - seconds;
+        const delta = Math.abs((new Date()).getTime()/1000 - seconds);
 
         // A list of tuples. The first item in the tuple
         // is a unit of time in seconds (day, minute hour, etc).
@@ -495,7 +498,10 @@ const Layout = {
 m.route(document.body, '/', {
     '/': {
         render: () => {
-            return m(Layout, []);
+            SubscriptionViewModel.activeId = null;
+            return m(Layout, [
+                m('section#overview')
+            ]);
         }
     },
 

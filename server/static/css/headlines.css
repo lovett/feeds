@@ -1,25 +1,29 @@
 a {
+    color: #2176ff;
     text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    background-color: #ececec;
+    background-color: #31393c;
     margin: 0;
+    color: #fff;
 }
 
 button {
     text-transform: capitalize;
     padding: .5em;
-    font-size: .85em;
-    border-radius: .25em;
-    border: 1px solid black;
+    background-color: #C7EFCF;
+    border: 0;
 }
 
 button:hover {
     cursor: pointer;
-    background-color: green;
-    color: #fff;
+    background-color: #A3C4AA;
 }
 
 input[type=text] {
@@ -30,8 +34,11 @@ input[type=text] {
 
 label {
     display: block;
-    text-transform: uppercase;
     font-size: .85em;
+}
+
+p {
+    margin: 0;
 }
 
 ul {
@@ -41,11 +48,11 @@ ul {
 
 #app {
     display: grid;
-    grid-template-columns: 23% 2% 75%;
+    grid-template-columns: 1fr 3fr;
 }
 
 section > * {
-    padding: .5em 0 .5em .5em;
+    padding: .5em .5em 0;
 }
 
 section > [hidden] {
@@ -53,43 +60,55 @@ section > [hidden] {
 }
 
 section > header {
-    background-color: #000;
-    color: white;
+    background-color: #31393c;
+    color: #fff;
 }
 
 #subscriptions {
-    position: fixed;
-    grid-column-start: 1;
-    grid-column-end: 2;
+    line-height: 1.5;
+}
+
+#subscriptions a {
+    color: inherit;
 }
 
 #subscriptions .actions {
+    font-size: .85em;
     display: flex;
     justify-content: space-between;
+    color: #33a1fD;
 }
 
 #entries {
-    grid-column-start: 3;
-    grid-column-end: 3;
+    padding: 1em;
+    background-color: #fff;
+    grid-column-start: 2;
 }
 
 #entries li {
     margin-bottom: 1em;
 }
 
+.feeds {
+    margin-top: 2em;
+}
+
 .feeds li {
     display: flex;
     justify-content: space-between;
     flex-flow: row wrap;
+    margin-left: -.5em;
+    margin-right: -.5em;
+    padding: 1em 0.5em;
 }
 
-.feeds .entry-count {
-    text-align: right;
-    width: 20%;
+.feeds .meta {
+    font-size: .75em;
+    width: 100%;
 }
 
 .feeds .active {
-    font-weight: bold;
+    background-color: #d90368;
 }
 
 .field {

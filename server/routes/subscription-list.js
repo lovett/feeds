@@ -13,17 +13,18 @@ module.exports = (req, res, next) => {
             meta: {
                 labels: {
                     group: 'Subscriptions',
-                    edit: 'Edit Subscriptions',
-                    create: 'Add Subscription',
-                    cancelAdd: 'Cancel Add',
-                    cancelEdit: 'Cancel Edit',
+                    edit: 'Edit',
+                    create: 'Add',
+                    cancelAdd: 'Cancel add',
+                    cancelEdit: 'Cancel edit',
                     viewSite: 'View Site',
                     empty: 'No Subscriptions',
-                    checked: 'Checked',
+                    checkedAgo: 'Checked $1 ago',
+                    checkedNext: 'Next check in $1',
                     day: ['day', 'days'],
                     hour: ['hour', 'hours'],
                     minute: ['minute', 'minutes'],
-                    ago: '$1 ago'
+                    overview: 'Overview'
                 },
 
                 template: {
