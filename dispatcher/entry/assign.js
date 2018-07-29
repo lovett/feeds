@@ -3,7 +3,7 @@
 /**
  * Associate an entry with users subscribed to the entry's feed.
  */
-module.exports = function (entryId, feedId) {
+module.exports = function (entryId, feedId, callback) {
     const self = this;
 
     self.db.all('SELECT userId from userFeeds WHERE feedId=?', [feedId], function (err, rows) {
@@ -32,7 +32,7 @@ module.exports = function (entryId, feedId) {
                     self.emit('filter:apply', entryId, row.userId);
 
                     if (isLast) {
-                        self.emit('entry:assign:done', entryId, feedId);
+                        callback(null, entryId, feedId);
                     }
                 }
             );

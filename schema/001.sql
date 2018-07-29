@@ -140,12 +140,6 @@ AND feeds.abandonned IS NULL
 ORDER BY feeds.nextFetch
 LIMIT 1;
 
-CREATE VIEW IF NOT EXISTS entryWithFiltersView AS
-SELECT e.id, e.fetchid, e.title, e.author, e.created, e.body, e.extras, f.value, f.weight
-FROM entries e
-JOIN feeds fd ON e.feedId=fd.id
-JOIN filters f ON (fd.id=f.feedId OR f.feedId IS NULL);
-
 CREATE TRIGGER IF NOT EXISTS fetchStats_cleanup
 AFTER INSERT ON fetchStats BEGIN
 DELETE FROM fetchStats WHERE created < datetime('now', '-90 day', 'utc');

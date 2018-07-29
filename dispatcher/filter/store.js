@@ -14,21 +14,11 @@ module.exports = function (userId, filter, callback) {
                         'log:error',
                         `Failed to update filter: ${err.message}`
                     );
-
-                    self.emit('filter:store:done', undefined);
-
-                    if (callback) {
-                        callback(undefined);
-                    }
-
+                    callback(err, null);
                     return;
                 }
 
-                self.emit('filter:store:done', filter);
-
-                if (callback) {
-                    callback(filter);
-                }
+                callback(null, filter);
             }
         );
 
@@ -45,22 +35,13 @@ module.exports = function (userId, filter, callback) {
                     `Failed to insert filter: ${err.message}`
                 );
 
-                self.emit('filter:store:done', undefined);
-
-                if (callback) {
-                    callback(undefined);
-                }
-
+                callback(err, null);
                 return;
             }
 
             filter.id = this.lastID;
 
-            self.emit('filter:store:done', filter);
-
-            if (callback) {
-                callback(filter);
-            }
+            callback(null, filter);
         }
     );
 };

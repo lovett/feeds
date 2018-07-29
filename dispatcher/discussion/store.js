@@ -3,19 +3,18 @@
 const normalize = require('../../util/normalize');
 const url = require('url');
 
-module.exports = function (entryId, discussion) {
+module.exports = function (entryId, discussion, callback) {
     const self = this;
 
     if (!discussion.label) {
-        self.emit('log:warning', 'Ignoring discussion with no label');
-        self.emit('discussion:store:done', null);
-        return;
+        const parsedUrl = url.parse(discussion.url);
+        discussion.label = parsedUrl.hostname;
     }
 
     const afterSave = function (err) {
         if (err) {
             self.emit('log:error', `Failed to save discussion: ${err.message}`);
-            self.emit('discussion:store:done', null);
+            callback(err);
             return;
         }
 
@@ -23,16 +22,16 @@ module.exports = function (entryId, discussion) {
 
         discussion.changes = this.changes;
 
-        self.emit('discussion:store:done', discussion);
+        callback(null, discussion);
     };
 
     self.db.get(
         'SELECT id FROM discussions WHERE entryId=? AND label=?',
         [entryId, discussion.label],
-        function (err, row) {
+        (err, row) => {
             if (err) {
                 self.emit('log:error', `Failed to select discussion for entry ${discussion.entryId}: ${err.message}`);
-                self.emit('discussion:store:done', null);
+                callback(err);
                 return;
             }
 

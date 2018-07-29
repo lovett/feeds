@@ -99,20 +99,20 @@ describe('feed:update', function() {
 
             self.emitter.emit('feed:update', 1, {
                 url: 'http://example.com/other-url'
-            });
+            }, () => {});
         });
     });
 
     it('rejects invalid feed id', function (done) {
         const self = this;
         const feedId = 'invalid';
-        const  feedMeta = {'url': 'http://example.com'};
+        const feedMeta = {'url': 'http://example.com'};
 
         self.emitter.emit(
             'feed:update',
             feedId,
             feedMeta,
-            (updateCount) => {
+            (err, feedId, updateCount) => {
                 assert.strictEqual(updateCount, 0);
                 done();
             }
@@ -128,7 +128,7 @@ describe('feed:update', function() {
             'feed:update',
             feedId,
             feedMeta,
-            (updateCount) => {
+            (err, feedId, updateCount) => {
                 assert.strictEqual(updateCount, 0);
                 done();
             }
@@ -141,15 +141,11 @@ describe('feed:update', function() {
         const feedMeta = {'url': 'http://example.com/feed.rss'};
 
         self.db.run('DROP TABLE feeds', function (err) {
-            self.emitter.emit(
-                'feed:update',
-                feedId,
-                feedMeta,
-                (updateCount) => {
-                    assert.strictEqual(updateCount, 0);
-                    done();
-                }
-            );
+            self.emitter.emit('feed:update', feedId, feedMeta, (err, feedId, updateCount) => {
+                assert(err);
+                assert.strictEqual(updateCount, 0);
+                done();
+            });
         });
     });
 

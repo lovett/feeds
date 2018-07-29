@@ -64,7 +64,7 @@ describe('poll', function() {
                             throw err;
                         }
 
-                        self.emitter.emit('poll', true);
+                        self.emitter.emit('poll', true, () => {});
                     }
                 );
             }
@@ -94,31 +94,25 @@ describe('poll', function() {
                         if (userFeedErr) {
                             throw userFeedErr;
                         }
-                        self.emitter.emit('poll', true);
+                        self.emitter.emit('poll', true, () => {});
                     }
                 );
             }
         );
     });
 
-    it('emits done event when nothing is fetchable', function (done) {
+    it('invokes callback when nothing is fetchable', function (done) {
         const self = this;
 
-        self.emitter.on('poll:done', function (feedId) {
-            assert.strictEqual(feedId, null);
+        self.emitter.emit('poll', true, (err, feedId) => {
+            assert.strictEqual(err, undefined);
+            assert.strictEqual(feedId, undefined);
             done();
         });
-
-        self.emitter.emit('poll', true);
     });
 
-    it('emits done event when a feed fetchable', function (done) {
+    it('invokes callback with feed id being fetched', function (done) {
         const self = this;
-
-        self.emitter.on('poll:done', function (args) {
-            assert.strictEqual(args, 1);
-            done();
-        });
 
         self.db.run(
             'INSERT INTO feeds (url) VALUES (?)',
@@ -136,7 +130,11 @@ describe('poll', function() {
                             throw err;
                         }
 
-                        self.emitter.emit('poll', true);
+                        self.emitter.emit('poll', true, (err, feedId) => {
+                            assert.strictEqual(err, null);
+                            assert.strictEqual(feedId, 1);
+                            done();
+                        });
                     }
                 );
             }
@@ -146,13 +144,12 @@ describe('poll', function() {
     it('handles error when querying for feed', function (done) {
         const self = this;
 
-        self.emitter.on('poll:done', function (feedId) {
-            assert.strictEqual(feedId, null);
-            done();
-        });
-
         self.db.run('DROP TABLE feeds', function () {
-            self.emitter.emit('poll', true);
+            self.emitter.emit('poll', true, (err, feedId) => {
+                assert(err);
+                assert.strictEqual(feedId, undefined);
+                done();
+            });
         });
     });
 

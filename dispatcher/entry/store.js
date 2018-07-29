@@ -3,11 +3,13 @@
 const entities = require('entities');
 const normalize = require('../../util/normalize');
 
-module.exports = function (entry) {
+module.exports = function (entry, callback) {
     const self = this;
 
     if (!entry.url) {
-        self.emit('log:warn', `Cannot store entry from ${entry.feedUrl} because it has no url`);
+        const err = new Error(`Cannot store entry from ${entry.feedUrl} because it has no url`);
+        self.emit('log:warn', err.message);
+        callback(err);
         return;
     }
 
@@ -34,68 +36,65 @@ module.exports = function (entry) {
         entry.created = new Date();
     }
 
-    function done(value) {
-        self.emit('entry:store:done', value);
-    }
-
-    function afterStore(err) {
-
-        if (err) {
-            self.emit('log:error', `Failed to insert entry: ${err.message}`);
-            done(null);
-            return;
-        }
-
-        entry.changes = this.changes;
-
-        if (this.lastID) {
-            entry.id = this.lastID;
-            self.emit('entry:assign', this.lastID, entry.feedId);
-            self.emit('discussion:store', this.lastID, entry.discussion);
-        }
-
-        done(entry);
-    }
-
     self.db.get('SELECT id, title FROM entries WHERE url=?', [entry.url], function (err, row) {
         if (err) {
             self.emit('log:error', `Failed to select from entries table: ${err.message}`);
-            done(null);
+            callback(err);
             return;
         }
 
-        if (row) {
-            if (row.title !== entry.title) {
-                self.db.run('UPDATE entries SET title=? WHERE id=?', [entry.title, row.id], function (err) {
+        // New entry.
+        if (!row) {
+            self.db.run(
+                `INSERT INTO entries (feedId, fetchid, url, author, guid, title, created, body, extras)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    entry.feedId,
+                    entry.fetchId,
+                    entry.url,
+                    entry.author,
+                    entry.guid,
+                    entry.title,
+                    entry.created,
+                    entry.body,
+                    entry.extras
+                ],
+                function (err) {
                     if (err) {
-                        self.emit('log:error', `Failed to update title for entry ${row.id}`);
-                        done(null);
+                        self.emit('log:error', `Failed to insert entry: ${err.message}`);
+                        callback(err);
                         return;
                     }
-                    self.emit('log:debug', `Updated title for ${entry.url}`);
-                    entry.title = row.title;
-                    done(entry);
-                });
-                return;
-            }
-            done(entry);
+
+                    entry.changes = this.changes;
+
+                    entry.id = this.lastID;
+                    self.emit('entry:assign', this.lastID, entry.feedId);
+                    self.emit('discussion:store', this.lastID, entry.discussion);
+                    callback(null, entry);
+                }
+            );
             return;
         }
 
-        self.db.run(
-            'INSERT INTO entries (feedId, fetchid, url, author, guid, title, created, body, extras) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-                entry.feedId,
-                entry.fetchId,
-                entry.url,
-                entry.author,
-                entry.guid,
-                entry.title,
-                entry.created,
-                entry.body,
-                entry.extras
-            ],
-            afterStore
-        );
+        // Existing entry, title change.
+        if (row.title !== entry.title) {
+            self.db.run(
+                'UPDATE entries SET title=? WHERE id=?',
+                [entry.title, row.id],
+                (err) => {
+                    if (err) {
+                        self.emit('log:error', `Failed to update title for entry ${row.id}`);
+                        callback(err);
+                        return;
+                    }
+                    callback(null, entry);
+                }
+            );
+            return;
+        }
+
+        // Existing entry, no change.
+        callback(null, entry);
     });
 };

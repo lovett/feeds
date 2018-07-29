@@ -58,25 +58,7 @@ describe('filter:remove', function() {
     it('deletes a filter', function (done) {
         const self = this;
 
-        self.emitter.on('filter:remove:done', function (filterId) {
-            assert.strictEqual(filterId, self.filterId);
-
-            self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
-                if (err) {
-                    throw err;
-                }
-                assert.strictEqual(row.count, 0);
-                done();
-            });
-        });
-
-        self.emitter.emit('filter:remove', self.filterId, self.userId);
-    });
-
-    it('deletes a filter - callback', function (done) {
-        const self = this;
-
-        self.emitter.emit('filter:remove', self.filterId, self.userId, (filterId) => {
+        self.emitter.emit('filter:remove', self.filterId, self.userId, (err, filterId) => {
             assert.strictEqual(filterId, self.filterId);
 
             self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
@@ -92,52 +74,23 @@ describe('filter:remove', function() {
     it('handles deletion failure', function (done) {
         const self = this;
 
-        self.emitter.on('filter:remove:done', function (filterId) {
-            assert.strictEqual(filterId, null);
-            done();
-        });
-
         self.db.exec('DROP TABLE filters', function (err) {
             if (err) {
                 throw err;
             }
 
-            self.emitter.emit('filter:remove', self.filterId, self.userId);
-        });
-    });
-
-    it('handles deletion failure - callback', function (done) {
-        const self = this;
-
-        self.db.exec('DROP TABLE filters', function (err) {
-            if (err) {
-                throw err;
-            }
-
-            self.emitter.emit('filter:remove', self.filterId, self.userId, (filterId) => {
-                assert.strictEqual(filterId, null);
+            self.emitter.emit('filter:remove', self.filterId, self.userId, (err, filterId) => {
+                assert.strictEqual(filterId, self.filterId);
                 done();
             });
         });
     });
 
-
     it('rejects an invalid id', function (done) {
         const self = this;
 
-        self.emitter.on('filter:remove:done', function (filterId) {
-            assert.strictEqual(filterId, null);
-            done();
-        });
-
-        self.emitter.emit('filter:remove', null, self.userId);
-    });
-
-    it('rejects an invalid id - callback', function (done) {
-        const self = this;
-
-        self.emitter.emit('filter:remove', null, self.userId, (filterId) => {
-            assert.strictEqual(filterId, null);
+        self.emitter.emit('filter:remove', null, self.userId, (err, filterId) => {
+            assert.strictEqual(filterId, undefined);
             done();
         });
     });

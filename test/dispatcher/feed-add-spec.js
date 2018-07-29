@@ -117,11 +117,6 @@ describe('feed:add', function() {
     it('handles insert failure', function (done) {
         const self = this;
 
-        self.emitter.on('feed:add:done', (err, feeds) => {
-            assert.strictEqual(feeds.length, [].length);
-            done();
-        });
-
         self.db.run('DROP TABLE feeds', [], (err) => {
             if (err) {
                 throw err;
@@ -129,7 +124,11 @@ describe('feed:add', function() {
 
             self.emitter.emit(
                 'feed:add',
-                [{url: self.feedUrl, title: 'test'}]
+                [{url: self.feedUrl, title: 'test'}],
+                (err) => {
+                    assert(err);
+                    done();
+                }
             );
         });
     });

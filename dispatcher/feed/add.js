@@ -7,23 +7,18 @@ module.exports = function (feeds, callback) {
 
     let feedIds = [];
 
-    const done = (err, feeds) => {
-        self.emit('feed:add:done', err, feeds);
-        if (callback) {
-            callback(err, feeds);
-        }
-    };
-
     self.db.serialize(() => {
         self.db.run('BEGIN');
 
-        feeds.forEach((feed) => {
+        for (let i = 0; i < feeds.length; i++) {
+            let feed = feeds[i];
+
             self.db.run(
                 'INSERT OR IGNORE INTO feeds (url) VALUES (?)',
                 [feed.url],
-                (err) => {
+                (err, row) => {
                     if (err) {
-                        done(err, []);
+                        return;
                     }
                 }
             );
@@ -33,7 +28,7 @@ module.exports = function (feeds, callback) {
                 [feed.url],
                 (err, row) => {
                     if (err) {
-                        done(err, []);
+                        callback(err);
                         return;
                     }
 
@@ -45,7 +40,7 @@ module.exports = function (feeds, callback) {
                             [feed.title, row.id],
                             (err) => {
                                 if (err) {
-                                    done(err, []);
+                                    callback(err);
                                 }
                             }
                         );
@@ -59,24 +54,24 @@ module.exports = function (feeds, callback) {
                             [parsedUrl.hostname, row.id],
                             (err) => {
                                 if (err) {
-                                    done(err, []);
+                                    callback(err);
                                 }
                             }
                         );
                     }
                 }
             );
-        });
+        };
 
         self.db.run('COMMIT', [], (err) => {
             if (err) {
                 self.emit('log:error', `Failed to add feed: ${err.message}`);
-                done(err, []);
+                callback(err);
                 return;
             }
 
             self.emit('feed:get', feedIds, (err, feeds) => {
-                done(err, feeds);
+                callback(err, feeds);
             });
         });
     });

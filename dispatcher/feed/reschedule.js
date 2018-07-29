@@ -21,10 +21,7 @@ module.exports = function (feedId, hours, callback) {
                 feedId = null;
             }
 
-            self.emit('feed:reschedule:done', feedId);
-            if (callback) {
-                callback(feedId);
-            }
+            callback(err, feedId);
         }
     );
 };

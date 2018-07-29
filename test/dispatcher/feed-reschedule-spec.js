@@ -45,35 +45,7 @@ describe('feed:reschedule', function() {
     it('schedules refetch for 1 hour by default', function (done) {
         const self = this;
 
-        self.emitter.on('feed:reschedule:done', (feedId) => {
-            assert.strictEqual(feedId, self.feedId);
-
-            self.db.get(
-                'SELECT nextFetch FROM feeds WHERE id=?',
-                [self.feedId],
-                (err, row) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    const nextFetch = new Date(row.nextFetch);
-
-                    const delta = (nextFetch - new Date())/1000/60;
-
-                    assert.ok(delta >= 1);
-                    done();
-                }
-            );
-
-        });
-
-        self.emitter.emit('feed:reschedule', this.feedId);
-    });
-
-    it('schedules refetch for 1 hour by default - callback', function (done) {
-        const self = this;
-
-        self.emitter.emit('feed:reschedule', this.feedId, null, (feedId) => {
+        self.emitter.emit('feed:reschedule', this.feedId, null, (err, feedId) => {
             assert.strictEqual(feedId, self.feedId);
 
             self.db.get(
@@ -96,7 +68,7 @@ describe('feed:reschedule', function() {
     it('allows interval to be specified', function (done) {
         const self = this;
 
-        self.emitter.emit('feed:reschedule', this.feedId, 5, (feedId) => {
+        self.emitter.emit('feed:reschedule', this.feedId, 5, (err, feedId) => {
             assert.strictEqual(feedId, self.feedId);
 
             self.db.get(
@@ -126,15 +98,10 @@ describe('feed:reschedule', function() {
                 throw err;
             }
 
-            self.emitter.emit(
-                'feed:reschedule',
-                this.feedId,
-                null,
-                (feedId) => {
-                    assert.strictEqual(feedId, null);
-                    done();
-                }
-            );
+            self.emitter.emit('feed:reschedule', this.feedId, null, (err, feedId) => {
+                assert.strictEqual(feedId, null);
+                done();
+            });
         });
     });
 });

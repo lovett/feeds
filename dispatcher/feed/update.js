@@ -22,14 +22,6 @@ module.exports = function (feedId, meta, callback) {
         }
     }
 
-    function finished() {
-        self.emit('feed:update:done', feedId);
-
-        if (callback) {
-            callback(updateCounter);
-        }
-    }
-
     self.db.serialize(() => {
         if (meta.title) {
             self.db.run(
@@ -56,55 +48,50 @@ module.exports = function (feedId, meta, callback) {
         }
 
         if (meta.url) {
-            self.db.get(
-                'SELECT id FROM feeds WHERE url=?',
-                [meta.url],
-                function (err, row) {
-                    if (err) {
-                        self.emit('log:error', `Failed to select feed by url: ${err.message}`);
-                        finished();
-                        return;
-                    }
-
-                    if (!row) {
-                        self.db.run(
-                            'UPDATE feeds SET url=? WHERE id=?',
-                            [meta.url, feedId],
-                            afterUpdate
-                        );
-                        finished();
-                    } else {
-                        self.db.run(
-                            'UPDATE entries SET feedId=? WHERE feedId=?',
-                            [row.id, feedId],
-                            afterUpdate
-                        );
-
-                        self.db.run(
-                            'UPDATE userEntries SET feedId=? WHERE feedId=?',
-                            [row.id, feedId],
-                            afterUpdate
-                        );
-
-                        self.db.run(
-                            'UPDATE userFeeds SET feedId=? WHERE feedId=?',
-                            [row.id, feedId],
-                            afterUpdate
-                        );
-
-                        self.db.run(
-                            'DELETE FROM feeds WHERE id=?',
-                            [feedId],
-                            afterUpdate
-                        );
-
-                        finished();
-                    }
+            self.db.get('SELECT id FROM feeds WHERE url=?', [meta.url], (err, row) => {
+                if (err) {
+                    self.emit('log:error', `Failed to select feed by url: ${err.message}`);
+                    callback(err, feedId, updateCounter);
+                    return;
                 }
-            );
+
+                if (!row) {
+                    self.db.run(
+                        'UPDATE feeds SET url=? WHERE id=?',
+                        [meta.url, feedId],
+                        afterUpdate
+                    );
+                    callback(null, feedId, updateCounter);
+                } else {
+                    self.db.run(
+                        'UPDATE entries SET feedId=? WHERE feedId=?',
+                        [row.id, feedId],
+                        afterUpdate
+                    );
+
+                    self.db.run(
+                        'UPDATE userEntries SET feedId=? WHERE feedId=?',
+                        [row.id, feedId],
+                        afterUpdate
+                    );
+
+                    self.db.run(
+                        'UPDATE userFeeds SET feedId=? WHERE feedId=?',
+                        [row.id, feedId],
+                        afterUpdate
+                    );
+
+                    self.db.run(
+                        'DELETE FROM feeds WHERE id=?',
+                        [feedId],
+                        afterUpdate
+                    );
+                    callback(null, feedId, updateCounter);
+                }
+            });
             return;
         }
 
-        finished();
+        callback(null, feedId, updateCounter);
     });
 };

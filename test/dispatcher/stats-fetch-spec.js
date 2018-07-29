@@ -1,32 +1,39 @@
+'use strict';
+
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
+const schema = require('../../dispatcher/schema');
 const statsFetch = require('../../dispatcher/stats/fetch.js');
 const assert = require('assert');
 const events = require('events');
 
-// Temporarily disabled
-xdescribe('history:add', function() {
-    'use strict';
+describe('stats:fetch', function() {
 
     beforeEach(function (done) {
-        var self = this;
+        const self = this;
+
         this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('startup', startup);
         this.emitter.on('stats:fetch', statsFetch);
-        this.emitter.on('startup:done', function () {
-            self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
-                if (err) {
-                    throw err;
-                }
+        this.emitter.on('schema', schema);
 
-                self.feedId = this.lastID;
-                done();
-            });
+        this.emitter.emit('startup', this.db, () => {
+            self.db.run(
+                'INSERT INTO feeds (url) VALUES (?)',
+                ['http://example.com/feed.rss'],
+                function (err) {
+                    if (err) {
+                        throw err;
+                    }
+
+                    self.feedId = this.lastID;
+                    done();
+                }
+            );
         });
-        this.emitter.emit('startup', this.db);
     });
 
     afterEach(function () {
@@ -34,53 +41,39 @@ xdescribe('history:add', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('adds a row to the history table', function (done) {
-        var self = this;
-
-        self.emitter.on('history:add:done', function (args) {
-            assert.strictEqual(args.changes, 1);
-            assert.strictEqual(args.id, 1);
-            assert.strictEqual(args.error, null);
-
-            self.db.get('SELECT COUNT(*) as count FROM history', function (dbErr, row) {
-                if (dbErr) {
-                    throw dbErr;
-                }
-                assert.strictEqual(row.count, 1);
-                done();
-            });
-        });
-
-        self.emitter.emit('history:add', self.db, {
-            type: 'fetch',
-            id: self.feedId,
-            fetchId: self.fetchId,
-            status: 200,
-            'itemCount': 10
+    it('adds a row to the stats table', function (done) {
+        const self = this;
+        self.emitter.emit('stats:fetch', self.feedId, self.fetchId, 200, (err, id) => {
+            assert.strictEqual(err, null);
+            assert.strictEqual(id, 1);
+            done();
         });
     });
 
     it('handles failure to add row', function (done) {
-        var self = this;
+        const self = this;
 
-        self.emitter.on('history:add:done', function (args) {
-            assert.strictEqual(args.changes, undefined);
-            assert.strictEqual(args.id, undefined);
-            assert(args.error);
-            done();
-        });
-
-        self.db.get('DROP TABLE history', function (err) {
+        self.db.get('DROP TABLE fetchStats', function (err) {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('history:add', self.db, {
-                type: 'fetch',
-                id: self.feedId,
-                fetchId: self.fetchId,
-                status: 200,
-                'itemCount': 10
+
+            self.emitter.emit('stats:fetch', self.feedId, self.fetchId, 200, (err, id) => {
+                assert(err);
+                assert.strictEqual(id, undefined);
+                done();
             });
         });
+    });
+
+    it('invokes feed:assess', function (done) {
+        const self = this;
+
+        self.emitter.on('feed:assess', (feedId) => {
+            assert.strictEqual(feedId, self.feedId);
+            done();
+        });
+
+        self.emitter.emit('stats:fetch', self.feedId, self.fetchId, 404, () => {});
     });
 });

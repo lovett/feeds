@@ -54,7 +54,6 @@ describe('entry:store', function() {
                 }
             );
         });
-
     });
 
     afterEach(function () {
@@ -77,7 +76,7 @@ describe('entry:store', function() {
             }
         };
 
-        self.emitter.on('entry:store:done', (savedEntry) => {
+        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
             assert.strictEqual(savedEntry.changes, 1);
             assert.strictEqual(savedEntry.id, 1);
             assert.strictEqual(savedEntry.author, 'Håkon');
@@ -91,8 +90,6 @@ describe('entry:store', function() {
                 done();
             });
         });
-
-        self.emitter.emit('entry:store', entry);
     });
 
     it('normalizes the url', function (done) {
@@ -105,7 +102,7 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.on('entry:store:done', function (savedEntry) {
+        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
             assert.strictEqual(savedEntry.changes, 1);
             assert.strictEqual(savedEntry.id, 1);
             assert(savedEntry.guid);
@@ -114,9 +111,6 @@ describe('entry:store', function() {
             assert.notStrictEqual(savedEntry.normalizedUrl, savedEntry.url);
             done();
         });
-
-        self.emitter.emit('entry:store', entry);
-
     });
 
     it('blocks duplicate urls', function (done) {
@@ -130,11 +124,11 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.once('entry:store:done', (savedEntry) => {
+        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
             assert.strictEqual(savedEntry.changes, 1);
             assert.strictEqual(savedEntry.id, 1);
 
-            self.emitter.once('entry:store:done', (savedEntry2) => {
+            self.emitter.emit('entry:store', entry, (err, savedEntry2) => {
                 assert.strictEqual(savedEntry2.changes, 0);
                 assert.strictEqual(savedEntry2.id, 1);
 
@@ -144,11 +138,7 @@ describe('entry:store', function() {
                     done();
                 });
             });
-
-            self.emitter.emit('entry:store', entry);
         });
-
-        self.emitter.emit('entry:store', entry);
     });
 
     it('requires entry url', function (done) {
@@ -158,9 +148,8 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.on('log:warn', function (message) {
-            assert(message);
-
+        self.emitter.emit('entry:store', entry, (err) => {
+            assert(err);
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 if (err) {
                     throw err;
@@ -169,8 +158,6 @@ describe('entry:store', function() {
                 done();
             });
         });
-
-        self.emitter.emit('entry:store', entry);
     });
 
     it('logs failure to select from entries table', function (done) {
@@ -183,17 +170,15 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.on('log:error', function (message) {
-            assert(message);
-            done();
-        });
-
         self.db.run('DROP TABLE entries', function (err) {
             if (err) {
                 throw err;
             }
 
-            self.emitter.emit('entry:store', entry);
+            self.emitter.emit('entry:store', entry, (err) => {
+                assert(err);
+                done();
+            });
         });
     });
 
@@ -205,8 +190,8 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.on('entry:store:done', function (savedEntry) {
-            assert.strictEqual(savedEntry, null);
+        self.emitter.emit('entry:store', entry, (err) => {
+            assert(err);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 if (err) {
@@ -216,8 +201,6 @@ describe('entry:store', function() {
                 done();
             });
         });
-
-        self.emitter.emit('entry:store', entry);
     });
 
     it('emits discussion event', function (done) {
@@ -237,7 +220,9 @@ describe('entry:store', function() {
             done();
         });
 
-        self.emitter.emit('entry:store', entry);
+        self.emitter.emit('entry:store', entry, (err) => {
+            assert.strictEqual(err, null);
+        });
     });
 
     it('parses non-numeric creation date', function (done) {
@@ -250,14 +235,6 @@ describe('entry:store', function() {
             {title: 'title5', url: 'http://example.com/entry5.html'}
         ];
 
-        self.emitter.on('entry:store:done', (savedEntry) => {
-            assert.strictEqual(savedEntry.changes, 1);
-            assert(savedEntry.created);
-            assert(new Date(savedEntry.created));
-            if (savedEntry.title === entries[entries.length - 1].title) {
-                done();
-            }
-        });
 
         for (let i=0; i < entries.length; i++) {
             let entry = entries[i];
@@ -265,36 +242,22 @@ describe('entry:store', function() {
 
             entry.feedId = self.feedId;
             entry.fetchId = self.fetchId;
-            self.emitter.emit('entry:store', entry);
+            self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+                assert.strictEqual(err, null);
+                assert.strictEqual(savedEntry.changes, 1);
+                assert(savedEntry.created);
+                assert(new Date(savedEntry.created));
+                if (savedEntry.title === entries[entries.length - 1].title) {
+                    done();
+                }
+            });
         };
-    });
-
-    it('handles failure to insert into userEntries table', function (done) {
-        const self = this;
-        const entry = {
-            title: 'the title',
-            createdUtc: new Date().getTime(),
-            url: 'http://example.com/entry1.html',
-            feedId: self.feedId,
-            fetchId: self.fetchId,
-            body: 'the body'
-        };
-
-        self.emitter.on('log:error', function (message) {
-            assert(message);
-            done();
-        });
-
-        self.db.exec('DROP TABLE userEntries', function () {
-            self.emitter.emit('entry:store', entry);
-            done();
-        });
     });
 
     it('updates the title field of an existing entry', function (done) {
         const self = this;
         const entry = {
-            title: 'the title',
+            title: 'original title',
             createdUtc: new Date().getTime(),
             url: 'http://example.com/entry1.html',
             feedId: self.feedId,
@@ -302,28 +265,24 @@ describe('entry:store', function() {
             body: 'the body'
         };
 
-        self.emitter.once('entry:store:done', (savedEntry) => {
+        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+            assert.strictEqual(err, null);
             assert.strictEqual(savedEntry.id, 1);
             assert.strictEqual(savedEntry.changes, 1);
+            assert.strictEqual(savedEntry.title, entry.title);
+
             savedEntry.title = 'updated title';
 
-            self.emitter.once('entry:store:done', (updatedEntry) => {
-                self.db.get('SELECT title FROM entries', function (err, row) {
-                    assert.strictEqual(row.title, savedEntry.title);
+            self.emitter.emit('entry:store', savedEntry, (err, updatedEntry) => {
+                assert.strictEqual(err, null);
+                assert.strictEqual(updatedEntry.title, entry.title);
+
+                self.db.get('SELECT title FROM entries WHERE id=?', [updatedEntry.id], (err, row) => {
+                    assert.strictEqual(err, null);
+                    assert.strictEqual(row.title, updatedEntry.title);
                     done();
                 });
             });
-
-            self.emitter.emit('entry:store', savedEntry);
-
-            self.db.get('SELECT COUNT(*) as count FROM entries', (err, row) => {
-                assert.strictEqual(err, null);
-                assert.strictEqual(row.count, 1);
-                done();
-            });
         });
-
-        self.emitter.emit('entry:store', entry);
     });
-
 });

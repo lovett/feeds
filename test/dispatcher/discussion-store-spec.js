@@ -48,18 +48,16 @@ describe('discussion:store', function() {
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.once('discussion:store:done', (savedDiscussion) => {
+        self.emitter.emit('discussion:store', entryId, discussion, (err, savedDiscussion) => {
+            assert.strictEqual(err, null);
             assert.strictEqual(savedDiscussion.changes, 1);
             assert.strictEqual(savedDiscussion.id, 1);
 
             self.db.get('SELECT COUNT(*) as count FROM discussions', function (err, row) {
-                assert.strictEqual(err, null);
                 assert.strictEqual(row.count, 1);
                 done();
             });
         });
-
-        self.emitter.emit('discussion:store', entryId, discussion);
     });
 
     it('requires the label field', function (done) {
@@ -70,12 +68,12 @@ describe('discussion:store', function() {
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.once('discussion:store:done', (savedDiscussion) => {
-            assert.strictEqual(savedDiscussion, null);
+
+        self.emitter.emit('discussion:store', entryId, discussion, (err, savedDiscussion) => {
+            assert.strictEqual(err, null);
+            assert.strictEqual(savedDiscussion.label, 'example.com');
             done();
         });
-
-        self.emitter.emit('discussion:store', entryId, discussion);
 
     });
 
@@ -88,13 +86,10 @@ describe('discussion:store', function() {
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.once('discussion:store:done', (savedDiscussion) => {
-            assert.strictEqual(savedDiscussion, null);
+        self.emitter.emit('discussion:store', entryId, discussion, (err, savedDiscussion) => {
+            assert.strictEqual(savedDiscussion, undefined);
             done();
         });
-
-        self.emitter.emit('discussion:store', entryId, discussion);
-
     });
 
 
@@ -107,13 +102,13 @@ describe('discussion:store', function() {
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.once('discussion:store:done', (savedDiscussion) => {
+        self.emitter.emit('discussion:store', entryId, discussion, (err, savedDiscussion) => {
             assert.strictEqual(savedDiscussion.changes, 1);
             assert.strictEqual(savedDiscussion.id, 1);
 
             savedDiscussion.commentCount = 100;
 
-            self.emitter.once('discussion:store:done', (savedDiscussion2) => {
+            self.emitter.emit('discussion:store', entryId, discussion, (err, savedDiscussion2) => {
                 assert.strictEqual(savedDiscussion2.changes, 1);
                 assert.strictEqual(savedDiscussion2.id, 1);
 
@@ -123,33 +118,26 @@ describe('discussion:store', function() {
                     done();
                 });
             });
-
-            self.emitter.emit('discussion:store', entryId, discussion);
         });
-
-        self.emitter.emit('discussion:store', entryId, discussion);
     });
 
     it('logs insertion failure', function (done) {
         const self = this;
-
+        const entryId = 1;
         const discussion = {
-            entryId: 1,
             tally: 1,
             label: 'test',
             url: 'http://example.com/discussion.html'
         };
 
-        self.emitter.once('log:error', function (message) {
-            assert(message);
-            done();
-        });
-
         self.db.run('DROP TABLE discussions', function (err) {
             if (err) {
                 throw err;
             }
-            self.emitter.emit('discussion:store', self.db, discussion);
+            self.emitter.emit('discussion:store', entryId, discussion, (err) => {
+                assert(err);
+                done();
+            });
         });
     });
 

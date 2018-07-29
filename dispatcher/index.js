@@ -6,9 +6,6 @@
 // events. The first segment of an event name is its group, and the
 // second is the action it is responsible for. Groups are just a means
 // of organization and not otherwise significant.
-//
-// When an event listener needs to signal completion of a task, it
-// will emit its own name appended with ':done'.
 
 const events = require('events');
 const emitter = new events.EventEmitter();

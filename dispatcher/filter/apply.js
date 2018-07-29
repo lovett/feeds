@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (entryId, userIds) {
+module.exports = function (entryId, userIds, callback) {
 
     const self = this;
 
@@ -40,7 +40,7 @@ module.exports = function (entryId, userIds) {
     };
 
 
-    function applyFilters(filters) {
+    function applyFilters(entry, filters) {
         var aliasKeys, filterValue, matchedFilters, userScore;
 
         aliasKeys = Object.keys(aliases);
@@ -61,27 +61,25 @@ module.exports = function (entryId, userIds) {
                 entryValue = aliases[field];
             } else {
                 self.emit('log:debug', 'Unrecognized field and no alias', filter);
+                callback();
                 return;
             }
 
             if (Object.keys(predicates).indexOf(predicate) === -1) {
                 self.emit('log:debug', 'Unrecognized predicate', filter);
+                callback();
                 return;
             }
 
             if (!filterValue) {
                 self.emit('log:debug', 'Filter has no value', filter);
+                callback();
                 return;
             }
 
             if (predicates[predicate](filterValue, entryValue)) {
                 userScore += filter.weight;
                 matchedFilters.push(filter.id);
-            } else {
-                self.emit('filter:apply:nope', {
-                    'filter': filter,
-                    'value': entryValue
-                });
             }
         });
 
@@ -92,15 +90,19 @@ module.exports = function (entryId, userIds) {
     };
 
     self.db.all(
-        'SELECT * FROM entryWithFiltersView WHERE id=?',
+        `SELECT e.id, e.fetchid, e.title, e.author, e.created, e.body, e.extras, f.value, f.weight
+         FROM entries e
+         JOIN filters f ON (e.feedId=f.feedId OR f.feedId IS NULL)
+         WHERE e.id=?`,
         [entryId],
         (err, rows) => {
             if (err) {
-                self.emit('log:error', `Failed to select from entry view: ${err.message}`);
+                callback(err);
                 return;
             }
 
             if (rows.length == 0) {
+                callback();
                 return;
             }
 
@@ -113,6 +115,7 @@ module.exports = function (entryId, userIds) {
                 };
 
                 acc.push(filter);
+                return acc;
             }, []);
 
             userIds.forEach(function (userId) {
@@ -120,28 +123,37 @@ module.exports = function (entryId, userIds) {
 
                 filterResult = applyFilters(entry, filters);
 
-                db.run(
+                self.db.run(
                     'UPDATE userEntries SET score=? WHERE userId=? AND entryId=?',
                     [filterResult.score, userId, entry.id],
                     (err) => {
                         if (err) {
                             self.emit('log:error', `Failed to update userEntries: ${err.message}`);
+                            callback(err);
                             return;
                         }
 
-                        filterResult.filters.forEach(function (filterId) {
-                            db.run(
-                                'INSERT OR IGNORE INTO userEntryFilters (userId, entryId, filterId) VALUES (?, ?, ?)',
-                                [userId, entry.id, filterId],
-                                (err) => {
-                                    if (err) {
-                                        self.emit(
-                                            'log:error',
-                                            `Failed to insert into userEntryFilters table: ${err.message}`
-                                        );
+                        self.db.serialize(() => {
+                            self.db.run('BEGIN');
+
+                            filterResult.filters.forEach(function (filterId) {
+                                self.db.run(
+                                    'INSERT OR IGNORE INTO userEntryFilters (userId, entryId, filterId) VALUES (?, ?, ?)',
+                                    [userId, entry.id, filterId],
+                                    (err) => {
+                                        if (err) {
+                                            self.emit(
+                                                'log:error',
+                                                `Failed to insert into userEntryFilters table: ${err.message}`
+                                            );
+                                        }
                                     }
-                                }
-                            );
+                                );
+                            });
+
+                            self.db.run('COMMIT', function (err) {
+                                callback(err);
+                            });
                         });
                     }
                 );

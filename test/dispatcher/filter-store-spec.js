@@ -54,19 +54,18 @@ describe('filter:store', function() {
             value: 'test'
         };
 
-        self.emitter.on('filter:store:done', (filter) => {
-            assert.strictEqual(filter.id, 1);
+        self.emitter.emit('filter:store', self.userId, filter, (err, filter) => {
+            assert.strictEqual(err, null);
 
             self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
                 if (err) {
                     throw err;
                 }
+
                 assert.strictEqual(row.count, 1);
                 done();
             });
-        });
-
-        self.emitter.emit('filter:store', self.userId, filter);
+       });
     });
 
     it('adds a global filter', function (done) {
@@ -75,8 +74,9 @@ describe('filter:store', function() {
             value: 'test'
         };
 
-        self.emitter.on('filter:store:done', function (filter) {
-            assert.strictEqual(filter.id, 1);
+
+        self.emitter.emit('filter:store', self.userId, filter, (err, filter) => {
+            assert.strictEqual(err, null);
 
             self.db.get('SELECT count(*) as count FROM filters', function (err, row) {
                 if (err) {
@@ -86,8 +86,6 @@ describe('filter:store', function() {
                 done();
             });
         });
-
-        self.emitter.emit('filter:store', self.userId, filter);
     });
 
     it('handles insertion failure', function (done) {
@@ -103,8 +101,8 @@ describe('filter:store', function() {
                 throw err;
             }
 
-            self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
-                assert.strictEqual(insertedFilter, undefined);
+            self.emitter.emit('filter:store', self.userId, filter, (err, insertedFilter) => {
+                assert.strictEqual(insertedFilter, null);
                 done();
             });
         });
@@ -119,10 +117,10 @@ describe('filter:store', function() {
         };
 
         self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
-            insertedFilter.value = 'newvalue';
+            filter.value = 'newvalue';
 
-            self.emitter.emit('filter:store', self.userId, insertedFilter, (updatedFilter) => {
-                assert.strictEqual(updatedFilter.value, insertedFilter.value);
+            self.emitter.emit('filter:store', self.userId, filter, (err) => {
+                assert.strictEqual(err, null);
                 done();
             });
         });
@@ -135,14 +133,16 @@ describe('filter:store', function() {
             value: 'test'
         };
 
-        self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
+        self.emitter.emit('filter:store', self.userId, filter, (err) => {
+            assert.strictEqual(err, null);
+
             self.db.run('DROP TABLE filters', function (err) {
                 if (err) {
                     throw err;
                 }
 
-                self.emitter.emit('filter:store', self.userId, insertedFilter, (updatedFilter) => {
-                    assert.strictEqual(updatedFilter, undefined);
+                self.emitter.emit('filter:store', self.userId, filter, (err) => {
+                    assert(err);
                     done();
                 });
             });

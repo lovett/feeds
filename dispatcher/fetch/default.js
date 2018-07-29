@@ -11,6 +11,8 @@ module.exports = function (feedId, feedUrl, callback) {
 
     let guids = [];
 
+    let parseError = null;
+
     function captureEntry(item) {
         let entry = {
             feedUrl: feedUrl,
@@ -55,12 +57,7 @@ module.exports = function (feedId, feedUrl, callback) {
 
     const parser = new FeedParser();
     parser.on('error', function (err) {
-        if (err) {
-            self.emit(
-                'log:error',
-                `Error parsing ${feedUrl}: ${err.message}`
-            );
-        }
+        parseError = err;
     });
 
     parser.on('meta', function (meta) {
@@ -95,11 +92,20 @@ module.exports = function (feedId, feedUrl, callback) {
     stream.pipe(parser);
 
     stream.on('done', function (err) {
+        if (parseError) {
+            // Status code zero is used to indicate parsing failure.
+            self.emit('stats:fetch', feedId, fetchId, 0);
+            callback(parseError, []);
+            return;
+        }
+
         if (err) {
             self.emit(
                 'log:error',
                 `Error fetching ${feedUrl}: ${err.message}`
             );
+            callback(err, []);
+            return;
         }
 
         if (guids) {
@@ -121,8 +127,6 @@ module.exports = function (feedId, feedUrl, callback) {
             statusCode
         );
 
-        if (callback) {
-            callback();
-        }
+        callback(null, guids);
     });
 };

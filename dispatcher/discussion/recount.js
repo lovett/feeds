@@ -3,7 +3,7 @@
 const needle = require('needle');
 const url = require('url');
 
-module.exports = function (feedUrl, guids) {
+module.exports = function (feedUrl, guids, callback) {
     const self = this;
 
     if (!guids) {
@@ -78,10 +78,10 @@ module.exports = function (feedUrl, guids) {
                     if (err) {
                         self.emit('log:error', err.message);
                     }
+
+                    callback();
                 });
             });
-
-            self.emit('discussion:recount:done');
         });
     }
 };

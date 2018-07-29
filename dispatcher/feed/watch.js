@@ -13,10 +13,7 @@ module.exports = function (userId, feedIds, callback) {
     const self = this;
 
     function done (err, ids) {
-        self.emit('feed:watch:done', err, ids);
-        if (callback) {
-            callback(err, ids);
-        }
+        callback(err, ids);
     }
 
     if (feedIds.length === 0) {

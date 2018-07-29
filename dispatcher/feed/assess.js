@@ -9,7 +9,7 @@
  * A feed is also abandonned if it has been successfully requested at
  * least three times but not produced any entries.
  */
-module.exports = function (feedId) {
+module.exports = function (feedId, callback) {
     const self = this;
     const threshold = 3;
 
@@ -54,7 +54,7 @@ module.exports = function (feedId) {
                     `Abandonning feed ${feedId} based on HTTP status`
                 );
                 abandonFeed();
-                self.emit('feed:assess:done');
+                callback();
                 return;
             }
 
@@ -76,7 +76,7 @@ module.exports = function (feedId) {
                             `Abandonning feed ${feedId} based on entry count`
                         );
                         abandonFeed();
-                        self.emit('feed:assess:done');
+                        callback();
                         return;
                     }
                 }

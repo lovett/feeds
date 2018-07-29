@@ -6,10 +6,7 @@ module.exports = function (feedIds, callback) {
     const self = this;
 
     const done = (err, feeds) => {
-        self.emit('feed:get:done', err, feeds);
-        if (callback) {
-            callback(err, feeds);
-        }
+        callback(err, feeds);
     };
 
     const placeholders = feedIds.map(_ => '?').join(',');
