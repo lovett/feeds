@@ -8,7 +8,7 @@ const timerMinutes = 10;
  *
  * Feeds are fetched one-at-a-time in order to spread the work out.
  */
-module.exports = function (once, callback) {
+module.exports = function (once = false, callback = () => {}) {
 
     const self = this;
 

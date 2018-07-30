@@ -2,7 +2,7 @@
 
 const url = require('url');
 
-module.exports = function (feedIds, callback) {
+module.exports = function (feedIds, callback = () => {}) {
     const self = this;
 
     const done = (err, feeds) => {

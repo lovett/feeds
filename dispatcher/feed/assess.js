@@ -9,7 +9,7 @@
  * A feed is also abandonned if it has been successfully requested at
  * least three times but not produced any entries.
  */
-module.exports = function (feedId, callback) {
+module.exports = function (feedId, callback = () => {}) {
     const self = this;
     const threshold = 3;
 

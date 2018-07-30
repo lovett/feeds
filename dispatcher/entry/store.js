@@ -3,7 +3,7 @@
 const entities = require('entities');
 const normalize = require('../../util/normalize');
 
-module.exports = function (entry, callback) {
+module.exports = function (entry, callback = () => {}) {
     const self = this;
 
     if (!entry.url) {

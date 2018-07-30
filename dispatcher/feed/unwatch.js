@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (userId, subscriptions, callback) {
+module.exports = function (userId, subscriptions, callback = () => {}) {
     callback = (typeof callback === 'function') ? callback : function() {};
 
     const emitter = this;

@@ -3,7 +3,7 @@
 /**
  * Associate an entry with users subscribed to the entry's feed.
  */
-module.exports = function (entryId, feedId, callback) {
+module.exports = function (entryId, feedId, callback = () => {}) {
     const self = this;
 
     self.db.all('SELECT userId from userFeeds WHERE feedId=?', [feedId], function (err, rows) {

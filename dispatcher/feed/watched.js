@@ -11,7 +11,7 @@
  * Timestamps are stored in the database as UTC strings but cast to
  * unix epoch integers for client-side convenience.
  */
-module.exports = function (userId, callback) {
+module.exports = function (userId, callback = () => {}) {
     callback = (typeof callback === 'function') ? callback : function() {};
 
     const self = this;

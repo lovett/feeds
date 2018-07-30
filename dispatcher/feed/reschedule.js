@@ -3,7 +3,7 @@
 /**
  * Advance a feed's nextFetch field by 1 hour.
  */
-module.exports = function (feedId, hours, callback) {
+module.exports = function (feedId, hours, callback = () => {}) {
     const self = this;
 
     hours = parseInt(hours, 10);

@@ -14,7 +14,7 @@ const path = require('path');
  *
  * Versions are expected to increment by whole numbers.
 */
-module.exports = function(version, callback) {
+module.exports = function(version, callback = () => {}) {
     const self = this;
 
     const sqlPath = path.join(

@@ -3,7 +3,7 @@
 const needle = require('needle');
 const url = require('url');
 
-module.exports = function (feedUrl, guids, callback) {
+module.exports = function (feedUrl, guids, callback = () => {}) {
     const self = this;
 
     if (!guids) {

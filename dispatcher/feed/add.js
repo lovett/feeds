@@ -2,7 +2,7 @@
 
 const url = require('url');
 
-module.exports = function (feeds, callback) {
+module.exports = function (feeds, callback = () => {}) {
     const self = this;
 
     let feedIds = [];

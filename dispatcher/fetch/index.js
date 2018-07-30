@@ -8,7 +8,7 @@ const url = require('url');
  * Some sites offer custom APIs that provide more information than
  * is available from the feed alone.
  */
-module.exports = function (feedId, feedUrl, callback) {
+module.exports = function (feedId, feedUrl, callback = () => {}) {
     const self = this;
     const host = url.parse(feedUrl).host;
 

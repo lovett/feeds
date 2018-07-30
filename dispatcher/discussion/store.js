@@ -3,7 +3,7 @@
 const normalize = require('../../util/normalize');
 const url = require('url');
 
-module.exports = function (entryId, discussion, callback) {
+module.exports = function (entryId, discussion, callback = () => {}) {
     const self = this;
 
     if (!discussion.label) {

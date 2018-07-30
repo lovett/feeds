@@ -9,7 +9,7 @@
  * minimize delay of the initial fetch.
  *
  */
-module.exports = function (userId, feedIds, callback) {
+module.exports = function (userId, feedIds, callback = () => {}) {
     const self = this;
 
     function done (err, ids) {

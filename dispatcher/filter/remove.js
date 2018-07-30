@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (filterId, userId, callback) {
+module.exports = function (filterId, userId, callback = () => {}) {
 
     const self = this;
 

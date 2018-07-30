@@ -6,7 +6,7 @@
  * Knowing this makes it possible to track a feed's liveliness over
  * time.
  */
-module.exports = function (feedId, fetchid, httpStatus, callback) {
+module.exports = function (feedId, fetchid, httpStatus, callback = () => {}) {
     var self = this;
 
     self.db.run(

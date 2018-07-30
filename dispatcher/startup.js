@@ -9,7 +9,7 @@ const sqlite3 = require('sqlite3');
  * modules. Although schema changes are performed elsehwere, this
  * is where SQLite pragmas are set.
  */
-module.exports = function (database, callback) {
+module.exports = function (database, callback = () => {}) {
     const self = this;
 
     if (database instanceof sqlite3.Database) {
