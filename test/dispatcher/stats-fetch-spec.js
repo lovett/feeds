@@ -6,11 +6,13 @@ const schema = require('../../dispatcher/schema');
 const statsFetch = require('../../dispatcher/stats/fetch.js');
 const assert = require('assert');
 const events = require('events');
+const path = require('path');
 
 describe('stats:fetch', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
 
         this.fetchId = 'fetch';
         this.db = new sqlite3.Database(':memory:');
@@ -20,7 +22,7 @@ describe('stats:fetch', function() {
         this.emitter.on('stats:fetch', statsFetch);
         this.emitter.on('schema', schema);
 
-        this.emitter.emit('startup', this.db, () => {
+        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
             self.db.run(
                 'INSERT INTO feeds (url) VALUES (?)',
                 ['http://example.com/feed.rss'],

@@ -6,11 +6,13 @@ const schema = require('../../dispatcher/schema');
 const poll = require('../../dispatcher/feed/poll');
 const assert = require('assert');
 const events = require('events');
+const path = require('path');
 
 describe('poll', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.entryUrl = 'http://example.com/entry.html';
@@ -20,7 +22,7 @@ describe('poll', function() {
         this.emitter.on('poll', poll);
         this.emitter.on('schema', schema);
 
-        this.emitter.emit('startup', self.db, () => {
+        this.emitter.emit('startup', self.db, this.schemaRoot, () => {
             self.db.run(
                 'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
                 function (err) {

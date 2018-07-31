@@ -21,7 +21,8 @@ const config = {
     'DB': path.join(path.dirname(process.argv[1]), '../', 'headlines.sqlite'),
     'HOST': '0.0.0.0',
     'PORT': 8081,
-    'LOG': 'headlines.log'
+    'LOG': 'headlines.log',
+    'SCHEMA_ROOT': path.join(path.dirname(process.argv[1]), '../', 'schema')
 };
 
 Object.keys(config).forEach((key, _) => {
@@ -68,7 +69,7 @@ server.get('*', restify.plugins.serveStatic({
 /**
  * Dispatcher
  */
-dispatcher.emit('startup', config.DB, () => {
+dispatcher.emit('startup', config.DB, config.SCHEMA_ROOT, () => {
     server.listen(config.PORT, config.HOST, function() {
         dispatcher.emit('log:info', `listening on ${server.url}`);
         dispatcher.emit('feed:poll');

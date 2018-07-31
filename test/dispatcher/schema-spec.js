@@ -6,16 +6,18 @@ const schema = require('../../dispatcher/schema');
 const assert = require('assert');
 const sinon = require('sinon');
 const events = require('events');
+const path = require('path');
 
 describe('schema', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
-        this.emitter.emit('startup', self.db, done);
+        this.emitter.emit('startup', self.db, this.schemaRoot, done);
     });
 
     afterEach(function () {
@@ -53,6 +55,20 @@ describe('schema', function() {
                     }
                 }
             );
+        });
+    });
+
+    it('returns on invalid schema definition', function (done) {
+        const self = this;
+
+        const fixtureRoot = path.join(__dirname, 'fixtures/invalid-schema');
+        const db = new sqlite3.Database(':memory:');
+        const emitter = new events.EventEmitter();
+        emitter.on('startup', startup);
+        emitter.on('schema', schema);
+        emitter.emit('startup', db, fixtureRoot, (err) => {
+            assert(err);
+            done();
         });
     });
 });

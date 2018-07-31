@@ -13,21 +13,19 @@ const path = require('path');
  * SQL files are kept in the schema folder at the project root.
  *
  * Versions are expected to increment by whole numbers.
-*/
-module.exports = function(version, callback = () => {}) {
+ */
+module.exports = function(schemaRoot, version, callback) {
     const self = this;
 
     const sqlPath = path.join(
-        __dirname,
-        '../',
-        'schema',
+        schemaRoot,
         `${version.toString().padStart(3, 0)}.sql`
     );
 
     fs.stat(sqlPath, (err) => {
         if (err) {
             // The schema is up-to-date.
-            callback();
+            callback(null);
             return;
         }
 
@@ -35,9 +33,10 @@ module.exports = function(version, callback = () => {}) {
             self.db.exec(data, (err) => {
                 if (err) {
                     self.emit('log:error', `Failed to load schema file: ${err.message}`);
+                    callback(err);
                     return;
                 }
-                self.emit('schema', version + 1, callback);
+                self.emit('schema', schemaRoot, version + 1, callback);
             });
         });
     });

@@ -6,6 +6,7 @@ const schema = require('../../dispatcher/schema');
 const assert = require('assert');
 const sinon = require('sinon');
 const events = require('events');
+const path = require('path');
 
 /**
  * Unlike other tests, this one uses two database configurations.
@@ -17,6 +18,7 @@ const events = require('events');
 describe('startup', function() {
 
     beforeEach(function () {
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.dbConfig = ':memory:';
         this.emitter = new events.EventEmitter();
@@ -38,7 +40,7 @@ describe('startup', function() {
     it('creates a database instance from a DSN string', function (done) {
         const self = this;
 
-        self.emitter.emit('startup', self.dbConfig, () => {
+        self.emitter.emit('startup', self.dbConfig, self.schemaRoot, () => {
             assert.ok(self.emitter.db instanceof sqlite3.Database);
             done();
         });
@@ -50,7 +52,7 @@ describe('startup', function() {
     it('sets foreign_keys pragma', function (done) {
         const self = this;
 
-        self.emitter.emit('startup', self.dbConfig, () => {
+        self.emitter.emit('startup', self.dbConfig, self.schemaRoot, () => {
             self.emitter.db.get('PRAGMA foreign_keys', (err, row) => {
                 if (err) {
                     throw err;
@@ -78,7 +80,7 @@ describe('startup', function() {
                     if (err) {
                         throw err;
                     }
-                    self.emitter.emit('startup', self.db, () => {
+                    self.emitter.emit('startup', self.db, self.schemaRoot, () => {
                         self.db.get(
                             'SELECT schemaVersion FROM versions',
                             (err, row) => {
@@ -98,11 +100,12 @@ describe('startup', function() {
      *
      * This is a contrived test for the sake of thoroughness.
      */
-    it('handles failure to determine version', function (done) { const self = this;
+    it('handles failure to determine version', function (done) {
+        const self = this;
 
         self.db.serialize(() => {
             self.db.run('CREATE TABLE versions (bogus INTEGER DEFAULT 1)', (err) => {
-                self.emitter.emit('startup', self.db, () => {
+                self.emitter.emit('startup', self.db, self.schemaRoot, () => {
                     self.db.get(
                         'SELECT count(*) as count FROM versions',
                         (err, row) => {

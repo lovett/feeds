@@ -9,7 +9,7 @@ const sqlite3 = require('sqlite3');
  * modules. Although schema changes are performed elsehwere, this
  * is where SQLite pragmas are set.
  */
-module.exports = function (database, callback = () => {}) {
+module.exports = function (database, schemaRoot, callback) {
     const self = this;
 
     if (database instanceof sqlite3.Database) {
@@ -28,7 +28,7 @@ module.exports = function (database, callback = () => {}) {
                 // If sqlite_master can't be queried, something is deeply broken.
 
                 if (!row) {
-                    self.emit('schema', 1, callback);
+                    self.emit('schema', schemaRoot, 1, callback);
                     return;
                 }
 
@@ -40,7 +40,7 @@ module.exports = function (database, callback = () => {}) {
                     }
 
                     const currentVersion = parseInt(row.schemaVersion, 10);
-                    self.emit('schema', currentVersion + 1, callback);
+                    self.emit('schema', schemaRoot, currentVersion + 1, callback);
                 });
             }
         );

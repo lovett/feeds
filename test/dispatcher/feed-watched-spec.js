@@ -6,11 +6,13 @@ const schema = require('../../dispatcher/schema');
 const watched = require('../../dispatcher/feed/watched');
 const assert = require('assert');
 const events = require('events');
+const path = require('path');
 
 describe('feed:watched', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
@@ -18,7 +20,7 @@ describe('feed:watched', function() {
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
         this.emitter.on('feed:watched', watched);
-        this.emitter.emit('startup', this.db, () => {
+        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
             self.db.serialize(() => {
                 self.db.run(
                     'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',

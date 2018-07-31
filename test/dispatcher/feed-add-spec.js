@@ -7,11 +7,13 @@ const add = require('../../dispatcher/feed/add');
 const get = require('../../dispatcher/feed/get');
 const assert = require('assert');
 const events = require('events');
+const path = require('path');
 
 describe('feed:add', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
@@ -20,7 +22,7 @@ describe('feed:add', function() {
         this.emitter.on('schema', schema);
         this.emitter.on('feed:add', add);
         this.emitter.on('feed:get', get);
-        this.emitter.emit('startup', this.db, () => done());
+        this.emitter.emit('startup', this.db, this.schemaRoot, () => done());
     });
 
     afterEach(function () {

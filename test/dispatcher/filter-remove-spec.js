@@ -6,11 +6,13 @@ const schema = require('../../dispatcher/schema');
 const filterRemove = require('../../dispatcher/filter/remove');
 const assert = require('assert');
 const events = require('events');
+const path = require('path');
 
 describe('filter:remove', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
@@ -20,7 +22,7 @@ describe('filter:remove', function() {
         this.userId = 1;
         this.filterId = 1;
 
-        this.emitter.emit('startup', this.db, () => {
+        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
             self.db.run('INSERT INTO feeds (url) VALUES (?)', ['http://example.com/feed.rss'], function (err) {
                 if (err) {
                     throw err;

@@ -6,11 +6,13 @@ const schema = require('../../dispatcher/schema');
 const discussionStore = require('../../dispatcher/discussion/store');
 const assert = require('assert');
 const events = require('events');
+const path = require('path');
 
 describe('discussion:store', function() {
 
     beforeEach(function (done) {
         const self = this;
+        this.schemaRoot = path.join(__dirname, '../../', 'schema');
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
@@ -19,7 +21,7 @@ describe('discussion:store', function() {
         this.emitter.on('schema', schema);
         this.entryUrl = 'http://example.com/entry.html';
 
-        this.emitter.emit('startup', this.db, () => {
+        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
             self.db.serialize(function () {
                 self.db.run(
                     'INSERT INTO feeds (url) VALUES (?)',
