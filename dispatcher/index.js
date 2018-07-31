@@ -11,6 +11,7 @@
  * The second segment is the action, and corresponds to a file name.
  *
  * @module dispatcher
+ * @listens fetch
  * @listens schema
  * @listens startup
  */
