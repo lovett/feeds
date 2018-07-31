@@ -1,7 +1,16 @@
+/** @module schema */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+
+/**
+ * Callback for the schema event.
+ *
+ * @callback schemaCallback
+ * @param {error} [err] - Database error.
+ *
+ */
 
 /**
  * Load SQL statements from an external file until the schema is
@@ -13,8 +22,14 @@ const path = require('path');
  * SQL files are kept in the schema folder at the project root.
  *
  * Versions are expected to increment by whole numbers.
+ *
+ * @param {String} schemaRoot - Filesystem path for directory containing versioned SQL files.
+ * @param {Number} version - The schema number to apply to the database.
+ * @param {schemaCallback} callback - A function to invoke on success or failure.
+ * @event schema
+ * @fires schema
  */
-module.exports = function(schemaRoot, version, callback) {
+module.exports = function (schemaRoot, version, callback) {
     const self = this;
 
     const sqlPath = path.join(

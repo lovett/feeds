@@ -40,7 +40,8 @@ describe('startup', function() {
     it('creates a database instance from a DSN string', function (done) {
         const self = this;
 
-        self.emitter.emit('startup', self.dbConfig, self.schemaRoot, () => {
+        self.emitter.emit('startup', self.dbConfig, self.schemaRoot, (err) => {
+            assert.strictEqual(null, err);
             assert.ok(self.emitter.db instanceof sqlite3.Database);
             done();
         });
@@ -52,7 +53,9 @@ describe('startup', function() {
     it('sets foreign_keys pragma', function (done) {
         const self = this;
 
-        self.emitter.emit('startup', self.dbConfig, self.schemaRoot, () => {
+        self.emitter.emit('startup', self.dbConfig, self.schemaRoot, (err) => {
+            assert.strictEqual(null, err);
+
             self.emitter.db.get('PRAGMA foreign_keys', (err, row) => {
                 if (err) {
                     throw err;
@@ -80,7 +83,8 @@ describe('startup', function() {
                     if (err) {
                         throw err;
                     }
-                    self.emitter.emit('startup', self.db, self.schemaRoot, () => {
+                    self.emitter.emit('startup', self.db, self.schemaRoot, (err) => {
+                        assert.strictEqual(null, err);
                         self.db.get(
                             'SELECT schemaVersion FROM versions',
                             (err, row) => {

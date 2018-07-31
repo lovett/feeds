@@ -49,3 +49,8 @@ coverage: dummy
 #
 lint: dummy
 	eslint dispatcher test Gruntfile.js
+
+#
+# Generate documentation.
+docs: dummy
+	jsdoc -c jsdoc.json dispatcher server

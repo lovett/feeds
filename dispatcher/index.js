@@ -1,11 +1,20 @@
+/**
+ * The dispatcher is an event emitter configured with faux-namespaced
+ * events. Its job is to perform server-side work related to feed
+ * management and ingestion, and to provide the results of that work
+ * to the UI.
+ *
+ * Event names usually have 2 segments. The first segment is the
+ * group, which serves as a means of organization and is not otherwise
+ * significant. Group names usually correspond to subdirectories.
+ *
+ * The second segment is the action, and corresponds to a file name.
+ *
+ * @module dispatcher
+ * @listens schema
+ * @listens startup
+ */
 'use strict';
-
-// Set up the dispatcher.
-//
-// The dispatcher is an event emitter configured with faux-namespaced
-// events. The first segment of an event name is its group, and the
-// second is the action it is responsible for. Groups are just a means
-// of organization and not otherwise significant.
 
 const events = require('events');
 const emitter = new events.EventEmitter();

@@ -1,13 +1,27 @@
+/** @module startup */
 'use strict';
 
 const sqlite3 = require('sqlite3');
 
 /**
+ * Callback for the startup event.
+ *
+ * @callback startupCallback
+ * @param {error} [err] - Database error.
+ */
+
+/**
  * Connect to an SQLite database and update the schema.
  *
- * There is a single database connection shared by all dispatcher
- * modules. Although schema changes are performed elsehwere, this
- * is where SQLite pragmas are set.
+ * Dispatcher modules share a single database connection. This is
+ * where that connection is opened (if not already open) and where
+ * SQLite pragmas are set.
+ *
+ * @param {string|sqlite3.Database} database - A database path or an already-opened handle.
+ * @param {string} schemaRoot - Filesystem path to the directory containing schema definitions.
+ * @param {startupCallback} callback - A function to invoke on success or failure.
+ * @event startup
+ * @fires schema
  */
 module.exports = function (database, schemaRoot, callback) {
     const self = this;
@@ -35,7 +49,7 @@ module.exports = function (database, schemaRoot, callback) {
                 self.db.get('SELECT schemaVersion FROM versions', (err, row) => {
                     if (err) {
                         self.emit('log:error', `Determination of schema version failed: ${err.message}`);
-                        callback();
+                        callback(err);
                         return;
                     }
 
