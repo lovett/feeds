@@ -1,46 +1,32 @@
+/** @module feed/unwatch */
 'use strict';
 
-module.exports = function (userId, subscriptions, callback = () => {}) {
-    callback = (typeof callback === 'function') ? callback : function() {};
+/**
+ * Callback for the feed-unwatch event.
+ *
+ * @callback feedUnwatchCallback
+ * @param {error} [err] - Database error.
+ *
+ */
 
-    const emitter = this;
-    let counter = 0;
+/**
+ * Disassociate a user from a feed.
+ *
+ * Only the userFeeds table is queried. Removals from userEntries table are
+ * handled by the userEntries_autodelete trigger.
+ *
+ * @param {Number} userId - The unique identifier of a user.
+ * @param {Number[]} feedIds - A list of feed unique identifiers.
+ * @event feed-unwatch
+ */
+module.exports = function (userId, feedIds, callback) {
+    const placeholders = feedIds.map(() => '?').join(',');
 
-    if (subscriptions.hasOwnProperty('urls') === false) {
-        subscriptions.urls = [];
-    }
-
-    if (subscriptions.hasOwnProperty('ids') === false) {
-        subscriptions.ids = [];
-    }
-
-    emitter.db.serialize(() => {
-        emitter.db.run('BEGIN');
-
-        subscriptions.urls.forEach((url) => {
-            emitter.db.run(
-                'DELETE FROM userFeeds WHERE userId=? AND feedId=(SELECT id FROM feeds WHERE url=?)',
-                [userId, url],
-                function () {
-                    counter += this.changes;
-                }
-            );
-        });
-
-        subscriptions.ids.forEach((id) => {
-            emitter.db.run(
-                'DELETE FROM userFeeds WHERE userId=? AND feedId=?',
-                [userId, id],
-                function () {
-                    counter += this.changes;
-                }
-            );
-        });
-
-        emitter.db.run('COMMIT', [], (err) => {
-            callback(err, {
-                unwatchCount: counter
-            });
-        });
-    });
+    this.db.all(
+        `DELETE FROM userFeeds WHERE userId=? AND feedId IN (${placeholders})`,
+        [].concat(userId, feedIds),
+        function (err, rows) {
+            callback(err);
+        }
+    );
 };

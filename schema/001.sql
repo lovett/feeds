@@ -152,4 +152,11 @@ BEGIN
 UPDATE feeds SET updated=datetime('now') WHERE rowid=NEW.rowid;
 END;
 
+CREATE TRIGGER IF NOT EXISTS userEntries_autodelete
+AFTER DELETE ON userFeeds
+FOR EACH ROW
+BEGIN
+DELETE FROM userEntries WHERE userId=OLD.userId AND feedId=OLD.feedId;
+END;
+
 INSERT INTO versions (schemaVersion) VALUES (1);
