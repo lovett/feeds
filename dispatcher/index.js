@@ -1,19 +1,22 @@
 /**
- * The dispatcher is an event emitter configured with faux-namespaced
- * events. Its job is to perform server-side work related to feed
- * management and ingestion, and to provide the results of that work
- * to the UI.
+ * The dispatcher is an event emitter. Its job is to perform
+ * server-side work related to feed management and ingestion, and to
+ * provide the results of that work to the UI.
  *
- * Event names usually have 2 segments. The first segment is the
- * group, which serves as a means of organization and is not otherwise
+ * Event names are either single words or multiple words delimted by
+ * dashes. The first word of a delimited name is the group, which
+ * serves as a means of organization and is not otherwise
  * significant. Group names usually correspond to subdirectories.
  *
- * The second segment is the action, and corresponds to a file name.
+ * The second segment of a delimited name is the action, and
+ * corresponds to a file name. Additional segments are used as needed
+ * but don't have filesystem mappings.
  *
  * @module dispatcher
  * @listens fetch
  * @listens schema
  * @listens startup
+ * @listens fetch-hackernews
  */
 'use strict';
 

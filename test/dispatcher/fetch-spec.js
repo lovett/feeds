@@ -35,7 +35,7 @@ describe('fetch', function() {
         const self = this;
         const url = 'http://news.ycombinator.com/feed.rss';
 
-        self.emitter.on('fetch:hackernews', function (feedId, feedUrl, callback) {
+        self.emitter.on('fetch-hackernews', function (feedId, feedUrl, callback) {
             callback();
             assert.strictEqual(feedId, self.feedId);
             assert.strictEqual(feedUrl, url);

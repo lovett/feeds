@@ -1,22 +1,20 @@
-var assert, events, fetchHn;
+'use strict';
 
-assert = require('assert');
-events = require('events');
-fetchHn = require('../../dispatcher/fetch/hackernews');
+const nock = require('nock');
+const assert = require('assert');
+const events = require('events');
+const fetchHackernews = require('../../dispatcher/fetch/hackernews');
 
-// Temporarily inactive pending refactoring.
-xdescribe('fetch:hn', function() {
-    'use strict';
-
+describe('fetch:hackernews', function() {
     beforeEach(function (done) {
+        const baseUrl = 'https://hacker-news.firebaseio.com';
         this.feedUrl = 'http://example.com/feed';
+        this.collectionMock = nock(baseUrl).get('/v0/topstories.json').query(true);
+        this.itemMock = nock(baseUrl).get(/\/v0\/item\/\d.json/).query(true);
+        this.secondItemMock = nock(baseUrl).get('/v0/item/2.json').query(true);
         this.feedId = 1;
-        this.fetchId = 'fetch';
-        this.hnTopStories.limitToFirst = function () {
-            return this;
-        };
         this.emitter = new events.EventEmitter();
-        this.emitter.on('fetch:hn', fetchHn);
+        this.emitter.on('fetch:hackernews', fetchHackernews);
         done();
     });
 
@@ -24,95 +22,119 @@ xdescribe('fetch:hn', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('triggers entry storage', function (done) {
-        var self, story;
+    it('triggers stat fetch on error', function (done) {
+        this.emitter.on('stats:fetch', (feedId, fetchId, statusCode) => {
+            assert.strictEqual(feedId, this.feedId);
+            assert.strictEqual(statusCode, 0);
+            done();
+        });
 
-        self = this;
+        this.collectionMock.replyWithError('fake error for testing');
 
-        story = {
-            id: 1,
-            kids: { 0: 1, 1: 2, 2: 3},
-            title: 'test',
-            by: 'author',
-            time: new Date().getTime(),
+        this.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl);
+    });
+
+    it('triggers stat fetch on non-200 response', function (done) {
+        const status = 999;
+
+        this.emitter.on('stats:fetch', (feedId, fetchId, statusCode) => {
+            assert.strictEqual(feedId, this.feedId);
+            assert.strictEqual(statusCode, status);
+            done();
+        });
+
+        this.collectionMock.reply(status, {});
+
+        this.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl);
+    });
+
+    it('triggers feed update on successful response', function (done) {
+        this.emitter.on('feed:update', (feedId, result) => {
+            assert(result.updated);
+            done();
+        });
+
+        this.collectionMock.reply(200, []);
+
+        this.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl);
+    });
+
+    it('abandons story retrieval on error', function (done) {
+        const self = this;
+
+        self.collectionMock.reply(200, [1]);
+        self.itemMock.replyWithError('fake error for item test');
+
+        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+            assert(err);
+            done();
+        });
+    });
+
+    it('abandons story retrieval on non-200 response', function (done) {
+        const self = this;
+
+        self.collectionMock.reply(200, [1]);
+        self.itemMock.reply(404, {});
+
+        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+            assert(err);
+            done();
+        });
+    });
+
+
+    it('triggers entry storage on successful request', function (done) {
+        const self = this;
+        let entryStoreCount = 0;
+
+        self.collectionMock.reply(200, [5, 6]);
+
+        self.itemMock.twice().reply(200, {
+            by: 'test author',
+            title: 'test title',
+            time: (new Date()).getTime(),
             url: 'http://example.com',
-            type: 'story',
             dead: false,
             score: 1,
-            text: 'the text'
-        };
+            type: 'story',
+            id: 1,
+            descendants: 12345
+        });
 
-        self.hnTopStories.set([1]);
-        self.hnFirebase.child('/item/1').set(story);
+        self.emitter.on('entry:store', (entry) => {
+            entryStoreCount++;
+            assert.strictEqual(entry.feedUrl, self.feedUrl);
+            assert.strictEqual(entry.feedId, self.feedId);
+            assert(entry.fetchId);
+            assert.strictEqual(entry.author, 'test author');
+            assert.strictEqual(entry.title, 'test title');
+            assert(entry.created);
+            assert.strictEqual(entry.url, 'http://example.com');
+            assert.strictEqual(entry.extras.dead, false);
+            assert.strictEqual(entry.extras.score, 1);
+            assert.strictEqual(entry.extras.keywords, 'story');
+            assert.strictEqual(entry.discussion.url, 'https://news.ycombinator.com/item?id=1');
+            assert.strictEqual(entry.discussion.label, 'news.ycombinator.com');
+            assert.strictEqual(entry.discussion.commentCount, 12345);
+        });
 
-        self.emitter.once('entry', function (args) {
-            assert.strictEqual(args.feedId, self.feedId);
-            assert.strictEqual(args.fetchId, self.fetchId);
-            assert.strictEqual(args.title, story.title);
-            assert.strictEqual(args.createdUtcSeconds, story.time);
-            assert.strictEqual(args.url, story.url);
-            assert.strictEqual(args.author, story.by);
-            assert.strictEqual(args.discussion.tally, story.kids.length);
-            assert.strictEqual(args.discussion.url, 'https://news.ycombinator.com/item?id=1');
-            assert.strictEqual(args.discussion.label, 'Hacker News');
-            assert.strictEqual(args.body, story.text);
-            assert.strictEqual(args.extras.score, story.score);
-            assert.strictEqual(args.extras.dead, story.dead);
+        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+            assert.ifError(err);
+            assert.strictEqual(entryStoreCount, 2);
             done();
         });
-
-
-        self.emitter.emit('fetch:hn', self.hnFirebase, {
-            id: self.feedId,
-            fetchId: self.fetchId,
-            url: self.feedUrl
-        });
-
-        self.hnFirebase.flush();
     });
 
-    it('handles empty snapshot for item', function (done) {
-        var self = this;
+    it('handles empty collection', function (done) {
+        const self = this;
 
-        self.hnTopStories.set([1]);
+        self.collectionMock.reply(200, []);
 
-        self.hnFirebase.child('/item/1').set(null);
-
-        self.emitter.once('log:trace', function (message) {
-            assert(message);
+        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+            assert.ifError(err);
             done();
         });
-
-        self.emitter.emit('fetch:hn', self.hnFirebase, {
-            feedId: self.feedId,
-            fetchId: self.fetchId,
-            url: self.feedUrl
-        });
-
-        self.hnFirebase.flush();
-    });
-
-    it('handles stories without comments', function (done) {
-        var self = this;
-
-        self.hnTopStories.set([1]);
-
-        self.hnFirebase.child('/item/1').set({
-            title: 'test'
-        });
-
-        self.emitter.once('entry', function (args) {
-            assert.strictEqual(args.discussion.tally, 0);
-            done();
-        });
-
-        self.emitter.emit('fetch:hn', self.hnFirebase, {
-            feedId: self.feedId,
-            fetchId: self.fetchId,
-            url: self.feedUrl
-        });
-
-        self.hnFirebase.flush();
     });
 
 });

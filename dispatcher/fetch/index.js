@@ -26,7 +26,7 @@ const url = require('url');
  * @param {fetchCallback} - A function to invoke on success or failure.
  * @event fetch
  * @fires fetch:reddit
- * @fires fetch:hackernews
+ * @fires fetch-hackernews
  * @fires fetch:default
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
@@ -39,7 +39,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     }
 
     if (host === 'news.ycombinator.com') {
-        delegate = 'fetch:hackernews';
+        delegate = 'fetch-hackernews';
     }
 
     this.emit(delegate, feedId, feedUrl, callback);
