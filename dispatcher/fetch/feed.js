@@ -55,7 +55,8 @@ function transformItem(feedId, feedUrl, fetchId, item) {
 /**
  * Fetch entries from RSS, Atom, or other standard syndication format.
  *
- * {@link https://github.com/danmactough/node-feedparser|FeedParser Library Homepage}
+ * Feed parsing is provided by the {@link https://github.com/danmactough/node-feedparser|FeedParser Library}.
+ *
  * @param {Number} feedId - Unique identifier of the feed to be fetched.
  * @param {String} feedUrl - URL of the feed to be fetched.
  * @param {fetchCallback} callback - A function to invoke on success or failure.

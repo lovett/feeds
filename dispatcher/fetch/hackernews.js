@@ -90,11 +90,9 @@ function transformStory(feedId, feedUrl, fetchId, story) {
 }
 
 /**
- * Fetch entries from Hacker News via its Firebase REST API.
+ * Fetch entries from Hacker News via its {@link https://github.com/HackerNews/API|Firebase Rest API}.
  *
  * The Firebase SDK is not used because it is a hassle.
- *
- * {@link https://github.com/HackerNews/API|API Documentation}
  *
  * @param {Number} feedId - Unique identifier of the feed to be fetched.
  * @param {String} feedUrl - URL of the feed to be fetched.
