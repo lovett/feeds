@@ -16,7 +16,7 @@
  * @listens fetch
  * @listens schema
  * @listens startup
- * @listens fetch-default
+ * @listens fetch-feed
  * @listens fetch-hackernews
  */
 'use strict';
@@ -62,7 +62,7 @@ emitter.on('feed:entries', require('./feed/entries'));
 
 // Fetching
 emitter.on('fetch', require('./fetch/index'));
-emitter.on('fetch-default', require('./fetch/default'));
+emitter.on('fetch-feed', require('./fetch/feed'));
 emitter.on('fetch-hackernews', require('./fetch/hackernews'));
 emitter.on('fetch:reddit', require('./fetch/reddit'));
 

@@ -1,4 +1,4 @@
-/** @module fetch/default */
+/** @module fetch/feed */
 'use strict';
 
 const crypto = require('crypto');
@@ -59,7 +59,7 @@ function transformItem(feedId, feedUrl, fetchId, item) {
  * @param {Number} feedId - Unique identifier of the feed to be fetched.
  * @param {String} feedUrl - URL of the feed to be fetched.
  * @param {fetchCallback} callback - A function to invoke on success or failure.
- * @event fetch-default
+ * @event fetch-feed
  * @fires stats:fetch
  * @fires feed:update
  */

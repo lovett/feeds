@@ -18,7 +18,7 @@ const url = require('url');
  * is available from the feed alone. Use site-specific handlers to
  * take advantage of this.
  *
- * The default handler is a catch-all for all other feed formats (RSS,
+ * The feed handler is a catch-all for all other feed formats (RSS,
  * Atom, etc).
  *
  * @param {Number} feedId - Unique identifier of the feed to be fetched.
@@ -27,12 +27,12 @@ const url = require('url');
  * @event fetch
  * @fires fetch:reddit
  * @fires fetch-hackernews
- * @fires fetch-default
+ * @fires fetch-feed
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
     const host = url.parse(feedUrl).host;
 
-    let delegate = 'fetch-default';
+    let delegate = 'fetch-feed';
 
     if (host.indexOf('reddit.com') > -1) {
         delegate = 'fetch:reddit';

@@ -4,9 +4,9 @@ const nock = require('nock');
 const assert = require('assert');
 const events = require('events');
 const path = require('path');
-const fetchDefault = require('../../dispatcher/fetch/default');
+const fetchDefault = require('../../dispatcher/fetch/feed');
 
-describe('fetch-default', function() {
+describe('fetch-feed', function() {
 
     beforeEach(function (done) {
         this.feedUrl = 'http://example.com/feed';
@@ -14,7 +14,7 @@ describe('fetch-default', function() {
         this.fetchId = 'fetch';
         this.requestMock = nock('http://example.com').get('/feed');
         this.emitter = new events.EventEmitter();
-        this.emitter.on('fetch-default', fetchDefault);
+        this.emitter.on('fetch-feed', fetchDefault);
         done();
     });
 
@@ -30,7 +30,7 @@ describe('fetch-default', function() {
         });
 
         this.requestMock.replyWithError('fake error for testing');
-        this.emitter.emit('fetch-default', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl);
     });
 
     it('triggers stat fetch on non-feed response', function (done) {
@@ -40,7 +40,7 @@ describe('fetch-default', function() {
             assert.strictEqual(statusCode, 1);
         });
 
-        this.emitter.emit('fetch-default', this.feedId, this.feedUrl, (err) => {
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
             assert(err);
             done();
         });
@@ -58,7 +58,7 @@ describe('fetch-default', function() {
             done();
         });
 
-        this.emitter.emit('fetch-default', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl);
     });
 
     it('skips items without guids', function (done) {
@@ -73,7 +73,7 @@ describe('fetch-default', function() {
             done();
         });
 
-        this.emitter.emit('fetch-default', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl);
     });
 
     it('triggers entry storage on successful request', function (done) {
@@ -95,7 +95,7 @@ describe('fetch-default', function() {
             storedEntries.push(entry);
         });
 
-        this.emitter.emit('fetch-default', this.feedId, this.feedUrl, (err) => {
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
             assert.ifError(err);
             assert.strictEqual(storedEntries.length, storedGuids.length);
 
@@ -127,7 +127,7 @@ describe('fetch-default', function() {
             storedEntries.push(entry);
         });
 
-        this.emitter.emit('fetch-default', this.feedId, this.feedUrl, (err) => {
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
             assert.ifError(err);
             assert.strictEqual(storedEntries.length, storedGuids.length);
 
