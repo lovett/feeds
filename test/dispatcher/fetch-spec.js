@@ -49,7 +49,7 @@ describe('fetch', function() {
         const self = this;
         const url = 'http://example.com/feed.rss';
 
-        self.emitter.on('fetch:default', function (feedId, feedUrl, callback) {
+        self.emitter.on('fetch-default', function (feedId, feedUrl, callback) {
             callback();
             assert.strictEqual(feedId, self.feedId);
             assert.strictEqual(feedUrl, url);
@@ -63,7 +63,7 @@ describe('fetch', function() {
         const self = this;
         const url = 'http://example.org/feed.rss';
 
-        self.emitter.on('fetch:default', function (feedId, feedUrl, callback) {
+        self.emitter.on('fetch-default', function (feedId, feedUrl, callback) {
             callback(new Error());
         });
 

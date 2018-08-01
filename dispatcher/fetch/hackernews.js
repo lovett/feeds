@@ -87,7 +87,6 @@ function transformStory(feedId, feedUrl, fetchId, story) {
         },
         body: story.text
     });
-
 }
 
 /**
@@ -121,6 +120,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         parse_response: true
     }, (err, res) => {
         if (err) {
+            // Status code zero is used to indicate fetch failure.
             this.emit('stats:fetch', feedId, fetchId, 0);
             callback(err);
             return;
@@ -128,7 +128,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
 
         if (res.statusCode !== 200) {
             this.emit('stats:fetch', feedId, fetchId, res.statusCode);
-            callback(new Error(`${baseUrl.hostname} responded with ${res.statusCode}`))
+            callback(new Error(`${baseUrl.hostname} responded with ${res.statusCode}`));
             return;
         }
 

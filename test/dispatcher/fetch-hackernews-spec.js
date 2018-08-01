@@ -5,7 +5,7 @@ const assert = require('assert');
 const events = require('events');
 const fetchHackernews = require('../../dispatcher/fetch/hackernews');
 
-describe('fetch:hackernews', function() {
+describe('fetch-hackernews', function() {
     beforeEach(function (done) {
         const baseUrl = 'https://hacker-news.firebaseio.com';
         this.feedUrl = 'http://example.com/feed';
@@ -14,7 +14,7 @@ describe('fetch:hackernews', function() {
         this.secondItemMock = nock(baseUrl).get('/v0/item/2.json').query(true);
         this.feedId = 1;
         this.emitter = new events.EventEmitter();
-        this.emitter.on('fetch:hackernews', fetchHackernews);
+        this.emitter.on('fetch-hackernews', fetchHackernews);
         done();
     });
 
@@ -31,7 +31,7 @@ describe('fetch:hackernews', function() {
 
         this.collectionMock.replyWithError('fake error for testing');
 
-        this.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl);
     });
 
     it('triggers stat fetch on non-200 response', function (done) {
@@ -45,7 +45,7 @@ describe('fetch:hackernews', function() {
 
         this.collectionMock.reply(status, {});
 
-        this.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl);
     });
 
     it('triggers feed update on successful response', function (done) {
@@ -56,7 +56,7 @@ describe('fetch:hackernews', function() {
 
         this.collectionMock.reply(200, []);
 
-        this.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl);
     });
 
     it('abandons story retrieval on error', function (done) {
@@ -65,7 +65,7 @@ describe('fetch:hackernews', function() {
         self.collectionMock.reply(200, [1]);
         self.itemMock.replyWithError('fake error for item test');
 
-        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+        self.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl, (err) => {
             assert(err);
             done();
         });
@@ -77,7 +77,7 @@ describe('fetch:hackernews', function() {
         self.collectionMock.reply(200, [1]);
         self.itemMock.reply(404, {});
 
-        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+        self.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl, (err) => {
             assert(err);
             done();
         });
@@ -119,7 +119,7 @@ describe('fetch:hackernews', function() {
             assert.strictEqual(entry.discussion.commentCount, 12345);
         });
 
-        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+        self.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl, (err) => {
             assert.ifError(err);
             assert.strictEqual(entryStoreCount, 2);
             done();
@@ -131,7 +131,7 @@ describe('fetch:hackernews', function() {
 
         self.collectionMock.reply(200, []);
 
-        self.emitter.emit('fetch:hackernews', this.feedId, this.feedUrl, (err) => {
+        self.emitter.emit('fetch-hackernews', this.feedId, this.feedUrl, (err) => {
             assert.ifError(err);
             done();
         });

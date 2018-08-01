@@ -27,12 +27,12 @@ const url = require('url');
  * @event fetch
  * @fires fetch:reddit
  * @fires fetch-hackernews
- * @fires fetch:default
+ * @fires fetch-default
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
     const host = url.parse(feedUrl).host;
 
-    let delegate = 'fetch:default';
+    let delegate = 'fetch-default';
 
     if (host.indexOf('reddit.com') > -1) {
         delegate = 'fetch:reddit';
