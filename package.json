@@ -14,7 +14,6 @@
   "devDependencies": {
     "eslint": "5.2.0",
     "eslint-plugin-mocha": "5.1.0",
-    "firebase-mock": "^2.2.4",
     "grunt": "1.0.3",
     "grunt-contrib-clean": "1.1.0",
     "grunt-contrib-concat": "1.0.1",
@@ -31,14 +30,12 @@
     "nock": "9.4.3",
     "nodemon": "1.18.3",
     "nyc": "12.0.2",
-    "proxyquire": "^2.0.1",
     "sinon": "6.1.4"
   },
   "dependencies": {
     "bunyan": "1.8.12",
     "entities": "1.1.1",
     "feedparser": "2.2.9",
-    "firebase": "5.3.0",
     "grunt-autoprefixer": "3.0.4",
     "grunt-contrib-cssmin": "2.2.1",
     "htmlparser": "1.7.7",
