@@ -8,42 +8,21 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('feed:watched', function() {
+describe('feed-watched', function() {
 
     beforeEach(function (done) {
         const self = this;
         this.schemaRoot = path.join(__dirname, '../../', 'schema');
+        this.fixtureRoot = path.join(__dirname, 'fixtures', 'feed-watched');
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
-        this.emitter.unlisten = function () {};
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
-        this.emitter.on('feed:watched', watched);
-        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
-            self.db.serialize(() => {
-                self.db.run(
-                    'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
-                    function () {
-                        self.userId = this.lastID;
-                    }
-                );
-                self.db.run(
-                    'INSERT INTO feeds (url, title) VALUES (?, "example.com")',
-                    [self.feedUrl],
-                    function () {
-                        self.feedId = this.lastID;
-                    }
-                );
+        this.emitter.on('feed-watched', watched);
 
-                self.db.run(
-                    'INSERT INTO userFeeds (userId, feedId) VALUES (2, 1)',
-                    [self.user, self.feedId],
-                    function (err) {
-                        done();
-                    }
-                );
-            });
+        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
+            this.emitter.emit('schema', this.fixtureRoot, 2, done);
         });
     });
 
@@ -52,18 +31,47 @@ describe('feed:watched', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('lists subscribed feeds with unread entry count', function (done) {
-        const self = this;
-
-        self.emitter.emit(
-            'feed:watched',
-            self.userId,
-            (err, feeds) => {
-                assert.strictEqual(err, null);
-                assert.strictEqual(feeds[0].title, 'example.com');
-                assert.strictEqual(feeds[0].entryCount, 0);
-                done();
-            }
-        );
+    it('handles invalid user id', function (done) {
+        this.emitter.emit('feed-watched', 999, (err, feeds) => {
+            assert.ifError(err);
+            assert.strictEqual(feeds.length, 0);
+            done();
+        });
     });
+
+    it('handles user with no watched feeds', function (done) {
+        const userId = 101;
+
+        this.emitter.emit('feed-watched', userId, (err, feeds) => {
+            assert.ifError(err);
+            assert.strictEqual(feeds.length, 0);
+            done();
+        });
+    });
+
+    it('provides feed metadata', function (done) {
+        const userId = 100;
+
+        this.emitter.emit('feed-watched', userId, (err, feeds) => {
+            assert.ifError(err);
+            assert.strictEqual(feeds.length, 2);
+            assert.strictEqual(feeds[0].title, 'test feed');
+            assert.strictEqual(feeds[0].entryCount, 2);
+            assert(new Date(feeds[0].fetched));
+            assert.strictEqual(feeds[1].entryCount, 0);
+            done();
+        });
+    });
+
+    it('overrides feed title with user value', function (done) {
+        const userId = 102;
+
+        this.emitter.emit('feed-watched', userId, (err, feeds) => {
+            assert.ifError(err);
+            assert.strictEqual(feeds.length, 1);
+            assert.strictEqual(feeds[0].title, 'overridden title');
+            done();
+        });
+    });
+
 });

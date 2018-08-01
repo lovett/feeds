@@ -1,4 +1,14 @@
+/** @module feed/watched */
 'use strict';
+
+/**
+ * Callback for the feed-watched event.
+ *
+ * @callback feedWatchedCallback
+ * @param {error} [err] - Database error.
+ * @param {Object[]} [feeds] - List of feeds the user is subscribed to.
+ *
+ */
 
 /**
  * Get a user's subscribed feeds.
@@ -10,13 +20,13 @@
  *
  * Timestamps are stored in the database as UTC strings but cast to
  * unix epoch integers for client-side convenience.
+ *
+ * @param {Number} userId - The unique identifier of a user.
+ * @param {feedWatchedCallback} callback - A function to invoke on success or failure.
+ * @event feed-watched
  */
-module.exports = function (userId, callback = () => {}) {
-    callback = (typeof callback === 'function') ? callback : function() {};
-
-    const self = this;
-
-    self.db.all(
+module.exports = function (userId, callback) {
+    this.db.all(
         `SELECT coalesce(u.title, f.title) as title, f.id, f.url, f.siteUrl,
          count(ue.entryId) as entryCount,
          CAST(strftime('%s', f.created) AS INTEGER) as created,
@@ -32,10 +42,7 @@ module.exports = function (userId, callback = () => {}) {
          GROUP BY u.feedId
          `,
         [userId],
-        (err, rows) => {
-            if (err) {
-                self.emit('log:error', `Failed to select watched feeds: ${err.message}`);
-            }
+        function (err, rows) {
             callback(err, rows);
         }
     );

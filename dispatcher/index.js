@@ -16,6 +16,7 @@
  * @listens fetch
  * @listens schema
  * @listens startup
+ * @listens feed-watched
  * @listens fetch-feed
  * @listens fetch-hackernews
  */
@@ -51,7 +52,7 @@ emitter.on('feed:poll', require('./feed/poll'));
 emitter.on('feed:watch', require('./feed/watch'));
 emitter.on('feed:rewatch', require('./feed/rewatch'));
 emitter.on('feed:unwatch', require('./feed/unwatch'));
-emitter.on('feed:watched', require('./feed/watched'));
+emitter.on('feed-watched', require('./feed/watched'));
 emitter.on('feed:add', require('./feed/add'));
 emitter.on('feed:get', require('./feed/get'));
 emitter.on('feed:update', require('./feed/update'));
