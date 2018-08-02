@@ -1,4 +1,13 @@
+/** @module feed/watch */
 'use strict';
+
+/**
+ * Callback for the feed-watch event.
+ *
+ * @callback feedWatchCallback
+ * @param {error} [err] - Database error.
+ *
+ */
 
 /**
  * Subscribe a user to one or more feeds.
@@ -8,41 +17,39 @@
  * Polling is requested immediately after subscription creation to
  * minimize delay of the initial fetch.
  *
+ * @param {Number} userId - The unique identifier of a user.
+ * @param {Object[]} feeds - A list of objects with at least a url property.
+ * @event feed-watch
+ *
  */
-module.exports = function (userId, feedIds, callback = () => {}) {
+module.exports = function (userId, feeds=[], callback) {
     const self = this;
 
-    function done (err, ids) {
-        callback(err, ids);
-    }
-
-    if (feedIds.length === 0) {
-        done(new Error('no feed ids given'), []);
+    if (!feeds || feeds.length === 0) {
+        callback(null);
         return;
     }
 
-    self.db.serialize(() => {
-        self.db.run('BEGIN TRANSACTION');
+    const placeholders = feeds.map(() => `(${userId}, ?, ?)`).join(',');
 
-        feedIds.forEach((feedId) => {
-            self.db.run(
-                'INSERT OR IGNORE INTO userFeeds (userId, feedId) VALUES (?, ?)',
-                [userId, feedId],
-                (err) => {
-                    if (err) {
-                        self.emit('log:error', `Failed to insert into userFeeds table: ${err.message}`);
-                        return;
-                    }
-                }
-            );
-        });
+    const values = feeds.reduce((accumulator, feed) => {
+        if (!feed.title) {
+            feed.title = null;
+        }
+        return accumulator.concat(feed.id, feed.title, feed.title);
+    }, []);
 
-        self.db.run('COMMIT', [], (err) => {
-            if (feedIds.length > 0) {
+    self.db.run(
+        `INSERT INTO userFeeds (userId, feedId, title) VALUES ${placeholders}
+         ON CONFLICT (userId, feedId) DO UPDATE SET title=?`,
+        values,
+        (err) => {
+
+            if (!err) {
                 self.emit('feed:poll', true);
             }
 
-            done(err, feedIds);
-        });
-    });
+            callback(err);
+        }
+    );
 };

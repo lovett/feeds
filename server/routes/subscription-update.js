@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('Nothing to update'));
     }
 
-    dispatcher.emit('feed:rewatch', 1, feeds, (err, result) => {
+    dispatcher.emit('feed-watch', 1, feeds, (err, result) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }

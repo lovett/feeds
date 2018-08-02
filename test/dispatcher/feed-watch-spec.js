@@ -8,35 +8,21 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('feed:watch', function() {
+describe('feed-watch', function() {
 
     beforeEach(function (done) {
         const self = this;
-        this.schemaRoot = path.join(__dirname, '../../', 'schema');
+        const schemaRoot = path.join(__dirname, '../../', 'schema');
+        const fixtureRoot = path.join(__dirname, 'fixtures', 'feed-watch');
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
-        this.emitter.unlisten = function () {};
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
-        this.emitter.on('feed:watch', watch);
-        this.emitter.emit('startup', this.db, this.schemaRoot, () => {
-            self.db.serialize(() => {
-                self.db.run(
-                    'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
-                    function () {
-                        self.userId = this.lastID;
-                    }
-                );
-
-                self.db.run(
-                    'INSERT INTO feeds (url, title) VALUES ("http://example.com/feed", "test feed")',
-                    function () {
-                        self.feedIds = [this.lastID];
-                        done();
-                    }
-                );
-            });
+        this.emitter.on('feed-watch', watch);
+        this.userId = 100;
+        this.emitter.emit('startup', this.db, schemaRoot, () => {
+            this.emitter.emit('schema', fixtureRoot, 2, done);
         });
     });
 
@@ -45,27 +31,62 @@ describe('feed:watch', function() {
         this.emitter.removeAllListeners();
     });
 
-    it('adds rows to the userFeeds tables', function (done) {
+    it('inserts to userFeeds table', function (done) {
         const self = this;
 
-        self.emitter.emit(
-            'feed:watch',
-            self.userId,
-            self.feedIds,
-            (err) => {
-                assert.strictEqual(err, null);
+        self.emitter.emit('feed-watch', self.userId, [{ id: 201, title: 'my title'}], (err) => {
+            assert.ifError(err);
 
-                self.db.get(
-                    'SELECT COUNT(*) as count FROM userFeeds',
-                    function (err, row) {
-                        if (err) {
-                            throw err;
-                        }
-                        assert.strictEqual(row.count, 1);
-                        done();
-                    }
-                );
-            }
-        );
+            self.db.all('SELECT * FROM userFeeds', (selectErr, rows) => {
+                assert.ifError(selectErr);
+                assert.strictEqual(rows.length, 2);
+                assert.strictEqual(rows[1].title, 'my title');
+                done();
+            });
+        });
     });
+
+    it('upserts when re-subscribing', function (done) {
+        const self = this;
+
+        self.emitter.emit('feed-watch', self.userId, [{id: 200, title: 'my other title'}], (err) => {
+            assert.ifError(err);
+
+            self.db.all('SELECT * FROM userFeeds', (selectErr, rows) => {
+                assert.ifError(selectErr);
+                assert.strictEqual(rows.length, 1);
+                assert.strictEqual(rows[0].title, 'my other title');
+                done();
+            });
+        });
+    });
+
+    it('handles empty list of feed ids', function (done) {
+        const self = this;
+
+        self.emitter.emit('feed-watch', self.userId, [], (err) => {
+            assert.ifError(err);
+
+            self.db.get('SELECT COUNT(*) as count FROM userFeeds', (countErr, row) => {
+                assert.ifError(countErr);
+                assert.strictEqual(row.count, 1);
+                done();
+            });
+        });
+    });
+
+    it('handles non-array value for feed list', function (done) {
+        const self = this;
+
+        self.emitter.emit('feed-watch', self.userId, null, (err) => {
+            assert.ifError(err);
+
+            self.db.get('SELECT COUNT(*) as count FROM userFeeds', (countErr, row) => {
+                assert.ifError(countErr);
+                assert.strictEqual(row.count, 1);
+                done();
+            });
+        });
+    });
+
 });
