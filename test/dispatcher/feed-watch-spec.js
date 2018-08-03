@@ -46,6 +46,21 @@ describe('feed-watch', function() {
         });
     });
 
+    it('skips user title when not specified', function (done) {
+        const self = this;
+
+        self.emitter.emit('feed-watch', self.userId, [{ id: 201}], (err) => {
+            assert.ifError(err);
+
+            self.db.all('SELECT * FROM userFeeds', (selectErr, rows) => {
+                assert.ifError(selectErr);
+                assert.strictEqual(rows.length, 2);
+                assert.strictEqual(rows[1].title, null);
+                done();
+            });
+        });
+    });
+
     it('upserts when re-subscribing', function (done) {
         const self = this;
 
@@ -60,6 +75,7 @@ describe('feed-watch', function() {
             });
         });
     });
+
 
     it('handles empty list of feed ids', function (done) {
         const self = this;
