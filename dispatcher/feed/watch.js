@@ -19,6 +19,7 @@
  *
  * @param {Number} userId - The unique identifier of a user.
  * @param {Object[]} feeds - A list of objects with at least a url property.
+ * @param {feedWatchCallback} callback - A function to invoke on success or failure.
  * @event feed-watch
  *
  */

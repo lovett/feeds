@@ -18,6 +18,7 @@
  * @listens startup
  * @listens feed-watched
  * @listens feed-unwatch
+ * @listens feed-purge
  * @listens feed-watch
  * @listens fetch-feed
  * @listens fetch-hackernews
@@ -57,7 +58,7 @@ emitter.on('feed-watched', require('./feed/watched'));
 emitter.on('feed:add', require('./feed/add'));
 emitter.on('feed:get', require('./feed/get'));
 emitter.on('feed:update', require('./feed/update'));
-emitter.on('feed:purge', require('./feed/purge'));
+emitter.on('feed-purge', require('./feed/purge'));
 emitter.on('feed:reschedule', require('./feed/reschedule'));
 emitter.on('feed:assess', require('./feed/assess'));
 emitter.on('feed:entries', require('./feed/entries'));

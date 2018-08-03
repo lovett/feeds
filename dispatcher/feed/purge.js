@@ -1,46 +1,40 @@
+/** @module feed/purge */
 'use strict';
 
-module.exports = function (feeds, callback = () => {}) {
-    callback = (typeof callback === 'function') ? callback : function() {};
+/**
+ * Callback for the feed-purge event.
+ *
+ * @callback feedPurgeCallback
+ * @param {error} [err] - Database error.
+ *
+ */
 
-    const emitter = this;
-    let counter = 0;
+/**
+ * Remove a feed from the database and all subscriptions to it.
+ *
+ * @param {Object[]} feeds - A list of objects with at least a url property.
+ * @param {feedPurgeCallback} callback - A function to invoke on success or failure.
+ * @event feed-purge
+ */
+module.exports = function (feeds, callback) {
 
-    if (feeds.hasOwnProperty('urls') === false) {
-        feeds.urls = [];
+    if (!feeds || feeds.length === 0) {
+        callback(null);
+        return;
     }
 
-    if (feeds.hasOwnProperty('ids') === false) {
-        feeds.ids = [];
-    }
+    const placeholders = feeds.map(() => '?').join(',');
 
-    emitter.db.serialize(() => {
-        emitter.db.run('BEGIN');
+    const values = feeds.reduce((accumulator, feed) => {
+        if (feed.id) {
+            accumulator.push(feed.id);
+        }
+        return accumulator;
+    }, []);
 
-        feeds.urls.forEach((url) => {
-            emitter.db.run(
-                'DELETE FROM feeds WHERE url=?',
-                [url],
-                function () {
-                    counter += this.changes;
-                }
-            );
-        });
 
-        feeds.ids.forEach((id) => {
-            emitter.db.run(
-                'DELETE FROM feeds WHERE id=?',
-                [id],
-                function () {
-                    counter += this.changes;
-                }
-            );
-        });
-
-        emitter.db.run('COMMIT', [], (err) => {
-            callback(err, {
-                deletionCount: counter
-            });
-        });
-    });
+    this.db.run(
+        `DELETE FROM feeds WHERE id IN (${placeholders})`,
+        values, (err) => callback(err)
+    );
 };

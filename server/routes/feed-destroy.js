@@ -9,10 +9,6 @@ module.exports = (req, res, next) => {
     }
 
     const feeds = {
-        urls: req.body.filter((param) => {
-            return isNaN(param) && param.startsWith('http:');
-        }),
-
         ids: req.body.filter((param) => {
             return isNaN(param) === false;
         })
@@ -22,11 +18,11 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('No feeds specified'));
     }
 
-    dispatcher.emit('feed:purge', feeds, (err, result) => {
+    dispatcher.emit('feed-purge', feeds, (err) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }
-        res.send(result);
+        res.send(204);
         next();
     });
 };
