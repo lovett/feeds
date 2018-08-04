@@ -47,7 +47,7 @@ module.exports = function (userId, feeds=[], callback) {
         (err) => {
 
             if (!err) {
-                self.emit('feed:poll', true);
+                self.emit('feed-poll', true);
             }
 
             callback(err);

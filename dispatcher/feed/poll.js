@@ -1,41 +1,53 @@
+/** @module feed/poll */
 'use strict';
 
-let timer = null;
 const timerMinutes = 10;
+
+/**
+ * Callback for the feed-poll event.
+ *
+ * @callback feedWatchCallback
+ * @param {error} [err] - Database error.
+ * @param {Number} [feedId] - The unique identifier of the feed being fetched.
+ *
+ */
 
 /**
  * Repeatedly check the database for the next feed to be fetched.
  *
  * Feeds are fetched one-at-a-time in order to spread the work out.
+ *
+ * @param {pollCallback} callback - A function to invoke on success or failure.
+ * @event feed-poll
+ * @fires feed:reschedule
+ * @fires feed-poll
  */
-module.exports = function (once = false, callback = () => {}) {
-
+module.exports = function (callback = () => {}) {
     const self = this;
 
     self.db.get('SELECT id, url FROM nextFeedToFetchView', [], (err, row) => {
-
         if (err) {
-            self.emit('log:error', 'Failed to query nextFeedToFetchView', err.message);
             callback(err);
             return;
         }
 
         if (!row) {
-            self.emit('log:info', 'Nothing to fetch at this time.');
-            callback();
+            callback(null, null);
             return;
         }
 
+        self.emit('fetch', row.id, row.url);
+
+        // The feed is rescheduled regardless of the outcome of the
+        // fetch.
         self.emit('feed:reschedule', row.id);
 
-        self.emit('fetch', row.id, row.url);
         callback(null, row.id);
     });
 
-    if (!timer && !once) {
-        self.emit('log:debug', `Polling every ${timerMinutes} minutes.`);
-        timer = setInterval(() => {
-            self.emit('feed:poll');
+    if (!self.pollingTimer) {
+        self.pollingTimer = setInterval(() => {
+            self.emit('feed-poll', callback);
         }, timerMinutes * 60 * 1000);
-    };
+    }
 };

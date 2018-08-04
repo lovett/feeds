@@ -12,7 +12,7 @@
 /**
  * Remove a feed from the database and all subscriptions to it.
  *
- * @param {Object[]} feeds - A list of objects with at least a url property.
+ * @param {Object[]} feeds - A list of objects with at least an id property.
  * @param {feedPurgeCallback} callback - A function to invoke on success or failure.
  * @event feed-purge
  */
