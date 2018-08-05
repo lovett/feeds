@@ -6,14 +6,14 @@
  * Feed metadata consists of things like the feed's description, title, URL,
  * and whatever else is included in the schema of the feed table.
  */
-module.exports = function (feedId, meta, callback = () => {}) {
+module.exports = function (feedId, meta, callback) {
     const self = this;
 
     let updateCounter = 0;
 
     function afterUpdate(err) {
         if (err) {
-            self.emit('log:error', `Failed to update feed ${feedId} metadata: ${err.message}`);
+            callback(err);
             return;
         }
 

@@ -68,10 +68,10 @@ describe('stats:fetch', function() {
         });
     });
 
-    it('invokes feed:assess', function (done) {
+    it('invokes feed-assess', function (done) {
         const self = this;
 
-        self.emitter.on('feed:assess', (feedId) => {
+        self.emitter.on('feed-assess', (feedId) => {
             assert.strictEqual(feedId, self.feedId);
             done();
         });

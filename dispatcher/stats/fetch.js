@@ -20,7 +20,7 @@ module.exports = function (feedId, fetchid, httpStatus, callback = () => {}) {
             }
 
             if (httpStatus !== 200) {
-                self.emit('feed:assess', feedId);
+                self.emit('feed-assess', feedId);
             }
 
             callback(null, this.lastID);
