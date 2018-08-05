@@ -17,7 +17,7 @@ module.exports = (req, res, next) => {
     }
 
 
-    dispatcher.emit('feed:add', feeds, (err, addResult) => {
+    dispatcher.emit('feed-add', feeds, (err, feedIds) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }

@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('Nothing to add'));
     }
 
-    dispatcher.emit('feed:add', feeds, (err, result) => {
+    dispatcher.emit('feed-add', feeds, (err, result) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }
