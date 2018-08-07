@@ -62,7 +62,7 @@ function transformItem(feedId, feedUrl, fetchId, item) {
  * @param {fetchCallback} callback - A function to invoke on success or failure.
  * @event fetch-feed
  * @fires stats:fetch
- * @fires feed:update
+ * @fires feed-update
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
     const self = this;
@@ -81,7 +81,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     });
 
     parser.on('meta', function (meta) {
-        self.emit('feed:update', feedId, {
+        self.emit('feed-update', feedId, {
             description: meta.description,
             siteUrl: meta.link,
             title: meta.title,

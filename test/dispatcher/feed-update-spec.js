@@ -8,33 +8,23 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('feed:update', function() {
+describe('feed-update', function() {
 
     beforeEach(function (done) {
         const self = this;
-        this.schemaRoot = path.join(__dirname, '../../', 'schema');
+        const schemaRoot = path.join(__dirname, '../../', 'schema');
+        const fixtureRoot = path.join(__dirname, 'fixtures', 'feed-watched');
         this.entryUrl = 'http://example.com/entry.html';
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
-        this.emitter.on('feed:update', feedUpdate);
+        this.emitter.on('feed-update', feedUpdate);
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
+        this.feedId = 200;
 
-        this.emitter.emit('startup', self.db, this.schemaRoot, () => {
-            self.db.serialize(function () {
-                self.db.run(
-                    'INSERT INTO feeds (url) VALUES (?)',
-                    ['http://example.com/feed.rss'],
-                    function (err) {
-                        if (err) {
-                            throw err;
-                        }
-
-                        done();
-                    }
-                );
-            });
+        this.emitter.emit('startup', this.db, schemaRoot, () => {
+            this.emitter.emit('schema', fixtureRoot, 2, done);
         });
     });
 
@@ -43,112 +33,83 @@ describe('feed:update', function() {
         this.emitter.removeAllListeners();
     });
 
-    function testFieldUpdate(context, name, value, done) {
-        const self = context;
-        const feedId = 1;
-        let  feedMeta = {};
-        feedMeta[name] = value;
+    it('updates a single field', function (done) {
+        const newTitle = 'new title';
 
-        self.emitter.emit(
-            'feed:update',
-            feedId,
-            feedMeta,
-            (err, result) => {
-                self.db.get(
-                    `SELECT ${name}, updated FROM feeds WHERE id=?`,
-                    [feedId],
-                    (err, row) => {
-                        if (err) {
-                            throw err;
-                        }
-                        assert.strictEqual(row[name], value);
-                        assert(row.updated);
-                        done();
+        this.emitter.emit('feed-update', this.feedId, {title: newTitle}, (err) => {
+            assert.ifError(err);
+
+            this.db.get(
+                'SELECT title, updated FROM feeds WHERE id=?',
+                [this.feedId],
+                (err, row) => {
+                    if (err) {
+                        throw err;
                     }
-                );
-            }
-        );
-    }
-
-    it('updates the url field', function (done) {
-        testFieldUpdate(this, 'url', 'http://example.com/other-url', done);
-    });
-
-    it('updates the siteUrl field', function (done) {
-        testFieldUpdate(this, 'siteUrl', 'http://example.com/', done);
-    });
-
-    it('updates the description field', function (done) {
-        testFieldUpdate(this, 'description', 'test', done);
-    });
-
-    it('updates the title field', function (done) {
-        testFieldUpdate(this, 'title', 'test', done);
-    });
-
-    it('logs update failure', function (done) {
-        const self = this;
-
-        self.emitter.on('log:error', (message) => {
-            assert(message);
-            done();
-        });
-
-        self.db.run('DROP TABLE feeds', (err) => {
-            if (err) {
-                throw err;
-            }
-
-            self.emitter.emit('feed:update', 1, {
-                url: 'http://example.com/other-url'
-            }, () => {});
+                    assert.strictEqual(row.title, newTitle);
+                    assert(row.updated);
+                    done();
+                }
+            );
         });
     });
 
-    it('rejects invalid feed id', function (done) {
-        const self = this;
-        const feedId = 'invalid';
-        const feedMeta = {'url': 'http://example.com'};
+    it('updates multiple fields', function (done) {
+        const newSiteUrl = 'http://example.com';
+        const newDescription = 'test';
 
-        self.emitter.emit(
-            'feed:update',
-            feedId,
-            feedMeta,
-            (err, feedId, updateCount) => {
-                assert.strictEqual(updateCount, 0);
+        this.emitter.emit('feed-update', this.feedId, {
+            siteUrl: newSiteUrl,
+            description: newDescription
+        }, (err) => {
+            assert.ifError(err);
+
+            this.db.get(
+                'SELECT siteUrl, description, updated FROM feeds WHERE id=?',
+                [this.feedId],
+                (err, row) => {
+                    if (err) {
+                        throw err;
+                    }
+                    assert.strictEqual(row.siteUrl, newSiteUrl);
+                    assert.strictEqual(row.description, newDescription);
+                    assert(row.updated);
+                    done();
+                }
+            );
+        });
+    });
+
+    it('updates the feed url to a yet-unseen value', function (done) {
+        const newUrl = 'http://example.com/new';
+
+        this.emitter.emit('feed-update', this.feedId, {url: newUrl}, (err) => {
+            assert.ifError(err);
+
+            this.db.get(
+                'SELECT url, updated FROM feeds WHERE id=?',
+                [this.feedId],
+                (err, row) => {
+                    if (err) {
+                        throw err;
+                    }
+                    assert.strictEqual(row.url, newUrl);
+                    assert(row.updated);
+                    done();
+                }
+            );
+        });
+    });
+
+    it('ignores invalid property', function (done) {
+        this.emitter.emit(
+            'feed-update',
+            this.feedId,
+            {'invalid': 'whatever'},
+            (err) => {
+                assert.ifError(err);
                 done();
             }
         );
     });
-
-    it('rejects invalid feed name', function (done) {
-        const self = this;
-        const feedId = 'invalid';
-        const  feedMeta = {'invalid': 'whatever'};
-
-        self.emitter.emit(
-            'feed:update',
-            feedId,
-            feedMeta,
-            (err, feedId, updateCount) => {
-                assert.strictEqual(updateCount, 0);
-                done();
-            }
-        );
-    });
-
-    it('handles transaction commit error', function (done) {
-        const self = this;
-        const feedId = 1;
-        const feedMeta = {'url': 'http://example.com/feed.rss'};
-
-        self.db.run('DROP TABLE feeds', function (err) {
-            self.emitter.emit('feed:update', feedId, feedMeta, (err, feedId, updateCount) => {
-                assert(err);
-                assert.strictEqual(updateCount, 0);
-                done();
-            });
-        });
-    });
-
 });

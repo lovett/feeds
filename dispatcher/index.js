@@ -21,6 +21,7 @@
  * @listens feed-assess
  * @listens feed-watched
  * @listens feed-unwatch
+ * @listens feed-update
  * @listens feed-purge
  * @listens feed-watch
  * @listens feed-poll
@@ -61,7 +62,7 @@ emitter.on('feed-unwatch', require('./feed/unwatch'));
 emitter.on('feed-watched', require('./feed/watched'));
 emitter.on('feed-add', require('./feed/add'));
 emitter.on('feed:get', require('./feed/get'));
-emitter.on('feed:update', require('./feed/update'));
+emitter.on('feed-update', require('./feed/update'));
 emitter.on('feed-purge', require('./feed/purge'));
 emitter.on('feed:reschedule', require('./feed/reschedule'));
 emitter.on('feed-assess', require('./feed/assess'));

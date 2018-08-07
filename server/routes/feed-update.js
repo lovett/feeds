@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('Nothing to update'));
     }
 
-    dispatcher.emit('feed:update', feeds, (updateCount) => {
+    dispatcher.emit('feed-update', feeds, (updateCount) => {
         res.send({
             fieldsUpdated: updateCount
         });

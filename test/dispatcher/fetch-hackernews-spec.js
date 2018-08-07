@@ -49,7 +49,7 @@ describe('fetch-hackernews', function() {
     });
 
     it('triggers feed update on successful response', function (done) {
-        this.emitter.on('feed:update', (feedId, result) => {
+        this.emitter.on('feed-update', (feedId, result) => {
             assert(result.updated);
             done();
         });

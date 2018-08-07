@@ -37,7 +37,7 @@ describe('fetch:reddit', function() {
             }
         });
 
-        self.emitter.on('feed:update', (feedId, meta) => {
+        self.emitter.on('feed-update', (feedId, meta) => {
             assert.strictEqual(meta.url, 'https://www.reddit.com/r/javascript/.rss');
             done();
         });

@@ -99,7 +99,7 @@ function transformStory(feedId, feedUrl, fetchId, story) {
  * @param {fetchCallback} callback - A function to invoke on success or failure.
  * @event fetch-hackernews
  * @fires stats:fetch
- * @fires feed:update
+ * @fires feed-update
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
     const fetchId = crypto.pseudoRandomBytes(10).toString('hex');
@@ -132,7 +132,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
 
         getStories.call(this, feedId, feedUrl, callback, fetchId, res.body);
 
-        this.emit('feed:update', feedId, {
+        this.emit('feed-update', feedId, {
             updated: new Date()
         });
     });

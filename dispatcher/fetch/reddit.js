@@ -106,7 +106,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         );
 
         self.emit(
-            'feed:update',
+            'feed-update',
             feedId,
             {
                 siteUrl: `${baseUrl}/${firstEntry.subreddit_name_prefixed}`,
