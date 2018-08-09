@@ -63,7 +63,7 @@ describe('poll', function() {
     it('triggers rescheduling', function (done) {
         const self = this;
 
-        self.emitter.on('feed:reschedule', (feedId) => {
+        self.emitter.on('feed-reschedule', (feedId) => {
             assert.strictEqual(feedId, 200);
             done();
         });

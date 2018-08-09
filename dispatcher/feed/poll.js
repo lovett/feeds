@@ -19,7 +19,7 @@ const timerMinutes = 10;
  *
  * @param {pollCallback} callback - A function to invoke on success or failure.
  * @event feed-poll
- * @fires feed:reschedule
+ * @fires feed-reschedule
  * @fires feed-poll
  */
 module.exports = function (callback = () => {}) {
@@ -40,7 +40,7 @@ module.exports = function (callback = () => {}) {
 
         // The feed is rescheduled regardless of the outcome of the
         // fetch.
-        self.emit('feed:reschedule', row.id);
+        self.emit('feed-reschedule', row.id);
 
         callback(null, row.id);
     });

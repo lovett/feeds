@@ -8,7 +8,7 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('feed:reschedule', function() {
+describe('feed-reschedule', function() {
 
     beforeEach(function (done) {
         const self = this;
@@ -16,7 +16,7 @@ describe('feed:reschedule', function() {
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
-        this.emitter.on('feed:reschedule', reschedule);
+        this.emitter.on('feed-reschedule', reschedule);
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
 
@@ -47,7 +47,7 @@ describe('feed:reschedule', function() {
     it('schedules refetch for 1 hour by default', function (done) {
         const self = this;
 
-        self.emitter.emit('feed:reschedule', this.feedId, null, (err, feedId) => {
+        self.emitter.emit('feed-reschedule', this.feedId, null, (err, feedId) => {
             assert.strictEqual(feedId, self.feedId);
 
             self.db.get(
@@ -70,7 +70,7 @@ describe('feed:reschedule', function() {
     it('allows interval to be specified', function (done) {
         const self = this;
 
-        self.emitter.emit('feed:reschedule', this.feedId, 5, (err, feedId) => {
+        self.emitter.emit('feed-reschedule', this.feedId, 5, (err, feedId) => {
             assert.strictEqual(feedId, self.feedId);
 
             self.db.get(
@@ -100,7 +100,7 @@ describe('feed:reschedule', function() {
                 throw err;
             }
 
-            self.emitter.emit('feed:reschedule', this.feedId, null, (err, feedId) => {
+            self.emitter.emit('feed-reschedule', this.feedId, null, (err, feedId) => {
                 assert.strictEqual(feedId, null);
                 done();
             });
