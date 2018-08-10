@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "5.2.0",
+    "eslint": "5.3.0",
     "eslint-plugin-mocha": "5.1.0",
     "grunt": "1.0.3",
     "grunt-contrib-clean": "1.1.0",
@@ -28,10 +28,10 @@
     "load-grunt-tasks": "4.0.0",
     "lolex": "^2.7.1",
     "mocha": "5.2.0",
-    "nock": "9.4.4",
+    "nock": "9.6.0",
     "nodemon": "1.18.3",
     "nyc": "12.0.2",
-    "sinon": "6.1.4"
+    "sinon": "6.1.5"
   },
   "dependencies": {
     "bunyan": "1.8.12",
@@ -44,12 +44,12 @@
     "jquery": "3.3.1",
     "mithril": "1.1.6",
     "moment": "2.22.2",
-    "needle": "2.2.1",
+    "needle": "2.2.2",
     "normalize.css": "8.0.0",
     "passport": "0.4.0",
     "passport-local": "1.0.0",
     "redis": "2.8.0",
-    "request": "2.87.0",
+    "request": "2.88.0",
     "restify": "7.2.1",
     "restify-errors": "6.1.1",
     "sqlite3": "4.0.2",
