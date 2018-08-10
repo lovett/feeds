@@ -52,5 +52,16 @@ lint: dummy
 
 #
 # Generate documentation.
+#
 docs: dummy
 	jsdoc -c jsdoc.json dispatcher server
+
+#
+# Create a package upgrade commit.
+#
+# "puc" stands for Package Upgrade Commit
+#
+puc: dummy
+	git checkout master
+	git add package.json package-lock.json
+	git commit -m "Upgrade npm packages"
