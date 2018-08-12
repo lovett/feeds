@@ -29,6 +29,7 @@
  * @listens feed-poll
  * @listens fetch-feed
  * @listens fetch-hackernews
+ * @listens filter-store
  */
 'use strict';
 
@@ -92,6 +93,6 @@ emitter.on('discussion:list', require('./discussion/list'));
 // Filtering
 emitter.on('filter:apply', require('./filter/apply'));
 emitter.on('filter:remove', require('./filter/remove'));
-emitter.on('filter:store', require('./filter/store'));
+emitter.on('filter-store', require('./filter/store'));
 
 module.exports = emitter;

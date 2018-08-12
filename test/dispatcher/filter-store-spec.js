@@ -8,39 +8,22 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('filter:store', function() {
+describe('filter-store', function() {
 
     beforeEach(function (done) {
         const self = this;
-        this.schemaRoot = path.join(__dirname, '../../', 'schema');
+        const schemaRoot = path.join(__dirname, '../../', 'schema');
+        const fixtureRoot = path.join(__dirname, 'fixtures', 'feed-watch');
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
-        this.emitter.unlisten = function () {};
-        this.emitter.on('filter:store', filterStore);
+        this.emitter.on('filter-store', filterStore);
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
-
-        this.emitter.emit('startup', self.db, this.schemaRoot, () => {
-            self.db.run(
-                'INSERT INTO feeds (url) VALUES (?)',
-                ['http://example.com/feed.rss'],
-                (err) => {
-                    if (err) {
-                        throw err;
-                    }
-
-                    self.feedId = this.lastID;
-
-                    self.db.run(
-                        'INSERT INTO users (username, passwordHash) VALUES ("test", "test")',
-                        function () {
-                            self.userId = this.lastID;
-                            done();
-                        }
-                    );
-                }
-            );
+        this.emitter.emit('startup', this.db, schemaRoot, () => {
+            this.emitter.emit('schema', fixtureRoot, 2, done);
         });
+        this.userId = 100;
+        this.feedId = 200;
     });
 
     afterEach(function () {
@@ -49,102 +32,94 @@ describe('filter:store', function() {
     });
 
     it('adds a feed-specific filter', function (done) {
-        const self = this;
-
         const filter = {
-            feedId: self.feedId,
             value: 'test'
         };
 
-        self.emitter.emit('filter:store', self.userId, filter, (err, filter) => {
-            assert.strictEqual(err, null);
+        this.emitter.emit('filter-store', this.userId, this.feedId, filter, (err, filterId) => {
+            assert.ifError(err);
+            assert.strictEqual(filterId, 1);
 
-            self.db.get('SELECT COUNT(*) as count FROM filters', function (err, row) {
+            this.db.get('SELECT * FROM filters', (err, row) => {
                 if (err) {
                     throw err;
                 }
 
-                assert.strictEqual(row.count, 1);
+                assert.strictEqual(row.userId, this.userId);
+                assert.strictEqual(row.feedId, this.feedId);
+                assert.strictEqual(row.value, filter.value);
                 done();
             });
-       });
+        });
     });
 
     it('adds a global filter', function (done) {
-        const self = this;
         const filter = {
             value: 'test'
         };
 
+        this.emitter.emit('filter-store', this.userId, null, filter, (err, filterId) => {
+            assert.ifError(err);
+            assert.strictEqual(filterId, 1);
 
-        self.emitter.emit('filter:store', self.userId, filter, (err, filter) => {
-            assert.strictEqual(err, null);
-
-            self.db.get('SELECT count(*) as count FROM filters', function (err, row) {
-                if (err) {
-                    throw err;
-                }
-                assert.strictEqual(row.count, 1);
+            this.db.get('SELECT * FROM filters', (err, row) => {
+                assert.strictEqual(row.userId, this.userId);
+                assert.strictEqual(row.feedId, null);
+                assert.strictEqual(row.value, filter.value);
                 done();
             });
         });
     });
 
     it('handles insertion failure', function (done) {
-        const self = this;
         const filter = {
-            feedId: self.feedId,
-            userId: self.userId,
             value: 'test'
         };
 
-        self.db.exec('DROP TABLE filters', function (err) {
-            if (err) {
-                throw err;
-            }
-
-            self.emitter.emit('filter:store', self.userId, filter, (err, insertedFilter) => {
-                assert.strictEqual(insertedFilter, null);
+        this.db.exec('DROP TABLE filters', (err) => {
+            this.emitter.emit('filter-store', this.userId, this.feedId, filter, (err, filterId) => {
+                assert.strictEqual(filterId, null);
                 done();
             });
         });
     });
 
     it('updates an existing row', function (done) {
-        const self = this;
         const filter = {
-            feedId: self.feedId,
-            userId: self.userId,
             value: 'test'
         };
 
-        self.emitter.emit('filter:store', self.userId, filter, (insertedFilter) => {
+        this.emitter.emit('filter-store', this.userId, this.feedId, filter, (err, filterId) => {
+            assert.ifError(err);
+            filter.id = filterId;
             filter.value = 'newvalue';
 
-            self.emitter.emit('filter:store', self.userId, filter, (err) => {
-                assert.strictEqual(err, null);
-                done();
+            this.emitter.emit('filter-store', this.userId, this.feedId, filter, (err, filterId) => {
+                assert.ifError(err);
+
+                this.db.get('SELECT * FROM filters', (err, row) => {
+                    assert.strictEqual(row.userId, this.userId);
+                    assert.strictEqual(row.feedId, this.feedId);
+                    assert.strictEqual(row.value, filter.value);
+                    done();
+                });
             });
         });
     });
 
     it('handles failure to update an existing row', function (done) {
-        const self = this;
         const filter = {
-            feedId: self.feedId,
             value: 'test'
         };
 
-        self.emitter.emit('filter:store', self.userId, filter, (err) => {
+        this.emitter.emit('filter-store', this.userId, this.feedId, filter, (err, filterId) => {
             assert.strictEqual(err, null);
+            filter.id = filterId;
+            filter.value = 'newvalue2';
 
-            self.db.run('DROP TABLE filters', function (err) {
-                if (err) {
-                    throw err;
-                }
-
-                self.emitter.emit('filter:store', self.userId, filter, (err) => {
-                    assert(err);
+            this.db.run('DROP TABLE filters', (err) => {
+                this.emitter.emit('filter-store', this.userId, this.feedId, filter, (err, filterId) => {
+                    assert.strictEqual(filterId, null);
                     done();
                 });
             });
