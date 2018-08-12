@@ -16,7 +16,7 @@
  * @param {Number} userId - The unique identifier of a user.
  * @param {Number} feedId - The unique identifier of a feed.
  * @param {Object} filter - An object whose fields reflect the schema of the filters table.
- * @param {feedStoreCallback} callback - a function to call on success or failure.
+ * @param {feedStoreCallback} callback - A function to call on success or failure.
  *
  * @event filter-store
  */

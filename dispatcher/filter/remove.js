@@ -1,24 +1,27 @@
+/** @module filter/remove */
 'use strict';
 
-module.exports = function (filterId, userId, callback = () => {}) {
+/**
+ * Callback for the filter-remove event.
+ *
+ * @callback filterStoreCallback
+ * @param {error} [err] - Database error.
+ */
 
-    const self = this;
+/**
+ * Discard a previously-added filter.
+ *
+ * @param {Number} userId - The unique identifier of a user.
+ * @param {Number} filterId - The unique identifier of a filter.
+ * @param {feedRemoveCallback} callback - a function to call on success or failure.
+ *
+ * @event filter-remove
+ */
+module.exports = function (userId, filterId, callback) {
 
-    if (!filterId) {
-        const message = 'No filter ID provided';
-        self.emit('log:error', message);
-        callback(new Error(message));
-        return;
-    }
-
-    self.db.run(
+    this.db.run(
         'DELETE FROM filters WHERE id=? AND userID=?',
         [filterId, userId],
-        (err) => {
-            if (err) {
-                self.emit('log:error', `Failed to remove filter: ${err.message}`);
-            }
-            callback(err, filterId);
-        }
+        callback
     );
 };
