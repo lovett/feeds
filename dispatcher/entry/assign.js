@@ -29,7 +29,7 @@ module.exports = function (entryId, feedId, callback = () => {}) {
                         return;
                     }
 
-                    self.emit('filter:apply', entryId, row.userId);
+                    self.emit('filter-apply', entryId, row.userId);
 
                     if (isLast) {
                         callback(null, entryId, feedId);

@@ -29,6 +29,7 @@
  * @listens feed-poll
  * @listens fetch-feed
  * @listens fetch-hackernews
+ * @listens filter-apply
  * @listens filter-store
  * @listens filter-remove
  */
@@ -92,7 +93,7 @@ emitter.on('discussion:recount', require('./discussion/recount'));
 emitter.on('discussion:list', require('./discussion/list'));
 
 // Filtering
-emitter.on('filter:apply', require('./filter/apply'));
+emitter.on('filter-apply', require('./filter/apply'));
 emitter.on('filter-remove', require('./filter/remove'));
 emitter.on('filter-store', require('./filter/store'));
 
