@@ -1,8 +1,8 @@
-/** @module feed/watch */
+/** @module feed/subscribe */
 'use strict';
 
 /**
- * Callback for the feed-watch event.
+ * Callback for the feed-subscribe event.
  *
  * @callback feedWatchCallback
  * @param {error} [err] - Database error.
@@ -20,7 +20,7 @@
  * @param {Number} userId - The unique identifier of a user.
  * @param {Object[]} feeds - A list of objects with at least a url property.
  * @param {feedWatchCallback} callback - A function to invoke on success or failure.
- * @event feed-watch
+ * @event feed-subscribe
  *
  */
 module.exports = function (userId, feeds=[], callback) {

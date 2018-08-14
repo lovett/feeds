@@ -13,7 +13,7 @@ describe('filter-store', function() {
     beforeEach(function (done) {
         const self = this;
         const schemaRoot = path.join(__dirname, '../../', 'schema');
-        const fixtureRoot = path.join(__dirname, 'fixtures', 'feed-watch');
+        const fixtureRoot = path.join(__dirname, 'fixtures', 'feed-subscribe');
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.on('filter-store', filterStore);

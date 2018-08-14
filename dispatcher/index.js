@@ -21,11 +21,11 @@
  * @listens feed-assess
  * @listens feed-entries
  * @listens feed-get
- * @listens feed-watched
- * @listens feed-unwatch
+ * @listens feed-subscribed
+ * @listens feed-unsubscribe
  * @listens feed-update
  * @listens feed-purge
- * @listens feed-watch
+ * @listens feed-subscribe
  * @listens feed-poll
  * @listens fetch-feed
  * @listens fetch-hackernews
@@ -62,9 +62,9 @@ emitter.on('schema', require('./schema'));
 
 // Feeds
 emitter.on('feed-poll', require('./feed/poll'));
-emitter.on('feed-watch', require('./feed/watch'));
-emitter.on('feed-unwatch', require('./feed/unwatch'));
-emitter.on('feed-watched', require('./feed/watched'));
+emitter.on('feed-subscribe', require('./feed/subscribe'));
+emitter.on('feed-unsubscribe', require('./feed/unsubscribe'));
+emitter.on('feed-subscribed', require('./feed/subscribed'));
 emitter.on('feed-add', require('./feed/add'));
 emitter.on('feed-get', require('./feed/get'));
 emitter.on('feed-update', require('./feed/update'));

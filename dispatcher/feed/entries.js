@@ -3,7 +3,7 @@
 'use strict';
 
 /**
- * Callback for the feed-unwatch event.
+ * Callback for the feed-entries event.
  *
  * @callback feedEntriesCallback
  * @param {error} [err] - Database error.

@@ -22,7 +22,7 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('No feeds specified'));
     }
 
-    dispatcher.emit('feed-unwatch', 1, subs, (err, result) => {
+    dispatcher.emit('feed-unsubscribe', 1, subs, (err, result) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }

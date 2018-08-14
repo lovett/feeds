@@ -1,10 +1,10 @@
-/** @module feed/unwatch */
+/** @module feed/unsubscribe */
 'use strict';
 
 /**
- * Callback for the feed-unwatch event.
+ * Callback for the feed-unsubscribe event.
  *
- * @callback feedUnwatchCallback
+ * @callback feedUnsubscribeCallback
  * @param {error} [err] - Database error.
  *
  */
@@ -17,7 +17,7 @@
  *
  * @param {Number} userId - The unique identifier of a user.
  * @param {Number[]} feedIds - A list of feed unique identifiers.
- * @event feed-unwatch
+ * @event feed-unsubscribe
  */
 module.exports = function (userId, feedIds, callback) {
     const placeholders = feedIds.map(() => '?').join(',');

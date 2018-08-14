@@ -1,10 +1,10 @@
-/** @module feed/watched */
+/** @module feed/subscribed */
 'use strict';
 
 /**
- * Callback for the feed-watched event.
+ * Callback for the feed-subscribed event.
  *
- * @callback feedWatchedCallback
+ * @callback feedSubscribedCallback
  * @param {error} [err] - Database error.
  * @param {Object[]} [feeds] - List of feeds the user is subscribed to.
  *
@@ -23,7 +23,7 @@
  *
  * @param {Number} userId - The unique identifier of a user.
  * @param {feedWatchedCallback} callback - A function to invoke on success or failure.
- * @event feed-watched
+ * @event feed-subscribed
  */
 module.exports = function (userId, callback) {
     this.db.all(

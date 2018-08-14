@@ -3,22 +3,22 @@
 const sqlite3 = require('sqlite3').verbose();
 const startup = require('../../dispatcher/startup');
 const schema = require('../../dispatcher/schema');
-const unwatch = require('../../dispatcher/feed/unwatch');
+const unsubscribe = require('../../dispatcher/feed/unsubscribe');
 const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('feed-unwatch', function() {
+describe('feed-unsubscribe', function() {
 
     beforeEach(function (done) {
         this.schemaRoot = path.join(__dirname, '../../', 'schema');
-        this.fixtureRoot = path.join(__dirname, 'fixtures', 'feed-unwatch');
+        this.fixtureRoot = path.join(__dirname, 'fixtures', 'feed-unsubscribe');
         this.db = new sqlite3.Database(':memory:');
         this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
-        this.emitter.on('feed-unwatch', unwatch);
+        this.emitter.on('feed-unsubscribe', unsubscribe);
         this.userId = 100;
         this.feedId = 200;
 
@@ -33,14 +33,14 @@ describe('feed-unwatch', function() {
     });
 
     it('handles invalid user id', function (done) {
-        this.emitter.emit('feed-unwatch', 999, [1, 2, 3], (err) => {
+        this.emitter.emit('feed-unsubscribe', 999, [1, 2, 3], (err) => {
             assert.ifError(err);
             done();
         });
     });
 
     it('removed rows from userEntries table via trigger', function (done) {
-        this.emitter.emit('feed-unwatch', this.userId, [this.feedId], (err) => {
+        this.emitter.emit('feed-unsubscribe', this.userId, [this.feedId], (err) => {
             assert.ifError(err);
 
             this.db.get(

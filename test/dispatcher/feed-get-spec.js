@@ -8,7 +8,7 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('feed-watch', function() {
+describe('feed-get', function() {
 
     beforeEach(function (done) {
         const self = this;

@@ -24,8 +24,8 @@ module.exports = (req, res, next) => {
 
         const feedIds = addResult.map(feed => feed.id);
 
-        dispatcher.emit('feed-watch', 1, feedIds, (err, watchResult) => {
-            res.send(watchResult);
+        dispatcher.emit('feed-subscribe', 1, feedIds, (err, subscribeResult) => {
+            res.send(subscribeResult);
             next();
         });
 
