@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('No feed specified'));
     }
 
-    dispatcher.emit('feed-entries', feedId, 1, (err, entries) => {
+    dispatcher.emit('feed-entries', feedId, 1, true, 50, 0, (err, entries) => {
         let entryIds = entries.reduce((accumulator, row) => {
             accumulator.push(row.id);
             return accumulator;

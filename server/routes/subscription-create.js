@@ -16,13 +16,10 @@ module.exports = (req, res, next) => {
         return next(new errors.BadRequestError('Nothing to add'));
     }
 
-
     dispatcher.emit('feed-add', feeds, (err, feedIds) => {
         if (err) {
             return next(new errors.InternalServerError(err.message));
         }
-
-        const feedIds = addResult.map(feed => feed.id);
 
         dispatcher.emit('feed-subscribe', 1, feedIds, (err, subscribeResult) => {
             res.send(subscribeResult);

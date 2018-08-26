@@ -87,7 +87,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             title: meta.title,
             updated: meta.date,
             url: meta.xmlurl
-        });
+        }, () => {});
     });
 
     parser.on('readable', function () {
