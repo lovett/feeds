@@ -18,6 +18,7 @@ outdated: dummy
 setup: export NPM_CONFIG_PROGRESS = false
 setup:
 	npm install
+	npm outdated || true
 
 #
 # Run the server.
