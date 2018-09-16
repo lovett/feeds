@@ -17,7 +17,7 @@
  *
  * @event filter-remove
  */
-module.exports = function (userId, filterId, callback) {
+module.exports = function (userId, filterId, callback = () => {}) {
 
     this.db.run(
         'DELETE FROM filters WHERE id=? AND userID=?',

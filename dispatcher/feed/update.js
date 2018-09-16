@@ -24,7 +24,7 @@
  * @event feed-update
  *
  */
-module.exports = function (feedId, meta, callback) {
+module.exports = function (feedId, meta, callback = () => {}) {
     const self = this;
 
     self.db.serialize(() => {

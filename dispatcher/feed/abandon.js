@@ -15,7 +15,7 @@
  * @param {feedAbandonCallback} callback - A function to invoke on success or failure.
  * @event feed-abandon
  */
-module.exports = function (feedId, callback) {
+module.exports = function (feedId, callback = () => {}) {
     this.db.run(
         'UPDATE feeds SET nextFetch=null, abandonned=datetime("now") WHERE id=?',
         [feedId],

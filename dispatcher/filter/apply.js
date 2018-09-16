@@ -19,7 +19,7 @@
  *
  * @event filter-apply
  */
-module.exports = function (userId, feedId, entry, callback) {
+module.exports = function (userId, feedId, entry, callback = () => {}) {
     const aliases = {
         comments: function () {
             const extras = entry.extras || {};

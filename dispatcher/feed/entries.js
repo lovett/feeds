@@ -25,7 +25,7 @@
  *
  * @event feed-entries
  */
-module.exports = function (feedId, userId, unreadOnly, limit, offset, callback) {
+module.exports = function (feedId, userId, unreadOnly, limit, offset, callback = () => {}) {
     let unreadClause = 'AND ue.read=0';
     if (unreadOnly === false) {
         unreadClause = '';

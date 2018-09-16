@@ -23,7 +23,7 @@ const sqlite3 = require('sqlite3');
  * @event startup
  * @fires schema
  */
-module.exports = function (database, schemaRoot, callback) {
+module.exports = function (database, schemaRoot, callback = () => {}) {
     const self = this;
 
     if (database instanceof sqlite3.Database) {

@@ -29,7 +29,7 @@ const path = require('path');
  * @event schema
  * @fires schema
  */
-module.exports = function (schemaRoot, version, callback) {
+module.exports = function (schemaRoot, version, callback = () => {}) {
     const self = this;
 
     const sqlPath = path.join(

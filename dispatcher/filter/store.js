@@ -20,7 +20,7 @@
  *
  * @event filter-store
  */
-module.exports = function (userId, feedId, filter, callback) {
+module.exports = function (userId, feedId, filter, callback = () => {}) {
     const self = this;
 
     if (filter.id) {

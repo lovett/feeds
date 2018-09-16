@@ -19,7 +19,7 @@
  * @param {Number[]} feedIds - A list of feed unique identifiers.
  * @event feed-unsubscribe
  */
-module.exports = function (userId, feedIds, callback) {
+module.exports = function (userId, feedIds, callback = () => {}) {
     const placeholders = feedIds.map(() => '?').join(',');
 
     this.db.all(

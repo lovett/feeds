@@ -25,7 +25,7 @@ const url = require('url');
  * @param {feedAddCallback} callback - A function to invoke on success or failure.
  * @event feed-add
  */
-module.exports = function (feeds, callback) {
+module.exports = function (feeds, callback = () => {}) {
     const urls = feeds.reduce((accumulator, feed) => {
         if (feed.url) {
             accumulator.push(feed.url);

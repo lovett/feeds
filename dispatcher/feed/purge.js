@@ -16,7 +16,7 @@
  * @param {feedPurgeCallback} callback - A function to invoke on success or failure.
  * @event feed-purge
  */
-module.exports = function (feeds, callback) {
+module.exports = function (feeds, callback = () => {}) {
 
     if (!feeds || feeds.length === 0) {
         callback(null);

@@ -19,7 +19,7 @@ const url = require('url');
  * @param {feedGetCallback} callback - A function to call on success or failure.
  * @event feed-get
  */
-module.exports = function (feedIds, callback) {
+module.exports = function (feedIds, callback = () => {}) {
     const self = this;
 
     const placeholders = feedIds.map(_ => '?').join(',');

@@ -23,7 +23,7 @@
  * @event feed-subscribe
  *
  */
-module.exports = function (userId, feeds=[], callback) {
+module.exports = function (userId, feeds=[], callback = () => {}) {
     const self = this;
 
     if (!feeds || feeds.length === 0) {

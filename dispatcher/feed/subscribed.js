@@ -25,7 +25,7 @@
  * @param {feedWatchedCallback} callback - A function to invoke on success or failure.
  * @event feed-subscribed
  */
-module.exports = function (userId, callback) {
+module.exports = function (userId, callback = () => {}) {
     this.db.all(
         `SELECT coalesce(u.title, f.title) as title, f.id, f.url, f.siteUrl,
          count(ue.entryId) as entryCount,
