@@ -36,7 +36,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             return;
         }
 
-        const entry = {
+        let entry = {
             feedUrl: feedUrl,
             feedId: feedId,
             fetchId: fetchId,
@@ -44,10 +44,10 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             title: data.title,
             created: new Date(item.created_utc * 1000),
             url: data.url,
-            body: data.selftext || null,
+            body: null,
             extras: {
                 score: data.score,
-                keywords: data.link_flair_text || undefined
+                keywords: []
             },
             discussion: {
                 commentCount: data.num_comments,
@@ -55,6 +55,14 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
                 url: `${baseUrl}/${data.permalink}`
             }
         };
+
+        if (data.selftxt) {
+            entry.body = data.selftext;
+        }
+
+        if (data.link_flair_text) {
+            entry.extras.keywords = [data.link_flair_text];
+        }
 
         self.emit('entry:store', entry);
 

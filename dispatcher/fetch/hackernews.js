@@ -67,7 +67,7 @@ function getStories(feedId, feedUrl, callback, fetchId, itemIds) {
  * @fires entry:store
  */
 function transformStory(feedId, feedUrl, fetchId, story) {
-    this.emit('entry:store', {
+    let entry = {
         feedUrl: feedUrl,
         feedId: feedId,
         fetchId: fetchId,
@@ -78,7 +78,7 @@ function transformStory(feedId, feedUrl, fetchId, story) {
         extras: {
             dead: story.dead,
             score: story.score,
-            keywords: story.type
+            keywords: []
         },
         discussion: {
             url: 'https://news.ycombinator.com/item?id=' + story.id,
@@ -86,7 +86,14 @@ function transformStory(feedId, feedUrl, fetchId, story) {
             commentCount: story.descendants
         },
         body: story.text
-    });
+    };
+
+    if (story.type) {
+        entry.extras.keywords = [story.type];
+    }
+
+    this.emit('entry:store', entry);
+
 }
 
 /**

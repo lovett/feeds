@@ -25,7 +25,7 @@ function transformItem(feedId, feedUrl, fetchId, item) {
         guid: item.guid,
         url: (item.origlink || item.link),
         extras: {
-            keywords: item.categories
+            keywords: []
         },
         discussion: {
             url: null,
@@ -33,6 +33,10 @@ function transformItem(feedId, feedUrl, fetchId, item) {
             commentCount: null
         }
     };
+
+    if (item.categories) {
+        entry.extras.keywords = item.categories;
+    }
 
     if (item.comments) {
         entry.discussion.url = item.comments;
