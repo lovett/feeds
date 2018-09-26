@@ -49,7 +49,7 @@ coverage: dummy
 # Check for coding style violations.
 #
 lint: dummy
-	eslint dispatcher test Gruntfile.js
+	eslint dispatcher test
 
 #
 # Generate documentation.
