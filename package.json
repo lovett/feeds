@@ -23,6 +23,7 @@
     "sinon": "6.3.4"
   },
   "dependencies": {
+    "ajv": "6.5.4",
     "bunyan": "1.8.12",
     "entities": "1.1.1",
     "feedparser": "2.2.9",
