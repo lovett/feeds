@@ -91,7 +91,7 @@ describe('fetch-feed', function() {
             storedGuids = guids;
         });
 
-        this.emitter.on('entry:store', (entry) => {
+        this.emitter.on('entry-store', (entry) => {
             storedEntries.push(entry);
         });
 
@@ -123,7 +123,7 @@ describe('fetch-feed', function() {
             storedGuids = guids;
         });
 
-        this.emitter.on('entry:store', (entry) => {
+        this.emitter.on('entry-store', (entry) => {
             storedEntries.push(entry);
         });
 

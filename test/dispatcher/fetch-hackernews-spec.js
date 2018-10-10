@@ -102,7 +102,7 @@ describe('fetch-hackernews', function() {
             descendants: 12345
         });
 
-        self.emitter.on('entry:store', (entry) => {
+        self.emitter.on('entry-store', (entry) => {
             entryStoreCount++;
             assert.strictEqual(entry.feedUrl, self.feedUrl);
             assert.strictEqual(entry.feedId, self.feedId);

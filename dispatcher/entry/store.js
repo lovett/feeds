@@ -1,7 +1,26 @@
+/** @module entry/store */
 'use strict';
 
 const entities = require('entities');
 const normalize = require('../../util/normalize');
+
+/**
+ * Callback for the entry-store event.
+ *
+ * @callback entryStoreCallback
+ * @param {error} [err] - Database error.
+ * @param {Objet} entry - The storied entry.
+ *
+ */
+
+/**
+ * Store an entry that has been parsed out of a feed.
+ *
+ * @param {Object} meta - An object of key-value pairs corresponding to the schema of the entries table.
+ * @param {entryStoreCallback} callback - A function to invoke on success or failure.
+ * @event entry-store
+ *
+ */
 
 module.exports = function (entry, callback = () => {}) {
     const self = this;

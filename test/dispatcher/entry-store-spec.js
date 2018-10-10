@@ -8,7 +8,7 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('entry:store', function() {
+describe('entry-store', function() {
 
     beforeEach(function (done) {
         const self = this;
@@ -17,7 +17,7 @@ describe('entry:store', function() {
         this.db = new sqlite3.Database(':memory:');
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
-        this.emitter.on('entry:store', entryStore);
+        this.emitter.on('entry-store', entryStore);
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
 
@@ -78,7 +78,7 @@ describe('entry:store', function() {
             }
         };
 
-        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+        self.emitter.emit('entry-store', entry, (err, savedEntry) => {
             assert.strictEqual(savedEntry.changes, 1);
             assert.strictEqual(savedEntry.id, 1);
             assert.strictEqual(savedEntry.author, 'Håkon');
@@ -104,7 +104,7 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+        self.emitter.emit('entry-store', entry, (err, savedEntry) => {
             assert.strictEqual(savedEntry.changes, 1);
             assert.strictEqual(savedEntry.id, 1);
             assert(savedEntry.guid);
@@ -126,11 +126,11 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+        self.emitter.emit('entry-store', entry, (err, savedEntry) => {
             assert.strictEqual(savedEntry.changes, 1);
             assert.strictEqual(savedEntry.id, 1);
 
-            self.emitter.emit('entry:store', entry, (err, savedEntry2) => {
+            self.emitter.emit('entry-store', entry, (err, savedEntry2) => {
                 assert.strictEqual(savedEntry2.changes, 0);
                 assert.strictEqual(savedEntry2.id, 1);
 
@@ -150,7 +150,7 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.emit('entry:store', entry, (err) => {
+        self.emitter.emit('entry-store', entry, (err) => {
             assert(err);
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
                 if (err) {
@@ -177,7 +177,7 @@ describe('entry:store', function() {
                 throw err;
             }
 
-            self.emitter.emit('entry:store', entry, (err) => {
+            self.emitter.emit('entry-store', entry, (err) => {
                 assert(err);
                 done();
             });
@@ -192,7 +192,7 @@ describe('entry:store', function() {
             fetchId: self.fetchId
         };
 
-        self.emitter.emit('entry:store', entry, (err) => {
+        self.emitter.emit('entry-store', entry, (err) => {
             assert(err);
 
             self.db.get('SELECT COUNT(*) as count FROM entries', function (err, row) {
@@ -222,7 +222,7 @@ describe('entry:store', function() {
             done();
         });
 
-        self.emitter.emit('entry:store', entry, (err) => {
+        self.emitter.emit('entry-store', entry, (err) => {
             assert.strictEqual(err, null);
         });
     });
@@ -244,7 +244,7 @@ describe('entry:store', function() {
 
             entry.feedId = self.feedId;
             entry.fetchId = self.fetchId;
-            self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+            self.emitter.emit('entry-store', entry, (err, savedEntry) => {
                 assert.strictEqual(err, null);
                 assert.strictEqual(savedEntry.changes, 1);
                 assert(savedEntry.created);
@@ -267,7 +267,7 @@ describe('entry:store', function() {
             body: 'the body'
         };
 
-        self.emitter.emit('entry:store', entry, (err, savedEntry) => {
+        self.emitter.emit('entry-store', entry, (err, savedEntry) => {
             assert.strictEqual(err, null);
             assert.strictEqual(savedEntry.id, 1);
             assert.strictEqual(savedEntry.changes, 1);
@@ -275,7 +275,7 @@ describe('entry:store', function() {
 
             savedEntry.title = 'updated title';
 
-            self.emitter.emit('entry:store', savedEntry, (err, updatedEntry) => {
+            self.emitter.emit('entry-store', savedEntry, (err, updatedEntry) => {
                 assert.strictEqual(err, null);
                 assert.strictEqual(updatedEntry.title, entry.title);
 

@@ -16,6 +16,7 @@
  * @listens fetch
  * @listens schema
  * @listens startup
+ * @listens entry-store
  * @listens feed-abandon
  * @listens feed-add
  * @listens feed-assess
@@ -84,7 +85,7 @@ emitter.on('fetch:reddit', require('./fetch/reddit'));
 emitter.on('stats:fetch', require('./stats/fetch'));
 
 // Entries
-emitter.on('entry:store', require('./entry/store'));
+emitter.on('entry-store', require('./entry/store'));
 emitter.on('entry:assign', require('./entry/assign'));
 
 // Discussions

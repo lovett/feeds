@@ -12,7 +12,7 @@ const FeedParser = require('feedparser');
  * @param {String} feedUrl - The URL provided to the listener.
  * @param {String} fetchId - The unique identifier for this fetch.
  * @param {Object} story - A normalized feed item returned by FeedParser.
- * @fires entry:store
+ * @fires entry-store
  */
 function transformItem(feedId, feedUrl, fetchId, item) {
     let entry = {
@@ -53,7 +53,7 @@ function transformItem(feedId, feedUrl, fetchId, item) {
         entry.extras.keywords.push(item['slash:section']['#']);
     }
 
-    this.emit('entry:store', entry);
+    this.emit('entry-store', entry);
 }
 
 /**

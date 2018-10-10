@@ -117,7 +117,7 @@ describe('fetch:reddit', function() {
             }
         });
 
-        self.emitter.on('entry:store', function (entry) {
+        self.emitter.on('entry-store', function (entry) {
             assert.strictEqual(entry.feedId, self.feedId);
             assert(entry.fetchId);
             assert.strictEqual(entry.url, 'the second url');
@@ -145,8 +145,8 @@ describe('fetch:reddit', function() {
             }
         });
 
-        self.emitter.on('entry:store', () => {
-            throw new Error('entry:store should not have been called');
+        self.emitter.on('entry-store', () => {
+            throw new Error('entry-store should not have been called');
         });
 
         self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl, () => {
@@ -167,8 +167,8 @@ describe('fetch:reddit', function() {
             }
         });
 
-        self.emitter.on('entry:store', () => {
-            throw new Error('entry:store should not have been called');
+        self.emitter.on('entry-store', () => {
+            throw new Error('entry-store should not have been called');
         });
 
         self.emitter.emit('fetch:reddit', self.feedId, self.feedUrl, () => {

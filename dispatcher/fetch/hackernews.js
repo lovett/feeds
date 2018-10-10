@@ -64,7 +64,7 @@ function getStories(feedId, feedUrl, callback, fetchId, itemIds) {
  * @param {String} feedUrl - The URL provided to the listener.
  * @param {String} fetchId - The unique identifier for this fetch.
  * @param {Object} story - The JSON object returned by the Hacker News API.
- * @fires entry:store
+ * @fires entry-store
  */
 function transformStory(feedId, feedUrl, fetchId, story) {
     let entry = {
@@ -92,7 +92,7 @@ function transformStory(feedId, feedUrl, fetchId, story) {
         entry.extras.keywords = [story.type];
     }
 
-    this.emit('entry:store', entry);
+    this.emit('entry-store', entry);
 
 }
 

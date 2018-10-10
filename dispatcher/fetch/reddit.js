@@ -64,7 +64,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             entry.extras.keywords = [data.link_flair_text];
         }
 
-        self.emit('entry:store', entry);
+        self.emit('entry-store', entry);
 
         if (isLast) {
             callback();
