@@ -9,7 +9,7 @@ const normalize = require('../../util/normalize');
  *
  * @callback entryStoreCallback
  * @param {error} [err] - Database error.
- * @param {Objet} entry - The storied entry.
+ * @param {Object} entry - The stored entry.
  *
  */
 
@@ -21,7 +21,6 @@ const normalize = require('../../util/normalize');
  * @event entry-store
  *
  */
-
 module.exports = function (entry, callback = () => {}) {
     const self = this;
 

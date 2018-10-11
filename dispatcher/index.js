@@ -16,6 +16,7 @@
  * @listens fetch
  * @listens schema
  * @listens startup
+ * @listens entry-assign
  * @listens entry-store
  * @listens feed-abandon
  * @listens feed-add
