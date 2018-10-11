@@ -5,7 +5,7 @@ const assert = require('assert');
 const events = require('events');
 const fetchReddit = require('../../dispatcher/fetch/reddit');
 
-describe('fetch:reddit', function() {
+describe('fetch-reddit', function() {
     beforeEach(function (done) {
         this.feedId = 1;
         this.fetchId = 'fetch';
@@ -124,7 +124,7 @@ describe('fetch:reddit', function() {
             assert.strictEqual(entry.author, 'the second author');
             assert.strictEqual(entry.body, 'the second body');
             assert.strictEqual(entry.extras.score, 1234);
-            assert.strictEqual(entry.extras.keywords, 'keyword3 keyword4');
+            assert.deepEqual(entry.extras.keywords, ['keyword3','keyword4']);
             assert.strictEqual(entry.discussion.commentCount, 4);
             done();
         });

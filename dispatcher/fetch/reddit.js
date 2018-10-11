@@ -56,12 +56,13 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             }
         };
 
-        if (data.selftxt) {
+        if (data.selftext) {
             entry.body = data.selftext;
         }
 
         if (data.link_flair_text) {
-            entry.extras.keywords = [data.link_flair_text];
+            const keywords = data.link_flair_text.split(' ');
+            entry.extras.keywords = keywords.map(keyword => keyword.toLowerCase());
         }
 
         self.emit('entry-store', entry);

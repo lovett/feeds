@@ -83,7 +83,6 @@ describe('fetch-hackernews', function() {
         });
     });
 
-
     it('triggers entry storage on successful request', function (done) {
         const self = this;
         let entryStoreCount = 0;
@@ -113,7 +112,7 @@ describe('fetch-hackernews', function() {
             assert.strictEqual(entry.url, 'http://example.com');
             assert.strictEqual(entry.extras.dead, false);
             assert.strictEqual(entry.extras.score, 1);
-            assert.strictEqual(entry.extras.keywords, 'story');
+            assert.deepEqual(entry.extras.keywords, ['story']);
             assert.strictEqual(entry.discussion.url, 'https://news.ycombinator.com/item?id=1');
             assert.strictEqual(entry.discussion.label, 'news.ycombinator.com');
             assert.strictEqual(entry.discussion.commentCount, 12345);
