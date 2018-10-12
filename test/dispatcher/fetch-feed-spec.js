@@ -46,49 +46,29 @@ describe('fetch-feed', function() {
         });
     });
 
-    it('triggers discussion recount', function (done) {
-        const fixture = path.join(__dirname, 'fixtures', 'rss.xml');
-        this.requestMock.replyWithFile(200, fixture, {
-            'Content-Type': 'application/rss+xml'
-        });
-
-        this.emitter.on('discussion:recount', (feedUrl, guids) => {
-            assert.strictEqual(feedUrl, this.feedUrl);
-            assert.strictEqual(guids.length, 1);
-            done();
-        });
-
-        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl);
-    });
-
     it('skips items without guids', function (done) {
         const fixture = path.join(__dirname, 'fixtures', 'rss-no-guid.xml');
         this.requestMock.replyWithFile(200, fixture, {
             'Content-Type': 'application/rss+xml'
         });
 
-        this.emitter.on('discussion:recount', (feedUrl, guids) => {
-            assert.strictEqual(feedUrl, this.feedUrl);
-            assert.strictEqual(guids.length, 0);
-            done();
+        this.emitter.on('entry:store', (feedUrl, guids) => {
+            assert.fail('Entry without guid should not be stored');
         });
 
-        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl);
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
+            assert.ifError(err);
+            done();
+        });
     });
 
     it('triggers entry storage on successful request', function (done) {
         let entryStoreCount = 0;
         let storedEntries = [];
-        let storedGuids = [];
 
         const fixture = path.join(__dirname, 'fixtures', 'google-cloud.atom');
         this.requestMock.replyWithFile(200, fixture, {
             'Content-Type': 'applciation/atom+xml'
-        });
-
-        this.emitter.on('discussion:recount', (feedUrl, guids) => {
-            assert.strictEqual(feedUrl, this.feedUrl);
-            storedGuids = guids;
         });
 
         this.emitter.on('entry-store', (entry) => {
@@ -97,7 +77,6 @@ describe('fetch-feed', function() {
 
         this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
             assert.ifError(err);
-            assert.strictEqual(storedEntries.length, storedGuids.length);
 
             storedEntries.forEach((entry) => {
                 assert.strictEqual(entry.feedUrl, this.feedUrl);
@@ -111,16 +90,10 @@ describe('fetch-feed', function() {
     it('recognized Slashdot-specific comment markup', function (done) {
         let entryStoreCount = 0;
         let storedEntries = [];
-        let storedGuids = [];
 
         const fixture = path.join(__dirname, 'fixtures', 'slashdot.rdf');
         this.requestMock.replyWithFile(200, fixture, {
             'Content-Type': 'text/rdf'
-        });
-
-        this.emitter.on('discussion:recount', (feedUrl, guids) => {
-            assert.strictEqual(feedUrl, this.feedUrl);
-            storedGuids = guids;
         });
 
         this.emitter.on('entry-store', (entry) => {
@@ -129,7 +102,6 @@ describe('fetch-feed', function() {
 
         this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
             assert.ifError(err);
-            assert.strictEqual(storedEntries.length, storedGuids.length);
 
             const entry = storedEntries[0];
 

@@ -132,8 +132,6 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             return;
         }
 
-        self.emit('discussion:recount', feedUrl, guids);
-
         self.emit('stats:fetch', feedId, fetchId, responseStatus);
 
         callback(null);

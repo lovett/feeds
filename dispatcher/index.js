@@ -91,7 +91,6 @@ emitter.on('entry:assign', require('./entry/assign'));
 
 // Discussions
 emitter.on('discussion:store', require('./discussion/store'));
-emitter.on('discussion:recount', require('./discussion/recount'));
 emitter.on('discussion:list', require('./discussion/list'));
 
 // Filtering
