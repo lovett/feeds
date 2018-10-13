@@ -12,12 +12,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "5.6.1",
+    "eslint": "5.7.0",
     "eslint-plugin-mocha": "5.2.0",
     "jsdoc": "3.5.5",
-    "lolex": "2.7.5",
+    "lolex": "3.0.0",
     "mocha": "5.2.0",
-    "nock": "10.0.0",
+    "nock": "10.0.1",
     "nodemon": "1.18.4",
     "nyc": "13.0.1",
     "sinon": "6.3.5"
@@ -42,6 +42,6 @@
     "restify-errors": "6.1.1",
     "sqlite3": "4.0.2",
     "xml2js": "0.4.19",
-    "xmlbuilder": "10.0.0"
+    "xmlbuilder": "10.1.0"
   }
 }
