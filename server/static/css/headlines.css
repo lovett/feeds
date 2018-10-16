@@ -70,12 +70,13 @@ section > header {
 
 #subscriptions a {
     color: inherit;
+    flex-grow: 1;
 }
 
 #subscriptions .actions {
     font-size: .85em;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     color: #33a1fD;
 }
 

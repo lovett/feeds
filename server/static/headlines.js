@@ -165,12 +165,6 @@ const SubscriptionList = {
 
         let actions = [];
 
-        node = m('a.overview', {
-            href: '/',
-            oncreate: m.route.link,
-        }, SubscriptionViewModel.getLabel('overview'));
-        actions.push(node);
-
         // add link
         node = m('a.add', {
             href: '#',
@@ -217,9 +211,6 @@ const SubscriptionList = {
                 }
             }, SubscriptionViewModel.getLabel('cancelEdit'));
             actions.push(node);
-        } else {
-            node = m('p', SubscriptionViewModel.getLabel('empty'));
-            actions.push(node);
         }
 
         nodes.push(m('.actions', actions));
@@ -232,13 +223,15 @@ const SubscriptionList = {
         nodes.push(node);
 
         // feed list
-        node = m('ul.feeds', SubscriptionViewModel.feeds.map((feed) => {
-            return m(SubscriptionListItem, {
-                editing: SubscriptionViewModel.editing,
-                subscription: feed
-            });
-        }));
-        nodes.push(node);
+        if (SubscriptionViewModel.hasFeeds()) {
+            node = m('ul.feeds', SubscriptionViewModel.feeds.map((feed) => {
+                return m(SubscriptionListItem, {
+                    editing: SubscriptionViewModel.editing,
+                    subscription: feed
+                });
+            }));
+            nodes.push(node);
+        }
 
         return nodes;
     }
@@ -488,6 +481,15 @@ const FeedForm = {
     }
 };
 
+const SubscriptionOverview = {
+    view: function (vnode) {
+        let node;
+        node = m('p', `Subscribed to ${SubscriptionViewModel.feeds.length} feeds`);
+
+        return node;
+    }
+};
+
 const Layout = {
     view: function(vnode) {
         let sections = [m('section#subscriptions', m(SubscriptionList))];
@@ -500,7 +502,7 @@ m.route(document.body, '/', {
         render: () => {
             SubscriptionViewModel.activeId = null;
             return m(Layout, [
-                m('section#overview')
+                m('section#overview', m(SubscriptionOverview))
             ]);
         }
     },
