@@ -461,6 +461,7 @@ const FeedForm = {
                 onclick: function (e) {
                     e.preventDefault();
                     Subscription.remove(vnode.attrs.values);
+                    m.route.set('/');
                 }
             }, 'unsubscribe'));
         }
