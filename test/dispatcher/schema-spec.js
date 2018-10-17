@@ -58,7 +58,14 @@ describe('schema', function() {
         });
     });
 
-    it('returns on invalid schema definition', function (done) {
+    it('invokes a default callback if one is not provided', function (done) {
+        const emitter = new events.EventEmitter();
+        emitter.on('schema', schema);
+        emitter.emit('schema', this.schemaRoot, 999);
+        done();
+    });
+
+    it('invokes callback on invalid schema definition', function (done) {
         const self = this;
 
         const fixtureRoot = path.join(__dirname, 'fixtures/invalid-schema');

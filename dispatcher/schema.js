@@ -47,7 +47,6 @@ module.exports = function (schemaRoot, version, callback = () => {}) {
         fs.readFile(sqlPath, 'utf8', (_, data) => {
             self.db.exec(data, (err) => {
                 if (err) {
-                    self.emit('log:error', `Failed to load schema file: ${err.message}`);
                     callback(err);
                     return;
                 }
