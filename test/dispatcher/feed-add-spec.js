@@ -33,7 +33,7 @@ describe('feed-add', function() {
         self.emitter.emit('feed-add', [{url: self.feedUrl}], (err, feedIds) => {
             assert.ifError(err);
             assert.strictEqual(feedIds.length, 1);
-            assert.strictEqual(feedIds[0], 1);
+            assert.strictEqual(feedIds[0].id, 1);
 
             self.db.all('SELECT * FROM feeds', (err, rows) => {
                 if (err) {
@@ -88,7 +88,7 @@ describe('feed-add', function() {
             assert.ifError(err);
 
             assert.strictEqual(feedIds.length, 1);
-            assert.strictEqual(feedIds[0], 1);
+            assert.strictEqual(feedIds[0].id, 1);
             self.db.all('SELECT * FROM feeds', (err, rows) => {
                 if (err) {
                     throw err;
