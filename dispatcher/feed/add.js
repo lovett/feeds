@@ -8,7 +8,7 @@ const url = require('url');
  *
  * @callback feedAddCallback
  * @param {error} [err] - Database error.
- * @param {Number[]} [feedIds] - List of ids for the added or existing URLs.
+ * @param {Object[]} feeds - A list of the added feed IDs and their URLs.
  */
 
 
@@ -58,11 +58,10 @@ module.exports = function (feeds, callback = () => {}) {
 
             const selectPlaceholders = urls.map(() => '?').join(',');
             this.db.all(
-                `SELECT id FROM feeds WHERE url IN (${selectPlaceholders})`,
+                `SELECT id, url FROM feeds WHERE url IN (${selectPlaceholders})`,
                 urls,
                 (err, rows) => {
-                    const ids = rows.map((row) => row.id);
-                    callback(err, ids);
+                    callback(err, rows);
                 }
             );
         }
