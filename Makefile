@@ -21,9 +21,10 @@ setup:
 	npm outdated || true
 
 #
-# Run the server.
+# Run the dev server.
 #
 server: dummy
+	pkill -f "nodemon" || true
 	nodemon
 
 #
