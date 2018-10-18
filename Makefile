@@ -37,14 +37,19 @@ resetdb: dummy
 #
 # Run the test suite.
 #
-test: dummy
+test: test-dispatcher test-ui
+
+test-dispatcher: dummy
 	mocha --bail --reporter min test/dispatcher
+
+test-ui: dummy
+	mocha --bail --reporter min ui/test
 
 #
 # Generate a test coverage report.
 #
 coverage: dummy
-	nyc --reporter=html mocha --bail --reporter min test/dispatcher
+	nyc --reporter=html mocha --bail --reporter min ui/test coverage/ui
 
 #
 # Check for coding style violations.
@@ -67,3 +72,7 @@ puc: dummy
 	git checkout master
 	git add package.json package-lock.json
 	git commit -m "Upgrade npm packages"
+
+
+ui: dummy
+	rollup -c -w

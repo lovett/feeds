@@ -20,10 +20,13 @@ tmux attach-session -d -t "$PROJECT_NAME" || {
     ## 1: Shell
     tmux new-window -a -t "$PROJECT_NAME" bash
 
-    ## 2: Server
+    ## 2: Rollup
+    tmux new-window -a -t "$PROJECT_NAME" -n "rollup" "make ui"
+
+    ## 3: Server
     tmux new-window -a -t "$PROJECT_NAME" -n "server" "make server"
 
-    ## 3: Database
+    ## 4: Database
     tmux new-window -a -t "$PROJECT_NAME" -n "db" bash
 
     tmux select-window -t "$PROJECT_NAME":0
