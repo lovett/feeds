@@ -35,6 +35,7 @@
  * @listens filter-store
  * @listens filter-remove
  * @listens stats-fetch
+ * @listens stats-by-feed
  */
 'use strict';
 
@@ -85,6 +86,7 @@ emitter.on('fetch:reddit', require('./fetch/reddit'));
 
 // Stats
 emitter.on('stats-fetch', require('./stats/fetch'));
+emitter.on('stats-by-feed', require('./stats/by-feed'));
 
 // Entries
 emitter.on('entry-store', require('./entry/store'));

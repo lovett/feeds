@@ -34,7 +34,6 @@ export default {
             m('a.feed', {
                 href: `/feed/${sub.id}`,
                 title: sub.url,
-
                 oncreate: m.route.link
             }, sub.title),
             m('span.entry-count', sub.entryCount),

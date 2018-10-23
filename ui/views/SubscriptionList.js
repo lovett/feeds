@@ -83,7 +83,6 @@ export default {
 
         // feed list
         if (Subscription.hasFeeds()) {
-            console.log('yes');
             node = m('ul.feeds', Subscription.feeds.map((feed) => {
                 return m(SubscriptionListItem, {
                     selected: feed.id === vnode.attrs.active,

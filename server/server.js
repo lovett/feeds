@@ -60,6 +60,8 @@ server.post('/feed', require('./routes/feed-create'));
 server.put('/feed', require('./routes/feed-update'));
 server.del('/feed', require('./routes/feed-destroy'));
 
+server.get('/history/:feedId', require('./routes/feed-history'));
+
 server.get('*', restify.plugins.serveStatic({
     directory: './server/static',
     default: 'index.html',

@@ -13,6 +13,12 @@ export default {
     view: function (vnode) {
         let node = null, nodes = [];
 
+        node = m('a', {
+            href: `/feed/${vnode.attrs.key}/history`,
+            oncreate: m.route.link
+        }, 'History');
+        nodes.push(node);
+
         node = m('ul', Feed.entries.map(function (entry) {
             return m(EntryListItem, entry);
         }));

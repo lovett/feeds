@@ -65,7 +65,9 @@ export default {
 
         // Fetch if any feeds have passed their nextFetch date.
         const stale = this.feeds.some((feed) => {
-            console.log(feed.nextFetch, this.fetchedOn, feed.nextFetch < this.fetchedOn);
+            if (feed.nextFetch < this.fetchedOn) {
+                console.log(`{$feed.title} is supposed to be fetched on ${new Date(feed.fetchedOn)} but the last fetch by the ui was ${new Date(this.fetchedOn)} so the feed is stale`);
+            }
             return feed.nextFetch < this.fetchedOn;
         });
 
