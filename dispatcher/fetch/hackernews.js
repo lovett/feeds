@@ -105,7 +105,7 @@ function transformStory(feedId, feedUrl, fetchId, story) {
  * @param {String} feedUrl - URL of the feed to be fetched.
  * @param {fetchCallback} callback - A function to invoke on success or failure.
  * @event fetch-hackernews
- * @fires stats:fetch
+ * @fires stats-fetch
  * @fires feed-update
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
@@ -126,13 +126,13 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     }, (err, res) => {
         if (err) {
             // Status code zero is used to indicate fetch failure.
-            this.emit('stats:fetch', feedId, fetchId, 0);
+            this.emit('stats-fetch', feedId, fetchId, 0);
             callback(err);
             return;
         }
 
         if (res.statusCode !== 200) {
-            this.emit('stats:fetch', feedId, fetchId, res.statusCode);
+            this.emit('stats-fetch', feedId, fetchId, res.statusCode);
             callback(new Error(`${baseUrl.hostname} responded with ${res.statusCode}`));
             return;
         }

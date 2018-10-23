@@ -23,7 +23,7 @@ describe('fetch-hackernews', function() {
     });
 
     it('triggers stat fetch on error', function (done) {
-        this.emitter.on('stats:fetch', (feedId, fetchId, statusCode) => {
+        this.emitter.on('stats-fetch', (feedId, fetchId, statusCode) => {
             assert.strictEqual(feedId, this.feedId);
             assert.strictEqual(statusCode, 0);
             done();
@@ -37,7 +37,7 @@ describe('fetch-hackernews', function() {
     it('triggers stat fetch on non-200 response', function (done) {
         const status = 999;
 
-        this.emitter.on('stats:fetch', (feedId, fetchId, statusCode) => {
+        this.emitter.on('stats-fetch', (feedId, fetchId, statusCode) => {
             assert.strictEqual(feedId, this.feedId);
             assert.strictEqual(statusCode, status);
             done();

@@ -25,7 +25,7 @@ const url = require('url');
  * @param {String} feedUrl - URL of the feed to be fetched.
  * @param {fetchCallback} - A function to invoke on success or failure.
  * @event fetch
- * @fires fetch:reddit
+ * @fires fetch-reddit
  * @fires fetch-hackernews
  * @fires fetch-feed
  */
@@ -35,7 +35,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     let delegate = 'fetch-feed';
 
     if (host.indexOf('reddit.com') > -1) {
-        delegate = 'fetch:reddit';
+        delegate = 'fetch-reddit';
     }
 
     if (host === 'news.ycombinator.com') {

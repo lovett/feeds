@@ -76,7 +76,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         if (err) {
             self.emit('log:error', `Failed to fetch Reddit JSON: ${err.message}`);
             self.emit(
-                'stats:fetch',
+                'stats-fetch',
                 feedId,
                 fetchId,
                 0,
@@ -88,7 +88,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         if (!res.body.data || !res.body.data.children || res.body.data.children.length < 1) {
             self.emit('log:warning', 'Reddit JSON feed has no children');
             self.emit(
-                'stats:fetch',
+                'stats-fetch',
                 feedId,
                 fetchId,
                 res.statusCode,
@@ -107,7 +107,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         const firstEntry = res.body.data.children[0].data;
 
         self.emit(
-            'stats:fetch',
+            'stats-fetch',
             feedId,
             fetchId,
             res.statusCode,

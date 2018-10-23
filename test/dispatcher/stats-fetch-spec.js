@@ -8,7 +8,7 @@ const assert = require('assert');
 const events = require('events');
 const path = require('path');
 
-describe('stats:fetch', function() {
+describe('stats-fetch', function() {
 
     beforeEach(function (done) {
         const self = this;
@@ -19,7 +19,7 @@ describe('stats:fetch', function() {
         this.emitter = new events.EventEmitter();
         this.emitter.unlisten = function () {};
         this.emitter.on('startup', startup);
-        this.emitter.on('stats:fetch', statsFetch);
+        this.emitter.on('stats-fetch', statsFetch);
         this.emitter.on('schema', schema);
 
         this.emitter.emit('startup', this.db, this.schemaRoot, () => {
@@ -45,7 +45,7 @@ describe('stats:fetch', function() {
 
     it('adds a row to the stats table', function (done) {
         const self = this;
-        self.emitter.emit('stats:fetch', self.feedId, self.fetchId, 200, (err, id) => {
+        self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 200, (err, id) => {
             assert.strictEqual(err, null);
             assert.strictEqual(id, 1);
             done();
@@ -60,7 +60,7 @@ describe('stats:fetch', function() {
                 throw err;
             }
 
-            self.emitter.emit('stats:fetch', self.feedId, self.fetchId, 200, (err, id) => {
+            self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 200, (err, id) => {
                 assert(err);
                 assert.strictEqual(id, undefined);
                 done();
@@ -76,6 +76,6 @@ describe('stats:fetch', function() {
             done();
         });
 
-        self.emitter.emit('stats:fetch', self.feedId, self.fetchId, 404, () => {});
+        self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 404, () => {});
     });
 });

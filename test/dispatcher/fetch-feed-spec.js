@@ -23,7 +23,7 @@ describe('fetch-feed', function() {
     });
 
     it('triggers stat fetch on error', function (done) {
-        this.emitter.on('stats:fetch', (feedId, fetchId, statusCode) => {
+        this.emitter.on('stats-fetch', (feedId, fetchId, statusCode) => {
             assert.strictEqual(feedId, this.feedId);
             assert.strictEqual(statusCode, 0);
             done();
@@ -36,7 +36,7 @@ describe('fetch-feed', function() {
     it('triggers stat fetch on non-feed response', function (done) {
         this.requestMock.reply(200, '');
 
-        this.emitter.on('stats:fetch', (feedId, fetchId, statusCode) => {
+        this.emitter.on('stats-fetch', (feedId, fetchId, statusCode) => {
             assert.strictEqual(statusCode, 1);
         });
 

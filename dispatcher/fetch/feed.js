@@ -65,7 +65,7 @@ function transformItem(feedId, feedUrl, fetchId, item) {
  * @param {String} feedUrl - URL of the feed to be fetched.
  * @param {fetchCallback} callback - A function to invoke on success or failure.
  * @event fetch-feed
- * @fires stats:fetch
+ * @fires stats-fetch
  * @fires feed-update
  */
 module.exports = function (feedId, feedUrl, callback = () => {}) {
@@ -120,19 +120,19 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     feedStream.on('done', function (err) {
         if (err) {
             // Status code zero is used to indicate fetch failure.
-            self.emit('stats:fetch', feedId, fetchId, 0);
+            self.emit('stats-fetch', feedId, fetchId, 0);
             callback(err);
             return;
         }
 
         if (parseError) {
             // Status code one is used to indicate parsing failure.
-            self.emit('stats:fetch', feedId, fetchId, 1);
+            self.emit('stats-fetch', feedId, fetchId, 1);
             callback(parseError);
             return;
         }
 
-        self.emit('stats:fetch', feedId, fetchId, responseStatus);
+        self.emit('stats-fetch', feedId, fetchId, responseStatus);
 
         callback(null);
     });

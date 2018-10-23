@@ -82,7 +82,7 @@ emitter.on('feed-entries', require('./feed/entries'));
 emitter.on('fetch', require('./fetch/index'));
 emitter.on('fetch-feed', require('./fetch/feed'));
 emitter.on('fetch-hackernews', require('./fetch/hackernews'));
-emitter.on('fetch:reddit', require('./fetch/reddit'));
+emitter.on('fetch-reddit', require('./fetch/reddit'));
 
 // Stats
 emitter.on('stats-fetch', require('./stats/fetch'));
