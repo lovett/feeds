@@ -1,29 +1,37 @@
+/** @module stats/fetch */
 'use strict';
+
+/**
+ * Callback for the stats-fetch event.
+ *
+ * @callback statsFetchCallback
+ * @param {error} [err] - Database error.
+ */
 
 /**
  * Record the fetch id and HTTP status of a feed fetch.
  *
  * Knowing this makes it possible to track a feed's liveliness over
  * time.
- */
-module.exports = function (feedId, fetchid, httpStatus, callback = () => {}) {
-    var self = this;
+ *
+ * @param {Number} feedId - The unique identifier of a feed.
+ * @param {Number} fetchId - The unique identifier of a fetch.
+ * @param {Number} httpStatus - The HTTP code that was returned when the feed was requested.
+ * @param {statsFetchCallback} callback - A function to invoke on success or failure.
+ * @fires feed-assess
+*/
+module.exports = function (feedId, fetchId, httpStatus, callback = () => {}) {
+    const self = this;
 
     self.db.run(
-        'INSERT INTO fetchStats (feedId, fetchid, httpStatus) VALUES (?, ?, ?)',
-        [feedId, fetchid, httpStatus],
+        'INSERT INTO fetchStats (feedId, fetchId, httpStatus) VALUES (?, ?, ?)',
+        [feedId, fetchId, httpStatus],
         function (err) {
-            if (err) {
-                self.emit('log:error', `Failed to insert into fetchStats table: ${err.message}`);
-                callback(err);
-                return;
-            }
-
             if (httpStatus !== 200) {
                 self.emit('feed-assess', feedId);
             }
 
-            callback(null, this.lastID);
+            callback(err);
         }
     );
 };

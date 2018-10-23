@@ -34,6 +34,7 @@
  * @listens filter-apply
  * @listens filter-store
  * @listens filter-remove
+ * @listens stats-fetch
  */
 'use strict';
 
@@ -83,7 +84,7 @@ emitter.on('fetch-hackernews', require('./fetch/hackernews'));
 emitter.on('fetch:reddit', require('./fetch/reddit'));
 
 // Stats
-emitter.on('stats:fetch', require('./stats/fetch'));
+emitter.on('stats-fetch', require('./stats/fetch'));
 
 // Entries
 emitter.on('entry-store', require('./entry/store'));
