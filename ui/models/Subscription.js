@@ -63,10 +63,21 @@ export default {
             return;
         }
 
+        // Fetch if a feed has just been added.
+        const newlyAdded = this.feeds.some((feed) => {
+            const age = Math.abs(feed.subscribed - Date.now()/1000);
+            return feed.entryCount === 0 && age < 20;
+        });
+
+        if (newlyAdded) {
+            this.load();
+            return;
+        }
+
         // Fetch if any feeds have passed their nextFetch date.
         const stale = this.feeds.some((feed) => {
             if (feed.nextFetch < this.fetchedOn) {
-                console.log(`{$feed.title} is supposed to be fetched on ${new Date(feed.fetchedOn)} but the last fetch by the ui was ${new Date(this.fetchedOn)} so the feed is stale`);
+                console.log(`${feed.title} is supposed to be fetched on ${new Date(feed.nextFetch)} but the last fetch by the ui was ${new Date(this.fetchedOn)} so the feed is stale`);
             }
             return feed.nextFetch < this.fetchedOn;
         });
@@ -87,8 +98,8 @@ export default {
             withCredentials: true
         }).then((res) => {
             this.load();
-            Subscription.adding = false;
-            Subscription.editing = false;
+            this.adding = false;
+            this.editing = false;
         }).catch((e) => {
             console.log(e);
         });
