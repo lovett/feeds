@@ -20,14 +20,14 @@
  * @param {statsFetchCallback} callback - A function to invoke on success or failure.
  * @fires feed-assess
 */
-module.exports = function (feedId, fetchId, httpStatus, callback = () => {}) {
+module.exports = function (feedId, fetchId, httpStatus, parseFail, callback = () => {}) {
     const self = this;
 
     self.db.run(
-        'INSERT INTO fetchStats (feedId, fetchId, httpStatus) VALUES (?, ?, ?)',
-        [feedId, fetchId, httpStatus],
+        'INSERT INTO fetchStats (feedId, fetchId, httpStatus, parseFail) VALUES (?, ?, ?, ?)',
+        [feedId, fetchId, httpStatus, parseFail],
         function (err) {
-            if (httpStatus !== 200) {
+            if (httpStatus !== 200 || parseFail !== false) {
                 self.emit('feed-assess', feedId);
             }
 

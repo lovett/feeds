@@ -111,7 +111,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             feedId,
             fetchId,
             res.statusCode,
-            res.body.data.children.length
+            false
         );
 
         self.emit(

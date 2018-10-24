@@ -126,13 +126,13 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     }, (err, res) => {
         if (err) {
             // Status code zero is used to indicate fetch failure.
-            this.emit('stats-fetch', feedId, fetchId, 0);
+            this.emit('stats-fetch', feedId, fetchId, 0, false);
             callback(err);
             return;
         }
 
         if (res.statusCode !== 200) {
-            this.emit('stats-fetch', feedId, fetchId, res.statusCode);
+            this.emit('stats-fetch', feedId, fetchId, res.statusCode, false);
             callback(new Error(`${baseUrl.hostname} responded with ${res.statusCode}`));
             return;
         }

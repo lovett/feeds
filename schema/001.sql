@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS fetchStats
   fetchid TEXT,
   feedId INTEGER NOT NULL,
   httpStatus INTEGER DEFAULT 0,
+  parseFail BOOLEAN DEFAULT 0,
   FOREIGN KEY(feedId) REFERENCES feeds(id) ON DELETE CASCADE
 );
 

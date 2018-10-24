@@ -91,7 +91,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
             title: meta.title,
             updated: meta.date,
             url: meta.xmlurl
-        }, () => {});
+        });
     });
 
     parser.on('readable', function () {
@@ -118,21 +118,19 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
     });
 
     feedStream.on('done', function (err) {
+        let callbackError, parseFail = false;
         if (err) {
             // Status code zero is used to indicate fetch failure.
-            self.emit('stats-fetch', feedId, fetchId, 0);
-            callback(err);
-            return;
+            responseStatus = 0;
+            callbackError = err;
         }
 
         if (parseError) {
-            // Status code one is used to indicate parsing failure.
-            self.emit('stats-fetch', feedId, fetchId, 1);
-            callback(parseError);
-            return;
+            callbackError = parseError;
+            parseFail = true;
         }
 
-        self.emit('stats-fetch', feedId, fetchId, responseStatus);
+        self.emit('stats-fetch', feedId, fetchId, responseStatus, parseFail);
 
         callback(null);
     });
