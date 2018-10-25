@@ -1,6 +1,7 @@
 'use strict';
 
 import m from 'mithril';
+import FetchStat from './FetchStat';
 
 export default class Feed {
     constructor() {
@@ -17,13 +18,11 @@ export default class Feed {
         this.labels = [];
         this.active = false;
         this.history = [];
-        this.labels = {
-            history: {}
-        };
+        this.labels = {};
     }
 
-    getHistoryLabel(key) {
-        return this.labels.history[key];
+    getLabel(key) {
+        return this.labels[key];
     }
 
     load() {
@@ -48,10 +47,10 @@ export default class Feed {
         return m.request({
             method: 'GET',
             url: `/history/${this.id}`,
-            withCredentials: true
-        }).then((res) => {
-            this.history = res.data.entries;
-            this.labels['history'] = res.meta.labels;
+            withCredentials: true,
+            type: FetchStat
+        }).then(history => {
+            this.history = history;
         });
     }
 

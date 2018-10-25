@@ -15,19 +15,27 @@ module.exports = (req, res, next) => {
             return next(err);
         }
 
-        res.send({
-            meta: {
-                labels: {
-                    created: 'Date',
-                    httpStatus: 'HTTP Status Code',
-                    entryCount: 'Entries Added'
-                }
-            },
+        const labelledEntries = entries.map(entry => {
+            return {
+                created: {
+                    value: entry.created,
+                    label: 'Fetch Date',
+                    treat_as: 'date'
+                },
 
-            data: {
-                entries: entries
-            }
+                httpStatus: {
+                    value: entry.httpStatus,
+                    label: 'HTTP Status Code'
+                },
+
+                entryCount: {
+                    value: entry.entryCount,
+                    label: 'Entries Added'
+                }
+            };
         });
+
+        res.send(labelledEntries);
         next();
     });
 };
