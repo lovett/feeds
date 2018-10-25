@@ -17,15 +17,11 @@ module.exports = (req, res, next) => {
 
         res.send({
             meta: {
-                labels: {},
-
-                template: {},
-
-                fields: [
-                    {name: 'created', title: 'Date', type: 'timestamp', create: false, update: false},
-                    {name: 'httpStatus', title: 'HTTP Status Code', type: 'number', create: false, update: false},
-                    {name: 'entryCount', title: 'Entries Added', type: 'number', create: false, update: false},
-                ],
+                labels: {
+                    created: 'Date',
+                    httpStatus: 'HTTP Status Code',
+                    entryCount: 'Entries Added'
+                }
             },
 
             data: {

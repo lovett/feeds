@@ -8,6 +8,10 @@ import SubscriptionList from './views/SubscriptionList';
 import EntryList from './views/EntryList';
 import History from './views/History';
 
+import Subscription from './models/Subscription';
+
+Subscription.startPolling();
+
 m.route(document.body, '/', {
     '/': {
         render: () => {
@@ -20,22 +24,38 @@ m.route(document.body, '/', {
 
     '/feed/:key': {
         render: (vnode) => {
+            const feed = Subscription.activate(vnode.attrs.key);
+            if (!feed) {
+                return;
+            }
+
+            feed.load();
+
             return m(Layout, [
-                m('section#subscriptions', m(SubscriptionList, {
-                    active: parseInt(vnode.attrs.key, 10)
-                })),
-                m('section#entries', m(EntryList, vnode.attrs))
+                m('section#subscriptions', m(SubscriptionList)),
+                m('section#entries', m(EntryList, {
+                    feed: feed,
+                    entries: feed.entries
+                }))
             ]);
         }
     },
 
     '/feed/:key/history': {
         render: (vnode) => {
+            const feed = Subscription.activate(vnode.attrs.key);
+            if (!feed) {
+                return;
+            }
+
+            feed.loadHistory();
+
             return m(Layout, [
-                m('section#subscriptions', m(SubscriptionList, {
-                    active: parseInt(vnode.attrs.key, 10)
-                })),
-                m('section#history', m(History, vnode.attrs))
+                m('section#subscriptions', m(SubscriptionList)),
+                m('section#history', m(History, {
+                    feed,
+                    history: feed.history
+                }))
             ]);
         }
     }

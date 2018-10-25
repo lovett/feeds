@@ -36,7 +36,9 @@ module.exports = (req, res, next) => {
                 fields: [
                     {name: 'url', title: 'URL', type: 'text', create: true, update: false, required: true},
                     {name: 'title', title: 'Title', type: 'text', create: true, update: true, required: false},
-                    {name: 'id', title: null, type: 'hidden', create: false, update: false, required: false}
+                    {name: 'id', title: null, type: 'hidden', create: false, update: false, required: false},
+                    {name: 'nextFetch', title: null, type: 'timestamp', create: false, update: false, required: false},
+                    {name: 'subscribed', title: null, type: 'timestamp', create: false, update: false, required: false}
                 ]
             },
             data: {

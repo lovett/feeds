@@ -2,24 +2,25 @@
 
 import m from 'mithril';
 
-import Feed from '../models/Feed';
 import EntryListItem from './EntryListItem';
 
 export default {
-    oninit: function (vnode) {
-        Feed.load(vnode.attrs.key);
-    },
-
     view: function (vnode) {
+        const feed = vnode.attrs.feed;
+        const entries = vnode.attrs.entries;
+
         let node = null, nodes = [];
 
         node = m('a', {
-            href: `/feed/${vnode.attrs.key}/history`,
+            href: `/feed/${feed.id}/history`,
             oncreate: m.route.link
         }, 'History');
         nodes.push(node);
 
-        node = m('ul', Feed.entries.map(function (entry) {
+        node = m('p', `Next fetch: ${feed.nextFetchFormatted}`);
+        nodes.push(node);
+
+        node = m('ul', entries.map(function (entry) {
             return m(EntryListItem, entry);
         }));
         nodes.push(node);

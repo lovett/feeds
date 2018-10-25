@@ -5,16 +5,29 @@ import FeedForm from './FeedForm';
 import Subscription from '../models/Subscription';
 
 export default {
-    selected: false,
     cssClass: null,
 
-    onbeforeupdate: function (vnode) {
-        this.cssClass = null;
+    oninit: function (vnode) {
         if (vnode.attrs.selected) {
-            this.cssClass = 'active';
+            this.activate();
         }
     },
 
+    onbeforeupdate: function (vnode) {
+        if (vnode.attrs.selected) {
+            this.activate();
+        } else {
+            this.deactivate();
+        }
+    },
+
+    activate: function () {
+        this.cssClass = 'active';
+    },
+
+    deactivate: function () {
+        this.cssClass = null;
+    },
 
     asForm: function (vnode) {
         return m(FeedForm, {

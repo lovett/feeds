@@ -1,6 +1,8 @@
 'use strict';
 
 import m from 'mithril';
+import formatter from '../formatter';
+import Feed from './Feed';
 
 let intervalId = null;
 
@@ -15,6 +17,19 @@ export default {
     adding: false,
     editing: false,
 
+    activate: function (feedId) {
+        feedId = parseInt(feedId, 10);
+        this.feeds.forEach((feed) => {
+            feed.active = feed.id === feedId;
+        });
+
+        return this.getActiveFeed();
+    },
+
+    getActiveFeed: function () {
+        return this.feeds.find(feed => feed.active);
+    },
+
     hasFeeds: function () {
         return this.feeds.length > 0;
     },
@@ -28,17 +43,18 @@ export default {
     },
 
     load: function () {
-        this.fetchedOn = Math.floor(Date.now() / 1000);
         return m.request({
             method: 'GET',
-            url: `${this.endpoint}?${this.fetchedOn}`,
+            url: this.endpoint,
             withCredentials: true
         }).then((res) => {
-            this.feeds =  res.data.feeds;
+            this.feeds = res.data.feeds.map(feed => Feed.fromObject(feed));
             this.labels = res.meta.labels;
             this.fields = res.meta.fields;
             this.template = res.meta.template;
             this.newFeed = Object.assign({}, res.meta.template);
+        }).finally(() => {
+            this.fetchedOn = new Date();
         });
     },
 
@@ -64,23 +80,17 @@ export default {
         }
 
         // Fetch if a feed has just been added.
-        const newlyAdded = this.feeds.some((feed) => {
-            const age = Math.abs(feed.subscribed - Date.now()/1000);
-            return feed.entryCount === 0 && age < 20;
-        });
+        const newlyAdded = this.feeds.some(feed => feed.isNewlyAdded());
 
         if (newlyAdded) {
             this.load();
             return;
         }
 
+        return;
+
         // Fetch if any feeds have passed their nextFetch date.
-        const stale = this.feeds.some((feed) => {
-            if (feed.nextFetch < this.fetchedOn) {
-                console.log(`${feed.title} is supposed to be fetched on ${new Date(feed.nextFetch)} but the last fetch by the ui was ${new Date(this.fetchedOn)} so the feed is stale`);
-            }
-            return feed.nextFetch < this.fetchedOn;
-        });
+        const stale = this.feeds.some(feed => feed.isStale());
 
         if (stale) {
             this.load();

@@ -9,12 +9,6 @@ import FeedForm from './FeedForm';
  * Container for a list of subscribed feeds.
  */
 export default {
-    oninit: function (vnode) {
-        Subscription.startPolling();
-    },
-
-
-
     view: function (vnode) {
         let node = null, nodes = [];
 
@@ -85,7 +79,7 @@ export default {
         if (Subscription.hasFeeds()) {
             node = m('ul.feeds', Subscription.feeds.map((feed) => {
                 return m(SubscriptionListItem, {
-                    selected: feed.id === vnode.attrs.active,
+                    selected: feed.active,
                     editing: Subscription.editing,
                     subscription: feed
                 });

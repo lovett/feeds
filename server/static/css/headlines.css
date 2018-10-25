@@ -83,6 +83,7 @@ section > header {
 #entries {
     padding: 1em;
     background-color: #fff;
+    color: #000;
     grid-column-start: 2;
 }
 
