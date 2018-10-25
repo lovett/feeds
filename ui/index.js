@@ -38,7 +38,7 @@ m.route(document.body, '/', {
                 m('section#subscriptions', m(SubscriptionList, {
                     feed,
                 })),
-                m('section#entries', m(EntryList, {
+                m('section#feed-detail', m(EntryList, {
                     feed: feed,
                     entries: feed.entries
                 }))

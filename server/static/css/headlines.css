@@ -60,8 +60,6 @@ section > [hidden] {
 }
 
 section > header {
-    background-color: #31393c;
-    color: #fff;
 }
 
 #subscriptions {
@@ -80,14 +78,19 @@ section > header {
     color: #33a1fD;
 }
 
-#entries {
-    padding: 1em;
+#feed-detail {
     background-color: #fff;
     color: #000;
     grid-column-start: 2;
 }
 
-#entries li {
+#feed-detail header {
+    padding: .5em;
+    background-color: #ffffcc;
+}
+
+
+#feed-detail li {
     margin-bottom: 1em;
 }
 

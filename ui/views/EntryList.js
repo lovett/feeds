@@ -2,6 +2,7 @@
 
 import m from 'mithril';
 
+import EntryListHeader from './EntryListHeader';
 import EntryListItem from './EntryListItem';
 
 export default {
@@ -11,14 +12,18 @@ export default {
 
         let node = null, nodes = [];
 
-        node = m('a', {
-            href: `/feed/${feed.id}/history`,
-            oncreate: m.route.link
-        }, 'History');
+        console.log(feed);
+        node = m(EntryListHeader, {
+            url: feed.url,
+            siteUrl: feed.siteUrl,
+            url: feed.url,
+            subscribed: feed.subscribed,
+            fetched: feed.fetched,
+            id: feed.id,
+            nextFetch: feed.nextFetchFormatted
+        });
         nodes.push(node);
 
-        node = m('p', `Next fetch: ${feed.nextFetchFormatted}`);
-        nodes.push(node);
 
         node = m('ul', entries.map(function (entry) {
             return m(EntryListItem, entry);
