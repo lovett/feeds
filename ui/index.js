@@ -15,8 +15,11 @@ Subscription.startPolling();
 m.route(document.body, '/', {
     '/': {
         render: () => {
+            Subscription.activate(null);
             return m(Layout, [
-                m('section#subscriptions', m(SubscriptionList)),
+                m('section#subscriptions', m(SubscriptionList, {
+                    feed: null,
+                })),
                 m('section#overview', m(Overview))
             ]);
         }
@@ -32,7 +35,9 @@ m.route(document.body, '/', {
             feed.load();
 
             return m(Layout, [
-                m('section#subscriptions', m(SubscriptionList)),
+                m('section#subscriptions', m(SubscriptionList, {
+                    feed,
+                })),
                 m('section#entries', m(EntryList, {
                     feed: feed,
                     entries: feed.entries
@@ -51,7 +56,9 @@ m.route(document.body, '/', {
             feed.loadHistory();
 
             return m(Layout, [
-                m('section#subscriptions', m(SubscriptionList)),
+                m('section#subscriptions', m(SubscriptionList, {
+                    feed,
+                })),
                 m('section#history', m(History, {
                     feed,
                     history: feed.history

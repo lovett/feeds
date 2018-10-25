@@ -2,7 +2,6 @@
 
 import m from 'mithril';
 import FeedForm from './FeedForm';
-import Subscription from '../models/Subscription';
 
 export default {
     cssClass: null,
@@ -37,19 +36,25 @@ export default {
     },
 
     view: function (vnode) {
+        const id = vnode.attrs.id;
+        const title = vnode.attrs.title;
+        const url = vnode.attrs.url;
+        const route = vnode.attrs.route;
         const sub = vnode.attrs.subscription;
+        const editing = vnode.attrs.editing;
+        const entryCount = vnode.attrs.entryCount;
 
-        if (vnode.attrs.editing) {
+        if (editing) {
             return vnode.state.asForm(vnode);
         }
 
         return m('li', {class: this.cssClass}, [
             m('a.feed', {
-                href: `/feed/${sub.id}`,
-                title: sub.url,
+                href: route,
+                title: url,
                 oncreate: m.route.link
-            }, sub.title),
-            m('span.entry-count', sub.entryCount),
+            }, title),
+            m('span.entry-count', entryCount),
         ]);
     }
 };

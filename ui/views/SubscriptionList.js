@@ -75,17 +75,32 @@ export default {
         });
         nodes.push(node);
 
-        // feed list
-        if (Subscription.hasFeeds()) {
-            node = m('ul.feeds', Subscription.feeds.map((feed) => {
-                return m(SubscriptionListItem, {
-                    selected: feed.active,
-                    editing: Subscription.editing,
-                    subscription: feed
-                });
-            }));
-            nodes.push(node);
-        }
+        let feedList = [];
+        node = m(SubscriptionListItem, {
+            selected: vnode.attrs.feed === null,
+            title: 'Overview',
+            route: '/',
+            url: null,
+            editing: false,
+        });
+        feedList.push(node);
+
+        Subscription.feeds.forEach((feed) => {
+            let node = m(SubscriptionListItem, {
+                selected: feed === vnode.attrs.feed,
+                editing: Subscription.editing,
+                title: feed.title,
+                url: feed.url,
+                route: `/feed/${feed.id}`,
+                id: feed.id,
+                entryCount: feed.entryCount,
+                subscription: feed
+            });
+            feedList.push(node);
+        });
+
+        node = m('ul.feeds', feedList);
+        nodes.push(node);
 
         return nodes;
     }
