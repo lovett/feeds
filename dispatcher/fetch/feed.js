@@ -21,7 +21,6 @@ function transformItem(feedId, feedUrl, fetchId, item) {
         fetchId: fetchId,
         author: item.author,
         title: item.title,
-        created: item.pubdate,
         guid: item.guid,
         url: (item.origlink || item.link),
         extras: {
@@ -33,6 +32,12 @@ function transformItem(feedId, feedUrl, fetchId, item) {
             commentCount: null
         }
     };
+
+    if (item.pubdate) {
+        entry.created = new Date(item.pubdate);
+    } else {
+        entry.created = new Date();
+    }
 
     if (item.categories) {
         entry.extras.keywords = item.categories;
