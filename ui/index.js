@@ -60,7 +60,7 @@ m.route(document.body, '/', {
                     feed,
                 })),
                 m('section#history', m(History, {
-                    feed,
+                    feedRoute: `/feed/${feed.id}`,
                     history: feed.history
                 }))
             ]);

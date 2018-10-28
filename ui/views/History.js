@@ -6,26 +6,35 @@ import HistoryItem from './HistoryItem';
 
 export default {
     view: function (vnode) {
-        const feed = vnode.attrs.feed;
-        const history = vnode.attrs.history;
-
         let node = null, nodes = [];
 
+        const history = vnode.attrs.history;
+        const feedRoute = vnode.attrs.feedRoute;
+
+        if (history.length === 0) {
+            return nodes;
+        }
+
         node = m('a', {
-            href: `/feed/${feed.id}`,
+            href: feedRoute,
             oncreate: m.route.link
         }, 'Entries');
         nodes.push(node);
 
-
         let table = m('table', [
             m('thead', [
-                m('tr', Object.keys(feed.labels.history).map(key => {
-                    return m('th', feed.getHistoryLabel(key));
-                }))
+                m('tr', [
+                    m('th', history[0].labels.created),
+                    m('th', history[0].labels.httpStatus),
+                    m('th', history[0].labels.entryCount)
+                ])
             ]),
-            m('tbody', history.map(function (entry) {
-                return m(HistoryItem, entry);
+            m('tbody', history.map(item => {
+                return m('tr', [
+                    m('td', item.created),
+                    m('td', item.httpStatus),
+                    m('td', item.entryCount),
+                ]);
             }))
         ]);
 

@@ -39,11 +39,45 @@ module.exports = (req, res, next) => {
             }, []);
 
 
-            res.send({
-                data: {
-                    entries: entriesWithDiscussions
-                }
+            const labelledEntries = entriesWithDiscussions.map(entry => {
+                return {
+                    id: {
+                        label: 'ID',
+                        value: entry.id
+                    },
+                    url: {
+                        label: 'URL',
+                        value: entry.url
+                    },
+                    title: {
+                        label: 'Title',
+                        value: entry.title
+                    },
+                    author: {
+                        label: 'Author',
+                        value: entry.author
+                    },
+                    created: {
+                        value: entry.created,
+                        label: 'Date',
+                        treat_as: 'date'
+                    },
+                    body: {
+                        value: entry.body,
+                        label: 'Content'
+                    },
+                    keywords: {
+                        value: entry.extras.keywords,
+                        label: 'Keywords'
+                    },
+                    discussions: {
+                        value: entry.discussions,
+                        label: 'Discussions'
+                    }
+                };
             });
+
+            res.send(labelledEntries);
             next();
         });
     });

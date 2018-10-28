@@ -11,7 +11,8 @@ export default {
         };
 
         let children = [
-            m('a.entry', linkAttrs, vnode.attrs.title)
+            m('a.entry', linkAttrs, vnode.attrs.title),
+            m('p', vnode.attrs.created)
         ];
 
         if (vnode.attrs.discussion) {

@@ -4,8 +4,9 @@ import m from 'mithril';
 
 export default {
     view: function (vnode) {
-        return m('tr', Object.keys(vnode.attrs).map((key) => {
-            return m('td', vnode.attrs[key]);
+        const item = vnode.attrs;
+        return m('tr', Object.keys(item).map((key) => {
+            return m('td', item[key]);
         }));
     }
 };

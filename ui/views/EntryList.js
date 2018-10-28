@@ -12,7 +12,6 @@ export default {
 
         let node = null, nodes = [];
 
-        console.log(feed);
         node = m(EntryListHeader, {
             url: feed.url,
             siteUrl: feed.siteUrl,
@@ -20,7 +19,7 @@ export default {
             subscribed: feed.subscribed,
             fetched: feed.fetched,
             id: feed.id,
-            nextFetch: feed.nextFetchFormatted
+            nextFetch: feed.nextFetch
         });
         nodes.push(node);
 

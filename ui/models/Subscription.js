@@ -1,7 +1,6 @@
 'use strict';
 
 import m from 'mithril';
-import formatter from '../formatter';
 import Feed from './Feed';
 
 let intervalId = null;
@@ -10,8 +9,18 @@ export default {
     endpoint: '/subscription',
     feeds: [],
     labels: {},
-    fields: [],
-    template: {},
+    fields: [
+        {name: 'url', title: 'URL', type: 'text', create: true, update: false, required: true},
+        {name: 'title', title: 'Title', type: 'text', create: true, update: true, required: false},
+        {name: 'id', title: null, type: 'hidden', create: false, update: false, required: false},
+        {name: 'nextFetch', title: null, type: 'timestamp', create: false, update: false, required: false},
+        {name: 'subscribed', title: null, type: 'timestamp', create: false, update: false, required: false}
+    ],
+    template: {
+        url: null,
+        title: null,
+        id: null
+    },
     newFeed: {},
     fetchedOn: null,
     adding: false,
@@ -46,13 +55,12 @@ export default {
         return m.request({
             method: 'GET',
             url: this.endpoint,
-            withCredentials: true
-        }).then((res) => {
-            this.feeds = res.data.feeds.map(feed => Feed.fromObject(feed));
-            this.labels = res.meta.labels;
-            this.fields = res.meta.fields;
-            this.template = res.meta.template;
-            this.newFeed = Object.assign({}, res.meta.template);
+            withCredentials: true,
+            type: Feed
+        }).then((feeds) => {
+            this.feeds = feeds;
+            // this.fields = res.meta.fields;
+             this.newFeed = Object.assign({}, this.template);
         }).finally(() => {
             this.fetchedOn = new Date();
         });

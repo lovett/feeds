@@ -4,13 +4,18 @@ import Base from './Base';
 import DateTimeMixin from '../mixins/DateTime';
 import PopulateMixin from '../mixins/Populate';
 
-export default class FetchStat extends PopulateMixin(DateTimeMixin(Base)) {
+export default class Entry extends PopulateMixin(DateTimeMixin(Base)) {
 
     constructor(data) {
         super();
+        this.id = null;
+        this.url = null;
+        this.title = null;
+        this.author = null;
         this.created = null;
-        this.httpStatus = null;
-        this.entryCount = null;
+        this.body = null;
+        this.keywords = null;
+        this.discussions = null;
         this.populate(data);
     }
 
@@ -19,6 +24,6 @@ export default class FetchStat extends PopulateMixin(DateTimeMixin(Base)) {
     }
 
     get created() {
-        return this.toTimeAndDate(this._created);
+        return this.toTimeOrDate(this._created);
     }
 }

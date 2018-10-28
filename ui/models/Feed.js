@@ -2,9 +2,14 @@
 
 import m from 'mithril';
 import FetchStat from './FetchStat';
+import Entry from './Entry';
+import Base from './Base';
+import DateTimeMixin from '../mixins/DateTime';
+import PopulateMixin from '../mixins/Populate';
 
-export default class Feed {
-    constructor() {
+export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
+    constructor(data) {
+        super();
         this.created = null;
         this.entryCount = null;
         this.fetched = null;
@@ -15,14 +20,9 @@ export default class Feed {
         this.title = null;
         this.url = null;
         this.entries = [];
-        this.labels = [];
         this.active = false;
         this.history = [];
-        this.labels = {};
-    }
-
-    getLabel(key) {
-        return this.labels[key];
+        this.populate(data);
     }
 
     load() {
@@ -30,12 +30,15 @@ export default class Feed {
             return;
         }
 
-        m.request({
+        return m.request({
             method: 'GET',
             url: `/feed/${this.id}`,
-            withCredentials: true
-        }).then((res) => {
-            this.entries = res.data.entries;
+            withCredentials: true,
+            type: Entry
+        }).then((entries) => {
+            this.entries = entries;
+        }).catch(e => {
+            console.log(e);
         });
     }
 
@@ -51,35 +54,41 @@ export default class Feed {
             type: FetchStat
         }).then(history => {
             this.history = history;
+        }).catch(e => {
+            console.log(e);
         });
     }
 
     isNewlyAdded() {
-        const age = Math.abs(this.subscribed - Date.now()/1000);
+        const age = (new Date() - this._subscribed)/1000;
         return this.entryCount === 0 && age < 20;
     }
 
-    isStale(lastFetch) {
-        return this.nextFetch < lastFetch;
+    isStale(referenceDate) {
+        return this._nextFetch < referenceDate;
     }
 
-    get nextFetchFormatted() {
-        return new Date(this.nextFetch * 1000).toLocaleString();
+    set nextFetch(value) {
+        this._nextFetch = new Date(value * 1000);
     }
 
+    get nextFetch() {
+        return this.toTime(this._nextFetch);
+    }
 
-    static fromObject(obj) {
-        let feed = new Feed();
+    set fetched(value) {
+        this._fetched = new Date(value * 1000);
+    }
 
-        const validKeys = Object.keys(feed);
+    get fetched() {
+        return this.toTime(this._fetched);
+    }
 
-        const assignableKeys = Object.keys(obj).filter((key) => {
-            return validKeys.indexOf(key) !== -1;
-        });
+    set subscribed(value) {
+        this._subscribed = new Date(value * 1000);
+    }
 
-        for (let key of assignableKeys) {
-            feed[key] = obj[key];
-        }
-        return feed;
+    get subscribed() {
+        return this.toTimeOrDate(this._subscribed);
     }
 }

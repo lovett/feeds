@@ -29,7 +29,6 @@ module.exports = function (userId, callback = () => {}) {
     this.db.all(
         `SELECT coalesce(u.title, f.title) as title, f.id, f.url, f.siteUrl,
          count(ue.entryId) as entryCount,
-         CAST(strftime('%s', f.created) AS INTEGER) as created,
          CAST(strftime('%s', u.created) AS INTEGER) as subscribed,
          CAST(strftime('%s', f.nextFetch) AS INTEGER) as nextFetch,
          (SELECT CAST(strftime('%s', fs.created) AS INTEGER)

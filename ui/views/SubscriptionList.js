@@ -4,6 +4,7 @@ import m from 'mithril';
 import Subscription from '../models/Subscription';
 import SubscriptionListItem from './SubscriptionListItem';
 import FeedForm from './FeedForm';
+import Strings from '../Strings';
 
 /**
  * Container for a list of subscribed feeds.
@@ -13,7 +14,7 @@ export default {
         let node = null, nodes = [];
 
         // heading
-        node = m('header', Subscription.getLabel('group'));
+        node = m('header', Strings.subscriptionHeading());
         nodes.push(node);
 
         let actions = [];
@@ -27,7 +28,7 @@ export default {
                 Subscription.adding = true;
                 Subscription.editing = false;
             }
-        }, Subscription.getLabel('create'));
+        }, Strings.createSubscription());
         actions.push(node);
 
         // cancel add
@@ -38,7 +39,7 @@ export default {
                 e.preventDefault();
                 Subscription.adding = false;
             }
-        }, Subscription.getLabel('cancelAdd'));
+        }, Strings.createSubscriptionCancel());
         actions.push(node);
 
         // edit link
@@ -51,7 +52,7 @@ export default {
                     Subscription.editing = true;
                     Subscription.adding = false;
                 }
-            }, Subscription.getLabel('edit'));
+            }, Strings.editSubscription());
             actions.push(node);
 
             // cancel edit
@@ -62,7 +63,7 @@ export default {
                     e.preventDefault();
                     Subscription.editing = false;
                 }
-            }, Subscription.getLabel('cancelEdit'));
+            }, Strings.editSubscriptionCancel());
             actions.push(node);
         }
 
@@ -78,7 +79,7 @@ export default {
         let feedList = [];
         node = m(SubscriptionListItem, {
             selected: vnode.attrs.feed === null,
-            title: 'Overview',
+            title: Strings.overview(),
             route: '/',
             url: null,
             editing: false,
