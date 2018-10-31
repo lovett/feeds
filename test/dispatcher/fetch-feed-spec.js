@@ -115,4 +115,46 @@ describe('fetch-feed', function() {
         });
     });
 
+    it('captures rss entry body when present', function (done) {
+        const fixture = path.join(__dirname, 'fixtures', 'rss.xml');
+        let storedEntries = [];
+
+        this.requestMock.replyWithFile(200, fixture, {
+            'Content-Type': 'application/rss+xml'
+        });
+
+        this.emitter.on('entry-store', (entry) => {
+            storedEntries.push(entry);
+        });
+
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
+            assert.ifError(err);
+
+            const entry = storedEntries[0];
+            assert(entry.body);
+            done();
+        });
+    });
+
+    it('captures atom entry body when present', function (done) {
+        const fixture = path.join(__dirname, 'fixtures', 'google-cloud.atom');
+        let storedEntries = [];
+
+        this.requestMock.replyWithFile(200, fixture, {
+            'Content-Type': 'application/atom+xml'
+        });
+
+        this.emitter.on('entry-store', (entry) => {
+            storedEntries.push(entry);
+        });
+
+        this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
+            assert.ifError(err);
+
+            const entry = storedEntries[0];
+            assert(entry.body);
+            done();
+        });
+    });
+
 });

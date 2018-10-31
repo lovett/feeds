@@ -22,6 +22,7 @@ function transformItem(feedId, feedUrl, fetchId, item) {
         author: item.author,
         title: item.title,
         guid: item.guid,
+        body: item.description,
         url: (item.origlink || item.link),
         extras: {
             keywords: []
