@@ -35,8 +35,6 @@ function transformItem(feedId, feedUrl, fetchId, item) {
 
     if (item.pubdate) {
         entry.created = new Date(item.pubdate);
-    } else {
-        entry.created = new Date();
     }
 
     if (item.categories) {

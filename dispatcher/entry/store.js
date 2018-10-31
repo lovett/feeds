@@ -49,6 +49,10 @@ module.exports = function (entry, callback = () => {}) {
         entry.extras = JSON.stringify(entry.extras);
     }
 
+    if (isNaN(entry.created)) {
+        entry.created = new Date();
+    }
+
     self.db.get('SELECT id, title FROM entries WHERE url=?', [entry.url], function (err, row) {
         if (err) {
             self.emit('log-error', `Failed to select from entries table: ${err.message}`);

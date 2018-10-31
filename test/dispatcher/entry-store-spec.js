@@ -98,7 +98,7 @@ describe('entry-store', function() {
         const self = this;
         const entry = {
             title: 'the title',
-            createdUtc: new Date().getTime(),
+            created: new Date(),
             url: 'http://example.com/entry1.html#whatever',
             feedId: self.feedId,
             fetchId: self.fetchId
@@ -120,7 +120,7 @@ describe('entry-store', function() {
 
         const entry = {
             title: 'the title',
-            createdUtc: new Date().getTime(),
+            created: new Date(),
             url: 'http://example.com/entry1.html',
             feedId: self.feedId,
             fetchId: self.fetchId
@@ -227,40 +227,11 @@ describe('entry-store', function() {
         });
     });
 
-    it('parses non-numeric creation date', function (done) {
-        const self = this;
-        const entries = [
-            {title: 'title1', url: 'http://example.com/entry1.html', created: 'Sun, 19 Jul 2015 06:51:17 -0500'},
-            {title: 'title2', url: 'http://example.com/entry2.html', created: '2015-03-30T11:07:01.441-07:00'},
-            {title: 'title3', url: 'http://example.com/entry3.html', created: '2015-06-15T00:00:00Z'},
-            {title: 'title4', url: 'http://example.com/entry4.html', created: 'bogus'},
-            {title: 'title5', url: 'http://example.com/entry5.html'}
-        ];
-
-
-        for (let i=0; i < entries.length; i++) {
-            let entry = entries[i];
-            let isLast = (i === entries.length - 1);
-
-            entry.feedId = self.feedId;
-            entry.fetchId = self.fetchId;
-            self.emitter.emit('entry-store', entry, (err, savedEntry) => {
-                assert.strictEqual(err, null);
-                assert.strictEqual(savedEntry.changes, 1);
-                assert(savedEntry.created);
-                assert(new Date(savedEntry.created));
-                if (savedEntry.title === entries[entries.length - 1].title) {
-                    done();
-                }
-            });
-        };
-    });
-
     it('updates the title field of an existing entry', function (done) {
         const self = this;
         const entry = {
             title: 'original title',
-            createdUtc: new Date().getTime(),
+            created: new Date(),
             url: 'http://example.com/entry1.html',
             feedId: self.feedId,
             fetchId: self.fetchId,
