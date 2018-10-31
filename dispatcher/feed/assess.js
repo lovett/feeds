@@ -17,6 +17,7 @@
  *
  * @param {Number} [feedId] - The unique identifier of the feed to be assessed.
  * @param {feedAssessCallback} callback - A function to invoke on success or failure.
+ * @fires feed-abandon
  * @event feed-assess
  */
 module.exports = function (feedId, callback = () => {}) {

@@ -1,6 +1,7 @@
---
--- Fixture for a several feeds.
---
+-- Dropping this trigger prevents newly inserted rows from being instantly deleted.
+-- Otherwise, the dates used by this fixture would need to be continually updated.
+DROP TRIGGER IF EXISTS fetchStats_cleanup;
+
 INSERT INTO users (id, username, passwordHash)
 VALUES (100, 'test', 'test');
 

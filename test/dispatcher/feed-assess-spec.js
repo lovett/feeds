@@ -15,7 +15,6 @@ describe('feed-assess', function() {
         const schemaRoot = path.join(__dirname, '../../', 'schema');
         const fixtureRoot = path.join(__dirname, 'fixtures', 'feed-assess');
         this.db = new sqlite3.Database(':memory:');
-        this.feedUrl = 'http://example.com/feed.rss';
         this.emitter = new events.EventEmitter();
         this.emitter.on('startup', startup);
         this.emitter.on('schema', schema);
@@ -38,7 +37,10 @@ describe('feed-assess', function() {
             done();
         });
 
-        self.emitter.emit('feed-assess', feedId);
+        self.emitter.emit('feed-assess', feedId, (err, willAbandon) => {
+            assert.ifError(err);
+            assert.strictEqual(willAbandon, true);
+        });
     });
 
     it('keeps a feed with less than three consecutive fetch errors', function (done) {

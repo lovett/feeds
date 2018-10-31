@@ -45,9 +45,8 @@ describe('stats-fetch', function() {
 
     it('adds a row to the stats table', function (done) {
         const self = this;
-        self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 200, (err, id) => {
-            assert.strictEqual(err, null);
-            assert.strictEqual(id, 1);
+        self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 200, 0, (err) => {
+            assert.ifError(err);
             done();
         });
     });
@@ -60,9 +59,8 @@ describe('stats-fetch', function() {
                 throw err;
             }
 
-            self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 200, (err, id) => {
+            self.emitter.emit('stats-fetch', self.feedId, self.fetchId, 200, 0, (err) => {
                 assert(err);
-                assert.strictEqual(id, undefined);
                 done();
             });
         });

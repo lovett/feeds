@@ -37,11 +37,11 @@ describe('fetch-feed', function() {
         this.requestMock.reply(200, '');
 
         this.emitter.on('stats-fetch', (feedId, fetchId, statusCode) => {
-            assert.strictEqual(statusCode, 1);
+            assert.strictEqual(statusCode, 200);
         });
 
         this.emitter.emit('fetch-feed', this.feedId, this.feedUrl, (err) => {
-            assert(err);
+            assert.ifError(err);
             done();
         });
     });
