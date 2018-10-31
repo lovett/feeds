@@ -50,10 +50,11 @@ emitter.setMaxListeners(2);
 emitter._loggedEvents = {};
 
 // Logging
-emitter.on('log:debug', require('./log/debug'));
-emitter.on('log:error', require('./log/error'));
-emitter.on('log:info', require('./log/info'));
-emitter.on('log:warn', require('./log/warn'));
+emitter.on('log', require('./log/log'));
+emitter.on('log:debug', (message) => emitter.emit('log', 'debug', {message,}));
+emitter.on('log:error', (message) => emitter.emit('log', 'error', {message,}));
+emitter.on('log:info', (message) => emitter.emit('log', 'info', {message,}));
+emitter.on('log:warn', (message) => emitter.emit('log', 'warn', {message,}));
 
 emitter.on('newListener', require('./log/register'));
 emitter.on('removeListener', require('./log/unregister'));

@@ -8,9 +8,11 @@ module.exports = function (event, listener) {
     }
 
     const logWriter = function () {
-        let argumentList = [].slice.call(arguments);
-        let message = [`event:${event}`].concat(argumentList);
-        console.log(message);
+        let argsList = [].slice.call(arguments);
+        this.emit('log', 'info', {
+            event,
+            arguments: argsList
+        });
     };
 
     this._loggedEvents[event] = logWriter;
