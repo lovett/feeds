@@ -13,7 +13,7 @@ module.exports = function (entryId, discussion, callback = () => {}) {
 
     const afterSave = function (err) {
         if (err) {
-            self.emit('log:error', `Failed to save discussion: ${err.message}`);
+            self.emit('log-error', `Failed to save discussion: ${err.message}`);
             callback(err);
             return;
         }
@@ -30,7 +30,7 @@ module.exports = function (entryId, discussion, callback = () => {}) {
         [entryId, discussion.label],
         (err, row) => {
             if (err) {
-                self.emit('log:error', `Failed to select discussion for entry ${discussion.entryId}: ${err.message}`);
+                self.emit('log-error', `Failed to select discussion for entry ${discussion.entryId}: ${err.message}`);
                 callback(err);
                 return;
             }

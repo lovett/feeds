@@ -7,11 +7,9 @@ module.exports = function (feedUrl, guids, callback = () => {}) {
     const self = this;
 
     if (!guids) {
-        self.emit('log:debug', 'Skipping recount, no guids');
+        self.emit('log', 'debug', 'Skipping recount, no guids');
         return;
     }
-
-    self.emit('log:debug', `Received ${guids.length} guids from ${feedUrl}`);
 
     if (feedUrl.toLowerCase().indexOf('stackexchange.com') > -1) {
         let questionIdMap = guids.reduce((acc, guid) => {
@@ -25,7 +23,7 @@ module.exports = function (feedUrl, guids, callback = () => {}) {
         }, {});
 
         if (Object.keys(questionIdMap).length === 0) {
-            self.emit('log:debug', 'Skipping recount, no question ids');
+            self.emit('log', 'debug', 'Skipping recount, no question ids');
             return;
         }
 
@@ -45,12 +43,12 @@ module.exports = function (feedUrl, guids, callback = () => {}) {
 
         needle.get(endpoint, (err, res) => {
             if (err) {
-                self.emit('log:error', `Failed to query StackExchange API endpoint: ${err.message}`);
+                self.emit('log-error', `Failed to query StackExchange API endpoint: ${err.message}`);
                 return;
             }
 
             if (!res.body.items) {
-                self.emit('log:warning', 'StackExchange API response has no items');
+                self.emit('log-warning', 'StackExchange API response has no items');
                 return;
             }
 
@@ -76,7 +74,7 @@ module.exports = function (feedUrl, guids, callback = () => {}) {
 
                 self.db.run('COMMIT', [], (err) => {
                     if (err) {
-                        self.emit('log:error', err.message);
+                        self.emit('log-error', err.message);
                     }
 
                     callback();

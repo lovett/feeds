@@ -1,3 +1,12 @@
+/** @module log/register */
+
+/**
+ * Internal event used to capture event registration for logging purposes.
+ *
+ * @param {String|Symbol} event - The name of the event being listened for.
+ * @param {Function} listener - The event handler function.
+ * @event newListener
+ */
 module.exports = function (event, listener) {
     if (event === 'removeListener') {
         return;

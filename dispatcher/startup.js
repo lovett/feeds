@@ -48,7 +48,7 @@ module.exports = function (database, schemaRoot, callback = () => {}) {
 
                 self.db.get('SELECT schemaVersion FROM versions', (err, row) => {
                     if (err) {
-                        self.emit('log:error', `Determination of schema version failed: ${err.message}`);
+                        self.emit('log-error', `Determination of schema version failed: ${err.message}`);
                         callback(err);
                         return;
                     }

@@ -36,6 +36,13 @@
  * @listens filter-remove
  * @listens stats-fetch
  * @listens stats-by-feed
+ * @listens log
+ * @listens log-debug
+ * @listens log-error
+ * @listens log-info
+ * @listens log-warn
+ * @listens newListener
+ * @listens removeListener
  */
 'use strict';
 
@@ -50,11 +57,43 @@ emitter.setMaxListeners(2);
 emitter._loggedEvents = {};
 
 // Logging
-emitter.on('log', require('./log/log'));
-emitter.on('log:debug', (message) => emitter.emit('log', 'debug', {message,}));
-emitter.on('log:error', (message) => emitter.emit('log', 'error', {message,}));
-emitter.on('log:info', (message) => emitter.emit('log', 'info', {message,}));
-emitter.on('log:warn', (message) => emitter.emit('log', 'warn', {message,}));
+emitter.on('log', require('./log/index'));
+
+/**
+ * Alias method for invoking log event with level debug
+ *
+ * @event log-debug
+ * @see event:log
+ * @property {String} message - A JSON-friendly, human-readable message.
+ */
+emitter.on('log-debug', (message) => emitter.emit('log', 'debug', {message,}));
+
+/**
+ * Alias method for invoking log event with level error
+ *
+ * @event log-error
+ * @see event:log
+ * @property {String} message - A JSON-friendly, human-readable message.
+ */
+emitter.on('log-error', (message) => emitter.emit('log', 'error', {message,}));
+
+/**
+ * Alias method for invoking log event with level info
+ *
+ * @event log-info
+ * @see event:log
+ * @property {String} message - A JSON-friendly, human-readable message.
+ */
+emitter.on('log-info', (message) => emitter.emit('log', 'info', {message,}));
+
+/**
+ * Alias method for invoking log event with level warn
+ *
+ * @event log-warn
+ * @see event:log
+ * @property {String} message - A JSON-friendly, human-readable message.
+ */
+emitter.on('log-warn', (message) => emitter.emit('log', 'warn', {message,}));
 
 emitter.on('newListener', require('./log/register'));
 emitter.on('removeListener', require('./log/unregister'));

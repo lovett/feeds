@@ -17,7 +17,7 @@ module.exports = function (feedId, hours, callback = () => {}) {
         [feedId],
         (err) => {
             if (err) {
-                self.emit('log:error', `Failed to reschedule feed: ${err.message}`);
+                self.emit('log-error', `Failed to reschedule feed: ${err.message}`);
                 feedId = null;
             }
 

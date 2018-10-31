@@ -26,7 +26,7 @@ module.exports = function (entry, callback = () => {}) {
 
     if (!entry.url) {
         const err = new Error(`Cannot store entry from ${entry.feedUrl} because it has no url`);
-        self.emit('log:warn', err.message);
+        self.emit('log-warn', err.message);
         callback(err);
         return;
     }
@@ -51,7 +51,7 @@ module.exports = function (entry, callback = () => {}) {
 
     self.db.get('SELECT id, title FROM entries WHERE url=?', [entry.url], function (err, row) {
         if (err) {
-            self.emit('log:error', `Failed to select from entries table: ${err.message}`);
+            self.emit('log-error', `Failed to select from entries table: ${err.message}`);
             callback(err);
             return;
         }
@@ -74,7 +74,7 @@ module.exports = function (entry, callback = () => {}) {
                 ],
                 function (err) {
                     if (err) {
-                        self.emit('log:error', `Failed to insert entry: ${err.message}`);
+                        self.emit('log-error', `Failed to insert entry: ${err.message}`);
                         callback(err);
                         return;
                     }
@@ -97,7 +97,7 @@ module.exports = function (entry, callback = () => {}) {
                 [entry.title, row.id],
                 (err) => {
                     if (err) {
-                        self.emit('log:error', `Failed to update title for entry ${row.id}`);
+                        self.emit('log-error', `Failed to update title for entry ${row.id}`);
                         callback(err);
                         return;
                     }

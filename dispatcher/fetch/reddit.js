@@ -21,7 +21,6 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         const data = item.data;
 
         if (data.author && data.author.toLowerCase() === 'automoderator') {
-            self.emit('log:debug', 'Skipping automoderator item');
             if (isLast) {
                 callback();
             }
@@ -29,7 +28,6 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         }
 
         if (data.stickied) {
-            self.emit('log:debug', 'Skipping stickied item');
             if (isLast) {
                 callback();
             }
@@ -74,7 +72,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
 
     needle.get(jsonUrl, (err, res) => {
         if (err) {
-            self.emit('log:error', `Failed to fetch Reddit JSON: ${err.message}`);
+            self.emit('log-error', `Failed to fetch Reddit JSON: ${err.message}`);
             self.emit(
                 'stats-fetch',
                 feedId,
@@ -86,7 +84,7 @@ module.exports = function (feedId, feedUrl, callback = () => {}) {
         }
 
         if (!res.body.data || !res.body.data.children || res.body.data.children.length < 1) {
-            self.emit('log:warning', 'Reddit JSON feed has no children');
+            self.emit('log-warning', 'Reddit JSON feed has no children');
             self.emit(
                 'stats-fetch',
                 feedId,
