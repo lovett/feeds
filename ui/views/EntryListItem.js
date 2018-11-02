@@ -15,6 +15,10 @@ export default {
             m('p', vnode.attrs.created)
         ];
 
+        if (vnode.attrs.body) {
+            children.push(m('div.body', m.trust(vnode.attrs.body)));
+        }
+
         if (vnode.attrs.discussion) {
             children.push(m(DiscussionList, { discussions: vnode.attrs.discussions}));
         }
