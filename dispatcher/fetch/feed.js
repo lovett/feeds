@@ -64,6 +64,13 @@ function transformItem(feedId, feedUrl, fetchId, item) {
         entry.extras.keywords.push(item['slash:section']['#']);
     }
 
+    // Remove the comment link from a lobste.rs entry body since it is
+    // redundant, but otherwise keep the body intact.
+    if (entry.discussion.label === 'lobste.rs') {
+        entry.body = entry.body.replace(/<a [^>]+>Comments<\/a>/, '');
+        entry.body = entry.body.replace('<p></p>', '') || null;
+    }
+
     this.emit('entry-store', entry);
 }
 
