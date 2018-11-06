@@ -25,7 +25,9 @@ export default {
 
 
         node = m('ul', entries.map(function (entry) {
-            return m(EntryListItem, entry);
+            return m(EntryListItem, {
+                entry,
+            });
         }));
         nodes.push(node);
 

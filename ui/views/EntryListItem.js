@@ -1,26 +1,30 @@
 'use strict';
 
 import m from 'mithril';
+import DiscussionList from './DiscussionList';
 
 export default {
     view: function (vnode) {
+        const entry = vnode.attrs.entry;
         const linkAttrs = {
-            'href': vnode.attrs.url,
+            'href': entry.url,
             'target': '_blank',
             'rel': 'external noopener noreferrer'
         };
 
         let children = [
-            m('a.entry', linkAttrs, vnode.attrs.title),
-            m('p', vnode.attrs.created)
+            m('a.entry', linkAttrs, entry.title),
+            m('p', entry.created)
         ];
 
-        if (vnode.attrs.body) {
-            children.push(m('div.body', m.trust(vnode.attrs.body)));
+        if (entry.body) {
+            children.push(m('div.body', m.trust(entry.body)));
         }
 
-        if (vnode.attrs.discussion) {
-            children.push(m(DiscussionList, { discussions: vnode.attrs.discussions}));
+        if (entry.discussions) {
+            children.push(m(DiscussionList, {
+                discussions: entry.discussions
+            }));
         }
 
         return m('li', children);
