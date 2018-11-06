@@ -27,44 +27,58 @@ m.route(document.body, '/', {
 
     '/feed/:key': {
         render: (vnode) => {
-            const feed = Subscription.activate(vnode.attrs.key);
-            if (!feed) {
+            if (Subscription.isSubscribed(vnode.attrs.key) === false) {
+                m.route.set('/');
                 return;
             }
 
-            feed.load();
+            const feed = Subscription.activate(vnode.attrs.key);
 
-            return m(Layout, [
+            const sections = [
                 m('section#subscriptions', m(SubscriptionList, {
                     feed,
                 })),
-                m('section#feed-detail', m(EntryList, {
-                    feed: feed,
-                    entries: feed.entries
-                }))
-            ]);
+            ];
+
+            if (feed) {
+                feed.load();
+                sections.push(
+                    m('section#feed-detail', m(EntryList, {
+                        feed: feed,
+                        entries: (feed.entries || [])
+                    }))
+                );
+            }
+
+            return m(Layout, sections);
         }
     },
 
     '/feed/:key/history': {
         render: (vnode) => {
-            const feed = Subscription.activate(vnode.attrs.key);
-            if (!feed) {
+            if (Subscription.isSubscribed(vnode.attrs.key) === false) {
+                m.route.set('/');
                 return;
             }
 
-            feed.loadHistory();
+            const feed = Subscription.activate(vnode.attrs.key);
 
-            return m(Layout, [
+            const sections = [
                 m('section#subscriptions', m(SubscriptionList, {
                     feed,
                 })),
-                m('section#history', m(History, {
-                    feedRoute: `/feed/${feed.id}`,
-                    history: feed.history
-                }))
-            ]);
+            ];
+
+            if (feed) {
+                feed.loadHistory();
+                sections.push(
+                    m('section#history', m(History, {
+                        feedRoute: `/feed/${feed.id}`,
+                        history: feed.history
+                    }))
+                );
+            }
+            return m(Layout, sections);
         }
     }
-
 });

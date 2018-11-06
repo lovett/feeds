@@ -26,6 +26,15 @@ export default {
     adding: false,
     editing: false,
 
+    isSubscribed: function (feedId) {
+        feedId = parseInt(feedId, 10);
+        if (!this.hasFetched()) {
+            return undefined;
+        }
+
+        return this.feeds.some(feed => feed.id === feedId);
+    },
+
     activate: function (feedId) {
         feedId = parseInt(feedId, 10);
         this.feeds.forEach((feed) => {
