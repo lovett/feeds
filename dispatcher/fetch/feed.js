@@ -4,6 +4,7 @@
 const crypto = require('crypto');
 const needle = require('needle');
 const FeedParser = require('feedparser');
+const url = require('url');
 
 /**
  * Convert a FeedParser item to an entry.
@@ -11,7 +12,7 @@ const FeedParser = require('feedparser');
  * @param {Number} feedId - The feed unique identifier provided to the listener.
  * @param {String} feedUrl - The URL provided to the listener.
  * @param {String} fetchId - The unique identifier for this fetch.
- * @param {Object} story - A normalized feed item returned by FeedParser.
+ * @param {Object} item - A normalized feed item returned by FeedParser.
  * @fires entry-store
  */
 function transformItem(feedId, feedUrl, fetchId, item) {
@@ -44,6 +45,12 @@ function transformItem(feedId, feedUrl, fetchId, item) {
 
     if (item.comments) {
         entry.discussion.url = item.comments;
+
+        // There's no guarantee the item guid will be a URL.
+        try {
+            entry.discussion.label = new url.URL(item.guid).hostname;
+        } catch (_) {
+        }
     }
 
     if (item['slash:comments'] && item['slash:comments']['#']) {
