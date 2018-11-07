@@ -2,6 +2,7 @@
 
 import m from 'mithril';
 import DiscussionList from './DiscussionList';
+import SaveButton from './SaveButton';
 
 export default {
     view: function (vnode) {
@@ -14,6 +15,7 @@ export default {
 
         let children = [
             m('a.entry', linkAttrs, entry.title),
+            m(SaveButton, {entry: entry}),
             m('p', entry.created)
         ];
 

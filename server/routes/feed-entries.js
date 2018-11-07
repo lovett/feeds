@@ -73,6 +73,14 @@ module.exports = (req, res, next) => {
                     discussions: {
                         value: entry.discussions,
                         label: 'Discussions'
+                    },
+                    saved: {
+                        value: Boolean(entry.saved),
+                        label: 'Saved',
+                    },
+                    _links: {
+                        save: `/entry/${entry.id}/save`,
+                        unsave: `/entry/${entry.id}/unsave`
                     }
                 };
             });

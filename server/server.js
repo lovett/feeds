@@ -60,6 +60,9 @@ server.post('/feed', require('./routes/feed-create'));
 server.put('/feed', require('./routes/feed-update'));
 server.del('/feed', require('./routes/feed-destroy'));
 
+server.patch('/entry/:entryId/save', require('./routes/entry-save'));
+server.patch('/entry/:entryId/unsave', require('./routes/entry-unsave'));
+
 server.get('/history/:feedId', require('./routes/feed-history'));
 
 server.get('*', restify.plugins.serveStatic({

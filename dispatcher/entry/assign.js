@@ -15,7 +15,7 @@
  * Associate an entry with users subscribed to the entry's feed.
  *
  * @param {Number} entryId - The id of a newly-stored entry.
- * @param {Number} feedIdId - The id of the entry's feed.
+ * @param {Number} feedId - The id of the entry's feed.
  * @param {entryAssignCallback} callback - A function to invoke on success or failure.
  * @fires filter-apply
  * @event entry-assign

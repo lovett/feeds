@@ -1,5 +1,6 @@
 'use strict';
 
+import m from 'mithril';
 import Base from './Base';
 import DateTimeMixin from '../mixins/DateTime';
 import PopulateMixin from '../mixins/Populate';
@@ -16,6 +17,7 @@ export default class Entry extends PopulateMixin(DateTimeMixin(Base)) {
         this.body = null;
         this.keywords = null;
         this.discussions = null;
+        this.saved = false;
         this.populate(data);
     }
 
@@ -25,5 +27,29 @@ export default class Entry extends PopulateMixin(DateTimeMixin(Base)) {
 
     get created() {
         return this.toTimeOrDate(this._created);
+    }
+
+    save() {
+        return m.request({
+            method: 'PATCH',
+            url: this.links.save,
+            withCredentials: true,
+        }).then(res => {
+            this.saved = true;
+        }).catch(e => {
+            console.log('could not save');
+        });
+    }
+
+    unsave() {
+        return m.request({
+            method: 'PATCH',
+            url: this.links.unsave,
+            withCredentials: true,
+        }).then(res => {
+            this.saved = false;
+        }).catch(e => {
+            console.log('cound not unsave');
+        });
     }
 }

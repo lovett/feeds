@@ -18,6 +18,7 @@
  * @listens startup
  * @listens entry-assign
  * @listens entry-store
+ * @listens entry-user-update
  * @listens feed-abandon
  * @listens feed-add
  * @listens feed-assess
@@ -130,6 +131,7 @@ emitter.on('stats-by-feed', require('./stats/by-feed'));
 
 // Entries
 emitter.on('entry-store', require('./entry/store'));
+emitter.on('entry-user-update', require('./entry/user-update'));
 emitter.on('entry:assign', require('./entry/assign'));
 
 // Discussions
