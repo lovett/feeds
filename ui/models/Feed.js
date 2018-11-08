@@ -26,15 +26,12 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     }
 
     load() {
-        if (this.entries.length > 0) {
-            return;
-        }
-
         return m.request({
             method: 'GET',
             url: `/feed/${this.id}`,
             withCredentials: true,
-            type: Entry
+            type: Entry,
+            background: true
         }).then((entries) => {
             this.entries = entries;
         }).catch(e => {
@@ -43,15 +40,12 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     }
 
     loadHistory() {
-        if (this.history.length > 0) {
-            return;
-        }
-
         return m.request({
             method: 'GET',
             url: `/history/${this.id}`,
             withCredentials: true,
-            type: FetchStat
+            type: FetchStat,
+            background: true
         }).then(history => {
             this.history = history;
         }).catch(e => {
@@ -66,6 +60,27 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
 
     isStale(referenceDate) {
         return this._nextFetch < referenceDate;
+    }
+
+    markAllRead() {
+        const ids = this.unreadEntries.map(entry => entry.id);
+
+        const route = this.links.mark_entries_read;
+        return m.request({
+            method: route.method,
+            url: route.url,
+            withCredentials: true,
+            data: {
+                entryIds: ids,
+                fields: {
+                    read: true
+                }
+            }
+        }).then(res => {
+            this.unreadEntries.forEach(entry => entry.read = true);
+        }).catch(e => {
+            console.log(e);
+        });
     }
 
     set nextFetch(value) {
@@ -90,5 +105,9 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
 
     get subscribed() {
         return this.toTimeOrDate(this._subscribed);
+    }
+
+    get unreadEntries() {
+        return this.entries.filter(entry => entry.read === false);
     }
 }

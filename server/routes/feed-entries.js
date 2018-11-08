@@ -16,6 +16,12 @@ module.exports = (req, res, next) => {
             return accumulator;
         }, []);
 
+        if (entryIds.length === 0) {
+            res.send([]);
+            next();
+            return;
+        }
+
         dispatcher.emit('discussion:list', entryIds, (err, discussions) => {
             let discussionsByEntry = discussions.reduce((accumulator, discussion) => {
                 let entryId = discussion.entryId;
@@ -74,13 +80,17 @@ module.exports = (req, res, next) => {
                         value: entry.discussions,
                         label: 'Discussions'
                     },
+                    read: {
+                        value: Boolean(entry.read),
+                        label: 'Read'
+                    },
                     saved: {
                         value: Boolean(entry.saved),
                         label: 'Saved',
                     },
                     _links: {
-                        save: `/entry/${entry.id}/save`,
-                        unsave: `/entry/${entry.id}/unsave`
+                        save_entry: `/entry/${entry.id}/save`,
+                        unsave_entry: `/entry/${entry.id}/unsave`,
                     }
                 };
             });

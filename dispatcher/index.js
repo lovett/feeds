@@ -132,6 +132,7 @@ emitter.on('stats-by-feed', require('./stats/by-feed'));
 // Entries
 emitter.on('entry-store', require('./entry/store'));
 emitter.on('entry-user-update', require('./entry/user-update'));
+emitter.on('entry-user-batch-update', require('./entry/user-batch-update'));
 emitter.on('entry:assign', require('./entry/assign'));
 
 // Discussions

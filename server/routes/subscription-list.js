@@ -45,6 +45,12 @@ module.exports = (req, res, next) => {
                     value: feed.fetched,
                     label: 'Last fetch',
                     treat_as: 'date'
+                },
+                _links: {
+                    mark_entries_read: {
+                        method: 'PATCH',
+                        url: '/entry'
+                    }
                 }
             };
         });

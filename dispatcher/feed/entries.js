@@ -34,7 +34,7 @@ module.exports = function (feedId, userId, unreadOnly, limit, offset, callback =
     this.db.all(
         `SELECT e.id, e.url, e.title, e.author, e.body, e.extras,
          CAST(strftime('%s', e.created) AS INTEGER) as created,
-         ue.saved
+         ue.read, ue.saved
          FROM userEntries ue, entries e ON ue.entryId=e.id
          WHERE ue.userId=?
          AND ue.feedId=?

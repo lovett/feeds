@@ -18,6 +18,7 @@ export default class Entry extends PopulateMixin(DateTimeMixin(Base)) {
         this.keywords = null;
         this.discussions = null;
         this.saved = false;
+        this.read = false;
         this.populate(data);
     }
 
@@ -32,7 +33,7 @@ export default class Entry extends PopulateMixin(DateTimeMixin(Base)) {
     save() {
         return m.request({
             method: 'PATCH',
-            url: this.links.save,
+            url: this.links.save_entry,
             withCredentials: true,
         }).then(res => {
             this.saved = true;
@@ -44,7 +45,7 @@ export default class Entry extends PopulateMixin(DateTimeMixin(Base)) {
     unsave() {
         return m.request({
             method: 'PATCH',
-            url: this.links.unsave,
+            url: this.links.unsave_entry,
             withCredentials: true,
         }).then(res => {
             this.saved = false;

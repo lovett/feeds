@@ -7,6 +7,11 @@ import SaveButton from './SaveButton';
 export default {
     view: function (vnode) {
         const entry = vnode.attrs.entry;
+
+        if (entry.read) {
+            return null;
+        }
+
         const linkAttrs = {
             'href': entry.url,
             'target': '_blank',

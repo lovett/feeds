@@ -13,13 +13,7 @@ export default {
         let node = null, nodes = [];
 
         node = m(EntryListHeader, {
-            url: feed.url,
-            siteUrl: feed.siteUrl,
-            url: feed.url,
-            subscribed: feed.subscribed,
-            fetched: feed.fetched,
-            id: feed.id,
-            nextFetch: feed.nextFetch
+            feed,
         });
         nodes.push(node);
 
