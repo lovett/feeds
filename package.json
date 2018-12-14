@@ -12,18 +12,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "5.9.0",
+    "eslint": "5.10.0",
     "eslint-plugin-mocha": "5.2.0",
     "jsdoc": "3.5.5",
     "lolex": "3.0.0",
     "mocha": "5.2.0",
-    "nock": "10.0.3",
-    "nodemon": "1.18.7",
+    "nock": "10.0.4",
+    "nodemon": "1.18.8",
     "nyc": "13.1.0",
     "rollup": "0.67.4",
     "rollup-plugin-commonjs": "9.2.0",
-    "rollup-plugin-node-resolve": "3.4.0",
-    "sinon": "7.1.1"
+    "rollup-plugin-node-resolve": "4.0.0",
+    "sinon": "7.2.2"
   },
   "dependencies": {
     "ajv": "6.6.1",
@@ -33,7 +33,7 @@
     "htmlparser2": "3.10.0",
     "jquery": "3.3.1",
     "mithril": "1.1.6",
-    "moment": "2.22.2",
+    "moment": "2.23.0",
     "needle": "2.2.4",
     "normalize.css": "8.0.1",
     "passport": "0.4.0",
