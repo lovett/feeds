@@ -18,15 +18,15 @@
     "lolex": "3.0.0",
     "mocha": "5.2.0",
     "nock": "10.0.4",
-    "nodemon": "1.18.8",
+    "nodemon": "1.18.9",
     "nyc": "13.1.0",
-    "rollup": "0.67.4",
+    "rollup": "0.68.1",
     "rollup-plugin-commonjs": "9.2.0",
     "rollup-plugin-node-resolve": "4.0.0",
     "sinon": "7.2.2"
   },
   "dependencies": {
-    "ajv": "6.6.1",
+    "ajv": "6.6.2",
     "entities": "1.1.2",
     "feedparser": "2.2.9",
     "htmlparser": "1.7.7",
