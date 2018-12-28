@@ -12,15 +12,15 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "5.10.0",
+    "eslint": "5.11.1",
     "eslint-plugin-mocha": "5.2.0",
     "jsdoc": "3.5.5",
     "lolex": "3.0.0",
     "mocha": "5.2.0",
-    "nock": "10.0.4",
+    "nock": "10.0.5",
     "nodemon": "1.18.9",
     "nyc": "13.1.0",
-    "rollup": "0.68.1",
+    "rollup": "0.68.2",
     "rollup-plugin-commonjs": "9.2.0",
     "rollup-plugin-node-resolve": "4.0.0",
     "sinon": "7.2.2"
