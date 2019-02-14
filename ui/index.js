@@ -34,21 +34,22 @@ m.route(document.body, '/', {
 
             const feed = Subscription.activate(vnode.attrs.key);
 
+            if (feed === undefined) {
+                return;
+            }
+
             const sections = [
                 m('section#subscriptions', m(SubscriptionList, {
                     feed,
                 })),
             ];
 
-            if (feed) {
-                feed.load();
-                sections.push(
-                    m('section#feed-detail', m(EntryList, {
-                        feed: feed,
-                        entries: (feed.entries || [])
-                    }))
-                );
-            }
+            feed.load();
+            sections.push(
+                m('section#feed-detail', m(EntryList, {
+                    feed
+                }))
+            );
 
             return m(Layout, sections);
         }

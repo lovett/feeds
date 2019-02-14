@@ -9,7 +9,9 @@ import EntryListStub from './EntryListStub';
 export default {
     view: function (vnode) {
         const feed = vnode.attrs.feed;
-        const entries = vnode.attrs.entries;
+        const entries = feed.entries;
+
+        console.log(entries);
 
         let node = null, nodes = [];
 
