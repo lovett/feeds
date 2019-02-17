@@ -5,9 +5,6 @@ import m from 'mithril';
 export default {
     view: function (vnode) {
         const feed = vnode.attrs.feed;
-        const hasEntries = vnode.attrs.hasEntries;
-
-        const entries = [];
 
         let node = null, nodes = [];
 
@@ -35,7 +32,7 @@ export default {
         }, 'History');
         nodes.push(node);
 
-        if (hasEntries > 0) {
+        if (feed.hasUnreadEntries === true) {
             node = m('button', {
                 onclick: () => feed.markAllRead(),
             }, 'Mark all read');

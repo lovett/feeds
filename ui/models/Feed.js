@@ -38,6 +38,7 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
             type: Entry
         }).then((entries) => {
             this.entries = entries;
+            this.entryCount = entries.length;
             this.loaded = true;
         }).catch(e => {
             console.log(e);
@@ -83,6 +84,7 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
             }
         }).then(res => {
             this.unreadEntries.forEach(entry => entry.read = true);
+            this.entryCount = 0;
         }).catch(e => {
             console.log(e);
         });
@@ -114,5 +116,9 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
 
     get unreadEntries() {
         return this.entries.filter(entry => entry.read === false);
+    }
+
+    get hasUnreadEntries() {
+        return this.entries.some(entry => entry.read === false);
     }
 }

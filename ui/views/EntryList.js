@@ -9,25 +9,22 @@ import EntryListStub from './EntryListStub';
 export default {
     view: function (vnode) {
         const feed = vnode.attrs.feed;
-        const entries = feed.entries;
-
-        console.log(entries);
 
         let node = null, nodes = [];
 
         node = m(EntryListHeader, {
-            feed,
-            hasEntries: entries.length > 0
+            feed
         });
+
         nodes.push(node);
 
-        if (entries.length === 0) {
+        if (feed.hasUnreadEntries === false) {
             node = m(EntryListStub);
             nodes.push(node);
         }
 
-        if (entries.length > 0) {
-            node = m('ul', entries.map(function (entry) {
+        if (feed.hasUnreadEntries === true) {
+            node = m('ul', feed.unreadEntries.map(function (entry) {
                 return m(EntryListItem, {
                     entry,
                 });
