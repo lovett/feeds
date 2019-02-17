@@ -11,7 +11,8 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     constructor(data) {
         super();
         this.created = null;
-        this.loaded = null;
+        this.loadedEntries = null;
+        this.loadedHistory = null;
         this.entryCount = null;
         this.fetched = null;
         this.id = null;
@@ -27,7 +28,7 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     }
 
     load() {
-        if (this.loaded !== null) {
+        if (this.loadedEntries !== null) {
             return;
         }
 
@@ -39,21 +40,25 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
         }).then((entries) => {
             this.entries = entries;
             this.entryCount = entries.length;
-            this.loaded = true;
+            this.loadedEntries = true;
         }).catch(e => {
             console.log(e);
         });
     }
 
     loadHistory() {
+        if (this.loadedHistory !== null) {
+            return;
+        }
+
         return m.request({
             method: 'GET',
             url: `/history/${this.id}`,
             withCredentials: true,
-            type: FetchStat,
-            background: true
+            type: FetchStat
         }).then(history => {
             this.history = history;
+            this.loadedHistory = true;
         }).catch(e => {
             console.log(e);
         });

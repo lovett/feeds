@@ -64,21 +64,24 @@ m.route(document.body, '/', {
 
             const feed = Subscription.activate(vnode.attrs.key);
 
+            if (feed === undefined) {
+                return;
+            }
+
             const sections = [
                 m('section#subscriptions', m(SubscriptionList, {
                     feed,
                 })),
             ];
 
-            if (feed) {
-                feed.loadHistory();
-                sections.push(
-                    m('section#history', m(History, {
-                        feedRoute: `/feed/${feed.id}`,
-                        history: feed.history
-                    }))
-                );
-            }
+            feed.loadHistory();
+            sections.push(
+                m('section#history', m(History, {
+                    feedRoute: `/feed/${feed.id}`,
+                    history: feed.history
+                }))
+            );
+
             return m(Layout, sections);
         }
     }
