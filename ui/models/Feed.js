@@ -11,8 +11,6 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     constructor(data) {
         super();
         this.created = null;
-        this.loadedEntries = null;
-        this.loadedHistory = null;
         this.entryCount = null;
         this.fetched = null;
         this.id = null;
@@ -21,14 +19,43 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
         this.subscribed = null;
         this.title = null;
         this.url = null;
-        this.entries = [];
+        this.entries = null;
         this.active = false;
-        this.history = [];
+        this.history = null;
         this.populate(data);
     }
 
-    load() {
-        if (this.loadedEntries !== null) {
+    get canLoadEntries() {
+        if (this.entries === null) {
+            return true;
+        }
+
+        if (this.isStale === true) {
+            return true;
+        }
+
+        return false;
+    }
+
+    get canLoadHistory() {
+        if (this.history === null) {
+            return true;
+        }
+
+        if (this.isStale === true) {
+            return true;
+        }
+
+        return false;
+    }
+
+    get isStale() {
+        return this._nextFetch < new Date();
+    }
+
+
+    loadEntries() {
+        if (this.canLoadEntries === false) {
             return;
         }
 
@@ -40,14 +67,13 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
         }).then((entries) => {
             this.entries = entries;
             this.entryCount = entries.length;
-            this.loadedEntries = true;
         }).catch(e => {
             console.log(e);
         });
     }
 
     loadHistory() {
-        if (this.loadedHistory !== null) {
+        if (this.canLoadHistory === false) {
             return;
         }
 
@@ -58,7 +84,6 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
             type: FetchStat
         }).then(history => {
             this.history = history;
-            this.loadedHistory = true;
         }).catch(e => {
             console.log(e);
         });
@@ -67,10 +92,6 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     isNewlyAdded() {
         const age = (new Date() - this._subscribed)/1000;
         return this.entryCount === 0 && age < 20;
-    }
-
-    isStale(referenceDate) {
-        return this._nextFetch < referenceDate;
     }
 
     markAllRead() {
@@ -120,10 +141,18 @@ export default class Feed extends PopulateMixin(DateTimeMixin(Base)) {
     }
 
     get unreadEntries() {
+        if (this.entries === null) {
+            return false;
+        }
+
         return this.entries.filter(entry => entry.read === false);
     }
 
     get hasUnreadEntries() {
+        if (this.entries === null) {
+            return false;
+        }
+
         return this.entries.some(entry => entry.read === false);
     }
 }

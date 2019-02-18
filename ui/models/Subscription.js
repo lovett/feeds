@@ -107,7 +107,7 @@ export default {
         return;
 
         // Fetch if any feeds have passed their nextFetch date.
-        const stale = this.feeds.some(feed => feed.isStale());
+        const stale = this.feeds.some(feed => feed.isStale);
 
         if (stale) {
             this.load();

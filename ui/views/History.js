@@ -11,6 +11,10 @@ export default {
         const history = vnode.attrs.history;
         const feedRoute = vnode.attrs.feedRoute;
 
+        if (history === null) {
+            return nodes;
+        }
+
         if (history.length === 0) {
             return nodes;
         }

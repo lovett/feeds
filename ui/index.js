@@ -44,7 +44,7 @@ m.route(document.body, '/', {
                 })),
             ];
 
-            feed.load();
+            feed.loadEntries();
             sections.push(
                 m('section#feed-detail', m(EntryList, {
                     feed
