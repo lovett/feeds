@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "5.14.1",
+    "eslint": "5.15.1",
     "eslint-plugin-mocha": "5.3.0",
     "jsdoc": "3.5.5",
     "lolex": "3.1.0",
@@ -20,13 +20,13 @@
     "nock": "10.0.6",
     "nodemon": "1.18.10",
     "nyc": "13.3.0",
-    "rollup": "1.4.0",
+    "rollup": "1.6.0",
     "rollup-plugin-commonjs": "9.2.1",
     "rollup-plugin-node-resolve": "4.0.1",
-    "sinon": "7.2.6"
+    "sinon": "7.2.7"
   },
   "dependencies": {
-    "ajv": "6.9.2",
+    "ajv": "6.10.0",
     "entities": "1.1.2",
     "feedparser": "2.2.9",
     "htmlparser": "1.7.7",
@@ -40,8 +40,8 @@
     "passport-local": "1.0.0",
     "redis": "2.8.0",
     "request": "2.88.0",
-    "restify": "8.0.0",
-    "restify-errors": "6.1.1",
+    "restify": "8.1.0",
+    "restify-errors": "7.0.0",
     "sqlite3": "4.0.6",
     "xmlbuilder": "11.0.0"
   }
