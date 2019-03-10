@@ -1,5 +1,7 @@
 .PHONY: dummy
 
+TMUX_SESSION_NAME := headlines
+
 export PATH := ./node_modules/.bin:$(PATH)
 
 #
@@ -24,7 +26,7 @@ setup:
 # Run the dev server.
 #
 server: dummy
-	pkill -f "nodemon" || true
+	-pkill -f "nodemon"
 	nodemon
 
 #
@@ -75,4 +77,26 @@ puc: dummy
 
 
 ui: dummy
+	-pkill -f "rollup"
 	rollup -c -w
+
+workspace:
+## 0: Editor
+	tmux new-session -d -s "$(TMUX_SESSION_NAME)" bash
+	tmux send-keys -t "$(TMUX_SESSION_NAME)" "$(EDITOR) ." C-m
+
+## 1: Shell
+	tmux new-window -a -t "$(TMUX_SESSION_NAME)" bash
+
+## 2: Rollup
+	tmux new-window -a -t "$(TMUX_SESSION_NAME)" -n "rollup" "make ui"
+
+## 3: Server
+	tmux new-window -a -t "$(TMUX_SESSION_NAME)" -n "devserver" "make server"
+
+## 4: Database
+	tmux new-window -a -t "$(TMUX_SESSION_NAME)" -n "db" bash
+
+	tmux select-window -t "$(TMUX_SESSION_NAME)":0
+
+	tmux attach-session -t "$(TMUX_SESSION_NAME)"
