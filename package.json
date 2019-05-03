@@ -18,9 +18,9 @@
     "lolex": "4.0.1",
     "mocha": "6.1.4",
     "nock": "10.0.6",
-    "nodemon": "1.18.11",
-    "nyc": "14.0.0",
-    "rollup": "1.10.1",
+    "nodemon": "1.19.0",
+    "nyc": "14.1.0",
+    "rollup": "1.11.0",
     "rollup-plugin-commonjs": "9.3.4",
     "rollup-plugin-node-resolve": "4.2.3",
     "sinon": "7.3.2"
@@ -31,7 +31,7 @@
     "feedparser": "2.2.9",
     "htmlparser": "1.7.7",
     "htmlparser2": "3.10.1",
-    "jquery": "3.4.0",
+    "jquery": "3.4.1",
     "mithril": "1.1.6",
     "moment": "2.24.0",
     "needle": "2.3.1",
@@ -43,6 +43,6 @@
     "restify": "8.3.1",
     "restify-errors": "7.0.0",
     "sqlite3": "4.0.6",
-    "xmlbuilder": "12.0.0"
+    "xmlbuilder": "12.0.1"
   }
 }
