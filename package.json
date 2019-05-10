@@ -14,13 +14,13 @@
   "devDependencies": {
     "eslint": "5.16.0",
     "eslint-plugin-mocha": "5.3.0",
-    "jsdoc": "3.5.5",
+    "jsdoc": "3.6.1",
     "lolex": "4.0.1",
     "mocha": "6.1.4",
     "nock": "10.0.6",
     "nodemon": "1.19.0",
-    "nyc": "14.1.0",
-    "rollup": "1.11.0",
+    "nyc": "14.1.1",
+    "rollup": "1.11.3",
     "rollup-plugin-commonjs": "9.3.4",
     "rollup-plugin-node-resolve": "4.2.3",
     "sinon": "7.3.2"
@@ -40,9 +40,9 @@
     "passport-local": "1.0.0",
     "redis": "2.8.0",
     "request": "2.88.0",
-    "restify": "8.3.1",
-    "restify-errors": "7.0.0",
-    "sqlite3": "4.0.6",
-    "xmlbuilder": "12.0.1"
+    "restify": "8.3.2",
+    "restify-errors": "8.0.0",
+    "sqlite3": "4.0.7",
+    "xmlbuilder": "13.0.1"
   }
 }
