@@ -100,3 +100,7 @@ workspace:
 	tmux select-window -t "$(TMUX_SESSION_NAME)":0
 
 	tmux attach-session -t "$(TMUX_SESSION_NAME)"
+
+# Push the repository to GitHub.
+mirror:
+	git push --force git@github.com:lovett/headlines.git master:master
